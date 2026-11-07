@@ -22,6 +22,7 @@ import { ManageQuestionsModal } from './components/ManageQuestionsModal';
 import { RelatoriosModal } from './components/RelatoriosModal';
 import { AlarmBalloonModal } from './components/AlarmBalloonModal';
 import { AlarmScheduler } from './components/AlarmScheduler';
+import { NativeAlarmSync, NativeAlarmSetupCard } from './components/NativeAlarmSync';
 import { CustomizeBottomNavModal } from './components/CustomizeBottomNavModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { AutoUpdater } from './components/AutoUpdater';
@@ -61,6 +62,7 @@ const MainContent: React.FC = () => {
         {activeTab === 'inicio' && (
           <div className="animate-in fade-in duration-200">
             <Header />
+            <NativeAlarmSetupCard />
             <MeuMapaCard />
             <AgendaCard />
             <RotinasCard />
@@ -95,6 +97,8 @@ const MainContent: React.FC = () => {
       <AlarmBalloonModal />
       {/* Fires the balloon + voice at the time of each routine, appointment and medication */}
       <AlarmScheduler />
+      {/* Android app: native alarm with sound, voice and full screen even with the app closed */}
+      <NativeAlarmSync />
       <CustomizeBottomNavModal />
       <OfflineIndicator />
     </div>

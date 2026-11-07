@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useApp, ActiveAlarmPayload } from '../context/AppContext';
 import { agendaOccursOn } from '../utils/routineCalculations';
 import { todayISO, nowHHMM } from '../utils/dateUtils';
+import { isNativeAlarmAvailable } from '../services/nativeAlarm';
 
 // Fires the alarm balloon (+ voice) when a routine, timeline step, agenda item,
 // recurring task or medication reaches its time. Works while the app is open.
@@ -47,6 +48,8 @@ export const AlarmScheduler: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // In the Android app the native alarm rings instead (sound + voice + full screen)
+    if (isNativeAlarmAvailable()) return;
     const check = () => {
       const {
         isLoggedIn,
