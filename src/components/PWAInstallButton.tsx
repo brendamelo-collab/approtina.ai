@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { Download, Share, PlusSquare, X, Check, Smartphone } from 'lucide-react';
+import { isNativeAlarmAvailable } from '../services/nativeAlarm';
+
+// Android: the real app (with alarm, voice and full screen) is the APK built by GitHub
+export const ANDROID_APK_URL =
+  'https://github.com/brendamelo-collab/approtina.ai/releases/download/android-latest/rotina-ai.apk';
+const isAndroidBrowser = () => typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
 
 interface PWAInstallButtonProps {
   variant?: 'button' | 'banner' | 'card';
@@ -14,8 +20,14 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
   const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
   const [showIOSModal, setShowIOSModal] = useState(false);
   const [installedToast, setInstalledToast] = useState(false);
+  const [showAndroidModal, setShowAndroidModal] = useState(false);
 
-  if (isInstalled) {
+  // Already inside the Android app: nothing to install
+  if (isNativeAlarmAvailable()) return null;
+
+  const android = isAndroidBrowser();
+
+  if (isInstalled && !android) {
     return (
       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EEF5EF] border border-[#B7D2B9] text-[#2C5230] text-xs font-bold">
         <Check className="w-3.5 h-3.5 text-[#2C5230]" />
@@ -25,6 +37,12 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
   }
 
   const handleInstallClick = async () => {
+    if (android) {
+      // Downloads the APK and shows how to install it
+      window.location.href = ANDROID_APK_URL;
+      setShowAndroidModal(true);
+      return;
+    }
     if (isInstallable) {
       const ok = await install();
       if (ok) {
@@ -47,8 +65,14 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
               <Download className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-[#2C2C2C]">Instalar o Rotina.ai no seu Aparelho</h4>
-              <p className="text-[11px] text-[#8C7A6B]">Acesse como aplicativo na sua tela inicial sem precisar digitar o site</p>
+              <h4 className="text-xs font-bold text-[#2C2C2C]">
+                {android ? 'Baixar o app Android do Rotina.ai' : 'Instalar o Rotina.ai no seu Aparelho'}
+              </h4>
+              <p className="text-[11px] text-[#8C7A6B]">
+                {android
+                  ? 'Com alarme no horário, voz e tela cheia, mesmo com o app fechado'
+                  : 'Acesse como aplicativo na sua tela inicial sem precisar digitar o site'}
+              </p>
             </div>
           </div>
           <button
@@ -56,18 +80,55 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
             className="px-3.5 py-2 bg-[#8C7A6B] hover:bg-[#786657] text-white text-xs font-bold rounded-xl transition-colors shrink-0 shadow-2xs flex items-center gap-1.5"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Instalar</span>
+            <span>{android ? 'Baixar' : 'Instalar'}</span>
           </button>
         </div>
       ) : (
         <button
           onClick={handleInstallClick}
           className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#8C7A6B] hover:bg-[#786657] text-white text-xs font-bold transition-all shadow-2xs active:scale-95 ${className}`}
-          title="Instalar Rotina.ai como Aplicativo no Celular ou Computador"
+          title={android ? 'Baixar o app Android do Rotina.ai' : 'Instalar Rotina.ai como Aplicativo no Celular ou Computador'}
         >
           <Download className="w-3.5 h-3.5" />
-          <span>Baixar / Instalar App</span>
+          <span>{android ? 'Baixar app Android' : 'Baixar / Instalar App'}</span>
         </button>
+      )}
+
+      {/* Android: how to install the downloaded APK */}
+      {showAndroidModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-[#FDFBF7] rounded-3xl p-5 shadow-2xl border border-[#EFE8DE] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-[#F7EEE3] flex items-center justify-center text-[#8C7A6B]">
+                  <Smartphone className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[#2C2C2C]">Instalar o app Android</h3>
+                  <p className="text-[11px] text-[#8C7A6B]">O download do rotina-ai.apk começou</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAndroidModal(false)}
+                className="w-8 h-8 rounded-full bg-[#F4EDE2] flex items-center justify-center text-[#5C4F44]"
+                aria-label="Fechar"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <ol className="space-y-2 text-xs text-[#2C2C2C] list-decimal pl-4">
+              <li>Quando o download terminar, toque em <strong>Abrir</strong> (ou abra pela pasta Downloads).</li>
+              <li>Se o Android pedir, permita <strong>instalar apps desta fonte</strong> e toque em Instalar.</li>
+              <li>Abra o Rotina.ai, entre na sua conta e ative as permissões do <strong>alarme</strong> na tela inicial.</li>
+            </ol>
+            <a
+              href={ANDROID_APK_URL}
+              className="block text-center w-full py-2.5 bg-[#8C7A6B] hover:bg-[#786657] text-white text-xs font-bold rounded-xl"
+            >
+              Baixar de novo
+            </a>
+          </div>
+        </div>
       )}
 
       {/* Modal Guia para iOS Safari ou Navegadores sem suporte a prompt automático */}
