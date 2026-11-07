@@ -346,7 +346,6 @@ export const AiChatContainer: React.FC<{ isEmbeddedView?: boolean; onClose?: () 
             message: query,
             familyContext: {
               userName: currentProfile.name,
-              children: 'Bryan (5 anos) e Benício (2 anos)',
               routinePending: routineTasks.filter((t) => !t.completed).length,
               nextEvent: agendaItems[0]?.title
             }
@@ -375,9 +374,9 @@ export const AiChatContainer: React.FC<{ isEmbeddedView?: boolean; onClose?: () 
           const positiveCount = questionResponses.filter((r) => r.value === 'positivo').length;
           const total = questionResponses.filter((r) => r.value === 'positivo' || r.value === 'negativo').length;
           const rate = total > 0 ? Math.round((positiveCount / total) * 100) : 83;
-          reply = `Analisando seu histórico de Novembro: Seu índice de momentos positivos está em ${rate}%! Destaco sua evolução na paciência com o Bryan e o Benício nesta semana. Quando a rotina de sono das crianças se manteve no horário, seu nível de estresse caiu visivelmente. Continue cultivando essas pequenas pausas diárias. 💕`;
+          reply = `Analisando seu histórico de Novembro: Seu índice de momentos positivos está em ${rate}%! Continue registrando seu dia para eu acompanhar sua evolução com mais precisão. Continue cultivando essas pequenas pausas diárias. 💕`;
         } else {
-          reply = `Compreendo perfeitamente, ${currentProfile.name}. Estou aqui para acolher você, acompanhar Bryan e Benício, organizar seus horários e planejar um dia mais leve. Como posso te apoiar agora? ✨`;
+          reply = `Compreendo perfeitamente, ${currentProfile.name}. Estou aqui para acolher você, acompanhar sua família, organizar seus horários e planejar um dia mais leve. Como posso te apoiar agora? ✨`;
         }
       }
 

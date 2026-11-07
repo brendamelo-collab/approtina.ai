@@ -28,7 +28,8 @@ export const RotinasView: React.FC = () => {
     deleteDailyChronologicalStep,
     recurringTasks,
     speakVoiceReminder,
-    triggerAlarm
+    triggerAlarm,
+    currentProfile
   } = useApp();
 
   // Top Subtab switcher: 'semanal' | 'diaria'
@@ -329,7 +330,7 @@ export const RotinasView: React.FC = () => {
                     {/* Voice Reminder Trigger */}
                     <button
                       onClick={() =>
-                        speakVoiceReminder(`Brenda, são ${step.time}. Hora de: ${step.title.replace('🔁 ', '')}`)
+                        speakVoiceReminder(`${currentProfile.name}, são ${step.time}. Hora de: ${step.title.replace('🔁 ', '')}`)
                       }
                       className="p-1.5 rounded-xl bg-[#F4EDE2] hover:bg-[#EAE0D2] text-[#8C7A6B]"
                       title="Ouvir lembrete falado por voz"

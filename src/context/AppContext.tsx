@@ -305,6 +305,7 @@ interface AppContextType {
   // User Auth State
   userEmail: string;
   isLoggedIn: boolean;
+  authReady: boolean;
   login: (email: string) => void;
   logout: () => void;
 }
@@ -1000,6 +1001,88 @@ const defaultNotifications: AppNotification[] = [
   { id: 'n-2', title: 'Agenda de amanhã', message: 'Futebol das crianças agendado para Terça-feira às 17h.', time: 'Há 2 horas', read: false, type: 'familia' },
   { id: 'n-3', title: 'Evolução da semana', message: 'Seu mapa registrou 80% de momentos positivos. Continue assim! 💛', time: 'Ontem', read: true, type: 'rotina' }
 ];
+
+// Personal data starts empty for every new account (no demo data)
+const EMPTY_PERSONAL_STATE: Record<string, any> = {
+  moodRecords: [],
+  dayFactors: {},
+  dayNotes: {},
+  questionResponses: [],
+  agendaItems: [],
+  weeklyFixedTopics: [],
+  routineTasks: [],
+  dailyChronologicalSteps: [],
+  healthDateItems: [],
+  healthMedications: [],
+  healthNoteItems: [],
+  goals: [],
+  recurringTasks: [],
+  recurringHistory: [],
+  notifications: []
+};
+
+const PENDING_NAME_KEY = 'rotina_ai_pending_display_name';
+
+const firstNameFor = (user: { displayName?: string | null; email?: string | null }) => {
+  let pending = '';
+  try {
+    pending = localStorage.getItem(PENDING_NAME_KEY) || '';
+  } catch {
+    // ignore
+  }
+  const raw = (pending || user.displayName || (user.email || '').split('@')[0] || 'Você').trim();
+  const first = raw.split(/[\s._-]+/)[0] || raw;
+  return first.charAt(0).toUpperCase() + first.slice(1);
+};
+
+// Initial state for a brand-new account: the user's own profile + default settings, no demo records
+const buildStarterState = (user: { displayName?: string | null; email?: string | null }): Record<string, any> => ({
+  ...EMPTY_PERSONAL_STATE,
+  profiles: [
+    {
+      id: 'p1',
+      name: firstNameFor(user),
+      role: 'Eu',
+      subtitle: 'Administrador(a) da Família',
+      isPrimary: true,
+      memberType: 'real',
+      email: user.email || '',
+      color: '#8C7A6B'
+    }
+  ],
+  bottomNavSlots: defaultBottomNavSlots,
+  notificationPreferences: defaultNotificationPreferences,
+  moodOptions: defaultMoodOptions,
+  availableFactors: defaultAvailableFactors,
+  lifeAreas: defaultLifeAreas,
+  questionGroups: defaultQuestionGroups,
+  questions: defaultQuestions,
+  agendaCategories: defaultAgendaCategories,
+  healthGroups: defaultHealthGroups,
+  goalCategories: defaultGoalCategories
+});
+
+// Writes a full app state into localStorage (the app boots from it after reload)
+const writeLocalAppState = (state: Record<string, any>) => {
+  Object.entries(CLOUD_SYNC_FIELDS).forEach(([field, suffix]) => {
+    const key = `${STORAGE_KEY}_${suffix}`;
+    if (state[field] !== undefined && state[field] !== null) {
+      localStorage.setItem(key, JSON.stringify(state[field]));
+    } else if (field in EMPTY_PERSONAL_STATE) {
+      // Realtime Database does not store empty lists/objects
+      localStorage.setItem(key, JSON.stringify(EMPTY_PERSONAL_STATE[field]));
+    } else {
+      localStorage.removeItem(key);
+    }
+  });
+};
+
+const clearLocalAppState = () => {
+  Object.values(CLOUD_SYNC_FIELDS).forEach((suffix) => localStorage.removeItem(`${STORAGE_KEY}_${suffix}`));
+  localStorage.removeItem(`${STORAGE_KEY}_owner_uid`);
+  localStorage.removeItem(`${STORAGE_KEY}_user_email`);
+  localStorage.removeItem(`${STORAGE_KEY}_is_logged_in`);
+};
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -2051,57 +2134,73 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // User Auth State & Firebase Realtime Database Sync
   const [userEmail, setUserEmail] = useState<string>(() => {
-    return localStorage.getItem(`${STORAGE_KEY}_user_email`) || 'brenda.m.magalhaes@gmail.com';
+    return localStorage.getItem(`${STORAGE_KEY}_user_email`) || '';
   });
 
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    return localStorage.getItem(`${STORAGE_KEY}_is_logged_in`) === 'true' || true;
-  });
+  // Nothing is shown until Firebase Auth answers; without a user the login screen is shown
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [authReady, setAuthReady] = useState<boolean>(false);
 
   // Cloud sync only starts after the user's data was read from Realtime Database,
-  // so local defaults never overwrite what is already saved in the cloud.
+  // so local data never overwrites what is already saved in the cloud.
   const [cloudSyncReady, setCloudSyncReady] = useState<boolean>(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUserEmail(user.email || 'brenda.m.magalhaes@gmail.com');
-        setIsLoggedIn(true);
-        localStorage.setItem(`${STORAGE_KEY}_user_email`, user.email || '');
-        localStorage.setItem(`${STORAGE_KEY}_is_logged_in`, 'true');
-
-        const hydratedFlag = `${STORAGE_KEY}_rtdb_hydrated_${user.uid}`;
-        const remote = await loadUserRealtimeData(user.uid);
-        if (remote === undefined) {
-          // Read failed: keep working locally and do not overwrite the cloud copy
-          setCloudSyncReady(false);
-          return;
-        }
-        if (remote && !sessionStorage.getItem(hydratedFlag)) {
-          // Load the cloud copy into local storage once per session, then reload the app with it
-          try {
-            Object.entries(CLOUD_SYNC_FIELDS).forEach(([field, suffix]) => {
-              const key = `${STORAGE_KEY}_${suffix}`;
-              if (remote[field] !== undefined) {
-                localStorage.setItem(key, JSON.stringify(remote[field]));
-              } else if ((localStorage.getItem(key) || '').trim().startsWith('[')) {
-                // Realtime Database does not store empty lists
-                localStorage.setItem(key, '[]');
-              }
-            });
-            sessionStorage.setItem(hydratedFlag, '1');
-            window.location.reload();
-            return;
-          } catch {
-            // Storage unavailable: fall through and sync from the current state
-          }
-        }
-        sessionStorage.setItem(hydratedFlag, '1');
-        setCloudSyncReady(true);
-      } else {
+      if (!user) {
         setCloudSyncReady(false);
         setIsLoggedIn(false);
+        setAuthReady(true);
+        return;
       }
+
+      setAuthReady(false);
+      setUserEmail(user.email || '');
+      localStorage.setItem(`${STORAGE_KEY}_user_email`, user.email || '');
+      localStorage.setItem(`${STORAGE_KEY}_is_logged_in`, 'true');
+
+      const ownerKey = `${STORAGE_KEY}_owner_uid`;
+      const hydratedFlag = `${STORAGE_KEY}_rtdb_hydrated_${user.uid}`;
+      const localBelongsToUser = localStorage.getItem(ownerKey) === user.uid;
+      const remote = await loadUserRealtimeData(user.uid);
+
+      // Loads `state` into local storage and restarts the app with it (once per session)
+      const bootWith = (state: Record<string, any>) => {
+        try {
+          writeLocalAppState(state);
+          localStorage.setItem(ownerKey, user.uid);
+          localStorage.removeItem(PENDING_NAME_KEY);
+          sessionStorage.setItem(hydratedFlag, '1');
+          window.location.reload();
+          return true;
+        } catch {
+          return false;
+        }
+      };
+
+      if (remote === undefined) {
+        // Cloud unreachable (offline): never show another account's local data
+        if (!localBelongsToUser && bootWith(buildStarterState(user))) return;
+        setIsLoggedIn(true);
+        setAuthReady(true);
+        return;
+      }
+
+      if (!localBelongsToUser || !sessionStorage.getItem(hydratedFlag)) {
+        // Cloud copy wins on a new session; a brand-new account starts clean with its own name
+        // Accounts created by the previous version saved the demo data ("Brenda") to the cloud: start them clean
+        const demoEmail = defaultProfiles[0]?.email;
+        const isDemoCopy =
+          !!remote &&
+          Array.isArray(remote.profiles) &&
+          remote.profiles[0]?.email === demoEmail &&
+          (user.email || '').toLowerCase() !== (demoEmail || '').toLowerCase();
+        if (bootWith(remote && !isDemoCopy ? remote : buildStarterState(user))) return;
+      }
+
+      setIsLoggedIn(true);
+      setCloudSyncReady(true);
+      setAuthReady(true);
     });
     return () => unsubscribe();
   }, []);
@@ -2114,12 +2213,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const logout = async () => {
+    setCloudSyncReady(false);
     await logoutFirebase();
+    try {
+      clearLocalAppState();
+      Object.keys(sessionStorage)
+        .filter((k) => k.startsWith(`${STORAGE_KEY}_rtdb_hydrated_`))
+        .forEach((k) => sessionStorage.removeItem(k));
+    } catch {
+      // ignore
+    }
     setUserEmail('');
     setIsLoggedIn(false);
-    localStorage.removeItem(`${STORAGE_KEY}_user_email`);
-    localStorage.setItem(`${STORAGE_KEY}_is_logged_in`, 'false');
+    window.location.reload();
   };
+
 
   // Persist State to LocalStorage & Sync to Firebase Realtime Database
   useEffect(() => {
@@ -2497,6 +2605,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         userEmail,
         isLoggedIn,
+        authReady,
         login,
         logout
       }}

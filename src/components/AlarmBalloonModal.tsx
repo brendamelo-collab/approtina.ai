@@ -32,7 +32,7 @@ export const AlarmBalloonModal: React.FC = () => {
     };
 
     const triggerAnnounce = () => {
-      speakVoiceReminder(`Lembrete para ${activeAlarm.memberName || 'Brenda'}: ${activeAlarm.title}`);
+      speakVoiceReminder(`Lembrete para ${activeAlarm.memberName || 'você'}: ${activeAlarm.title}`);
       setTimeout(playChimeBeep, 1200);
     };
 

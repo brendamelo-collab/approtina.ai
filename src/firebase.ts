@@ -7,6 +7,7 @@ import {
   getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  updateProfile,
   signOut,
   onAuthStateChanged,
   User as FirebaseUser
@@ -101,9 +102,14 @@ export const loginWithEmail = async (email: string, pass: string) => {
   }
 };
 
-export const registerWithEmail = async (email: string, pass: string) => {
+export const registerWithEmail = async (email: string, pass: string, name?: string) => {
   try {
+    // The app reads this right after sign-up to greet the user by name
+    if (name?.trim()) localStorage.setItem('rotina_ai_pending_display_name', name.trim());
     const result = await createUserWithEmailAndPassword(auth, email, pass);
+    if (name?.trim()) {
+      await updateProfile(result.user, { displayName: name.trim() }).catch(() => undefined);
+    }
     return { user: result.user, error: null };
   } catch (error: any) {
     let msg = error.message || 'Erro ao criar conta no Firebase';

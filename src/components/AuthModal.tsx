@@ -1,19 +1,22 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { loginWithGoogle, loginWithEmail, registerWithEmail } from '../firebase';
-import { X, Lock, Mail, Shield, Check, UserPlus, LogIn } from 'lucide-react';
+import { X, Lock, Mail, Shield, Check, UserPlus, LogIn, User } from 'lucide-react';
 
-export const AuthModal: React.FC = () => {
+// variant="page": full-screen login shown before the app when nobody is signed in
+export const AuthModal: React.FC<{ variant?: 'modal' | 'page' }> = ({ variant = 'modal' }) => {
   const { isAuthModalOpen, setIsAuthModalOpen } = useApp();
+  const isPage = variant === 'page';
 
   const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  if (!isAuthModalOpen) return null;
+  if (!isPage && !isAuthModalOpen) return null;
 
   const handleGoogleLogin = async () => {
     setErrorMsg(null);
@@ -34,12 +37,16 @@ export const AuthModal: React.FC = () => {
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) return;
+    if (isRegisterMode && !name.trim()) {
+      setErrorMsg('Informe seu nome para criar a conta.');
+      return;
+    }
     setErrorMsg(null);
     setLoading(true);
 
     let result;
     if (isRegisterMode) {
-      result = await registerWithEmail(email.trim(), password.trim());
+      result = await registerWithEmail(email.trim(), password.trim(), name.trim());
     } else {
       result = await loginWithEmail(email.trim(), password.trim());
     }
@@ -57,7 +64,13 @@ export const AuthModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+    <div
+      className={
+        isPage
+          ? 'min-h-screen flex items-center justify-center bg-[#FDFBF7] p-4'
+          : 'fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4 animate-in fade-in duration-150'
+      }
+    >
       <div className="w-full max-w-md bg-[#FDFBF7] rounded-3xl p-5 shadow-2xl border border-[#EFE8DE] animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
           <div className="flex items-center gap-2.5">
@@ -65,16 +78,20 @@ export const AuthModal: React.FC = () => {
               <Lock className="w-5 h-5 text-[#8C7A6B]" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#2C2C2C]">Firebase Auth • app-rotinaai</h2>
-              <p className="text-xs text-[#8C7A6B]">Sincronização em tempo real</p>
+              <h2 className="text-base font-bold text-[#2C2C2C]">
+                {isRegisterMode ? 'Criar conta no Rotina.ai' : 'Entrar no Rotina.ai'}
+              </h2>
+              <p className="text-xs text-[#8C7A6B]">Seus dados sincronizados em todos os aparelhos</p>
             </div>
           </div>
-          <button
-            onClick={() => setIsAuthModalOpen(false)}
-            className="w-8 h-8 rounded-full bg-[#F4EDE2] hover:bg-[#EAE0D2] flex items-center justify-center text-[#5C4F44]"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          {!isPage && (
+            <button
+              onClick={() => setIsAuthModalOpen(false)}
+              className="w-8 h-8 rounded-full bg-[#F4EDE2] hover:bg-[#EAE0D2] flex items-center justify-center text-[#5C4F44]"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         <div className="py-4 space-y-4">
@@ -116,7 +133,7 @@ export const AuthModal: React.FC = () => {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
               />
             </svg>
-            <span>Continuar com o Google (Firebase Auth)</span>
+            <span>Continuar com o Google</span>
           </button>
 
           <div className="relative flex py-1 items-center">
@@ -127,6 +144,24 @@ export const AuthModal: React.FC = () => {
 
           {/* Email / Password Form */}
           <form onSubmit={handleEmailAuth} className="space-y-3">
+            {isRegisterMode && (
+              <div>
+                <label className="block text-xs font-bold text-[#3C3C3C] mb-1">
+                  Seu nome
+                </label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-[#8C7A6B] absolute left-3 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Como você quer ser chamado(a)"
+                    className="w-full pl-9 pr-3 py-2.5 bg-[#FAF8F5] border border-[#EFE8DE] rounded-2xl text-xs text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
+                  />
+                </div>
+              </div>
+            )}
             <div>
               <label className="block text-xs font-bold text-[#3C3C3C] mb-1">
                 E-mail
@@ -138,7 +173,7 @@ export const AuthModal: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="brenda@app-rotinaai.firebaseapp.com"
+                  placeholder="seu@email.com"
                   className="w-full pl-9 pr-3 py-2.5 bg-[#FAF8F5] border border-[#EFE8DE] rounded-2xl text-xs text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
                 />
               </div>
@@ -164,7 +199,7 @@ export const AuthModal: React.FC = () => {
             <div className="bg-[#F7F2EA] border border-[#E8DFC8] rounded-2xl p-3 flex items-start gap-2 text-[11px] text-[#5C4F44]">
               <Shield className="w-4 h-4 text-[#8C7A6B] shrink-0 mt-0.5" />
               <span>
-                Seus dados serão salvos de forma segura e restrita no Firebase Realtime Database (`app-rotinaai-default-rtdb`).
+                Seus dados ficam salvos com segurança na sua conta e só você tem acesso a eles.
               </span>
             </div>
 
@@ -174,7 +209,7 @@ export const AuthModal: React.FC = () => {
               className="w-full py-3 rounded-2xl bg-[#8C7A6B] hover:bg-[#786657] text-white text-xs font-bold transition-all shadow-sm active:scale-98 flex items-center justify-center gap-2"
             >
               {isRegisterMode ? <UserPlus className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
-              <span>{isRegisterMode ? 'Criar Conta no Firebase' : 'Entrar com E-mail'}</span>
+              <span>{isRegisterMode ? 'Criar conta' : 'Entrar com e-mail'}</span>
             </button>
           </form>
 

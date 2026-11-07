@@ -106,7 +106,7 @@ export const MaisDrawer: React.FC = () => {
     {
       id: 'familia',
       label: 'Membros da Família',
-      desc: 'Alternar entre Brenda, Bryan, Benício e Lucas',
+      desc: 'Gerenciar e alternar entre os membros da família',
       icon: <Users className="w-5 h-5 text-[#8C7A6B]" />,
       action: () => setActiveSubView('familia')
     },

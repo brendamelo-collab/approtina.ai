@@ -35,7 +35,22 @@ import { AiAssistantView } from './components/views/AiAssistantView';
 import { ConfiguracoesPerfilView } from './components/views/ConfiguracoesPerfilView';
 
 const MainContent: React.FC = () => {
-  const { activeTab } = useApp();
+  const { activeTab, authReady, isLoggedIn } = useApp();
+
+  // Wait for Firebase Auth before showing anything
+  if (!authReady) {
+    return (
+      <div className="min-h-screen bg-[#FDFBF7] flex flex-col items-center justify-center gap-3">
+        <div className="w-10 h-10 rounded-full border-4 border-[#EFE8DE] border-t-[#8C7A6B] animate-spin" />
+        <p className="text-xs font-semibold text-[#8C7A6B]">Carregando...</p>
+      </div>
+    );
+  }
+
+  // Not signed in: login screen first
+  if (!isLoggedIn) {
+    return <AuthModal variant="page" />;
+  }
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#2C2C2C] flex flex-col justify-between selection:bg-[#EAE0D2]">
