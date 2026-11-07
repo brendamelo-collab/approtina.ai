@@ -18,14 +18,8 @@ import { getDatabase, ref, set, onValue, get } from 'firebase/database';
 // Firebase Web Configuration provided by user for app-rotinaai
 export const firebaseConfig = {
   apiKey: "AIzaSyCLMC4UquqfqVgP3eHrV3wI9zWqfpSVh0I",
-  // When served from Firebase Hosting, use the current host as authDomain so the
-  // Google sign-in handler (/__/auth/handler) is same-origin (avoids third-party
-  // storage blocking in Safari/Chrome and in the installed PWA).
-  authDomain:
-    typeof window !== 'undefined' &&
-    /(^|\.)app-rotinaai\.(web\.app|firebaseapp\.com)$/.test(window.location.hostname)
-      ? window.location.hostname
-      : "app-rotinaai.firebaseapp.com",
+  // Keep the default auth domain: it is the redirect URI registered in the Google OAuth client
+  authDomain: "app-rotinaai.firebaseapp.com",
   databaseURL: "https://app-rotinaai-default-rtdb.firebaseio.com",
   projectId: "app-rotinaai",
   storageBucket: "app-rotinaai.firebasestorage.app",
