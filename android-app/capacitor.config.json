@@ -1,0 +1,13 @@
+{
+  "appId": "br.com.rotinaai.app",
+  "appName": "Rotina.ai",
+  "webDir": "www",
+  "server": {
+    "url": "https://app-rotinaai.web.app",
+    "cleartext": false,
+    "allowNavigation": ["app-rotinaai.web.app", "app-rotinaai.firebaseapp.com"]
+  },
+  "android": {
+    "backgroundColor": "#FAF8F5"
+  }
+}
