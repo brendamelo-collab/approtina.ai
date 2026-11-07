@@ -2,11 +2,13 @@ import React from 'react';
 import { useApp } from '../context/AppContext';
 import { CheckSquare, ChevronRight, Sun, Home, Moon, Sparkles, Bell } from 'lucide-react';
 import { PeriodKey } from '../types';
-import { calculateRoutineProgress } from '../utils/routineCalculations';
+import { parseISODate, todayISO } from '../utils/dateUtils';
 
 export const RotinasCard: React.FC = () => {
   const {
     routineTasks,
+    dailyChronologicalSteps,
+    selectedDate,
     contextualReminders,
     setActivePeriodModal,
     setActiveTab
@@ -39,7 +41,18 @@ export const RotinasCard: React.FC = () => {
     }
   ];
 
-  const activeReminder = contextualReminders[0];
+  const activeReminder = contextualReminders.find((r) => r.active && (!r.date || r.date === selectedDate));
+
+  // Only what applies to the selected weekday (routine tasks + timeline steps of each period)
+  const weekday = parseISODate(selectedDate || todayISO()).getDay();
+  const progressFor = (period: PeriodKey) => {
+    const tasks = routineTasks.filter(
+      (t) => t.period === period && (!t.daysOfWeek || t.daysOfWeek.length === 0 || t.daysOfWeek.includes(weekday))
+    );
+    const steps = dailyChronologicalSteps.filter((st) => st.period === period);
+    const all = [...tasks, ...steps];
+    return { total: all.length, completed: all.filter((x) => x.completed).length };
+  };
 
   return (
     <section className="w-full max-w-xl mx-auto px-4 sm:px-6 my-3.5 select-none">
@@ -70,7 +83,7 @@ export const RotinasCard: React.FC = () => {
         {/* 4 Period Quick Blocks */}
         <div className="grid grid-cols-4 gap-2 sm:gap-3">
           {periods.map((p) => {
-            const { completed, total } = calculateRoutineProgress(routineTasks, p.key);
+            const { completed, total } = progressFor(p.key);
             return (
               <button
                 key={p.key}
@@ -84,7 +97,7 @@ export const RotinasCard: React.FC = () => {
                   {p.label}
                 </span>
                 <span className="text-[10px] text-[#8C7A6B] font-medium mt-0.5">
-                  {completed}/{total} feitas
+                  {total === 0 ? 'Adicionar' : `${completed}/${total} feitas`}
                 </span>
               </button>
             );

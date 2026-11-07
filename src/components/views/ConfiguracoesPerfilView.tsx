@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { PhotoCropper } from '../PhotoCropper';
 import { UserProfile, NotificationPreferences, ColorPalette, FontSizeScale } from '../../types';
 import { UserAvatar } from '../UserAvatar';
 import { PWAInstallButton } from '../PWAInstallButton';
@@ -85,6 +86,8 @@ export const ConfiguracoesPerfilView: React.FC = () => {
 
   // Profile Photo Edit Modal
   const [editingPhotoProfile, setEditingPhotoProfile] = useState<UserProfile | null>(null);
+  // Photo picked from the device, waiting to be cropped
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [photoInputUrl, setPhotoInputUrl] = useState('');
   const [selectedEmojiAvatar, setSelectedEmojiAvatar] = useState('');
 
@@ -160,21 +163,27 @@ export const ConfiguracoesPerfilView: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('A imagem deve ser menor que 5MB.');
+    if (file.size > 20 * 1024 * 1024) {
+      showToast('A imagem deve ser menor que 20MB.');
       return;
     }
 
+    // Opens the cropper; the cropped photo is saved small (320x320)
     const reader = new FileReader();
     reader.onload = (event) => {
       const result = event.target?.result as string;
-      if (result && editingPhotoProfile) {
-        updateProfile(editingPhotoProfile.id, { avatarUrl: result });
-        showToast(`✓ Foto de perfil de ${editingPhotoProfile.name} atualizada!`);
-        setEditingPhotoProfile(null);
-      }
+      if (result) setCropSrc(result);
     };
     reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleSaveCroppedPhoto = (dataUrl: string) => {
+    if (!editingPhotoProfile) return;
+    updateProfile(editingPhotoProfile.id, { avatarUrl: dataUrl });
+    showToast(`✓ Foto de perfil de ${editingPhotoProfile.name} atualizada!`);
+    setCropSrc(null);
+    setEditingPhotoProfile(null);
   };
 
   const handleSaveEmojiAvatar = (emoji: string) => {
@@ -1035,6 +1044,10 @@ export const ConfiguracoesPerfilView: React.FC = () => {
         </div>
       </div>
 
+      {cropSrc && editingPhotoProfile && (
+        <PhotoCropper src={cropSrc} onCancel={() => setCropSrc(null)} onSave={handleSaveCroppedPhoto} />
+      )}
+
       {/* MODAL: MUDAR FOTO / AVATAR DO PERFIL */}
       {editingPhotoProfile && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4 animate-in fade-in duration-150">
@@ -1071,7 +1084,16 @@ export const ConfiguracoesPerfilView: React.FC = () => {
                   className="hidden"
                 />
               </label>
-              <p className="text-[10px] text-[#8C7A6B] text-center">Formatos suportados: PNG, JPG, WebP (máx. 5MB)</p>
+              {editingPhotoProfile.avatarUrl?.startsWith('data:image') && (
+                <button
+                  type="button"
+                  onClick={() => setCropSrc(editingPhotoProfile.avatarUrl || null)}
+                  className="w-full text-xs font-bold text-[#5C4F44] bg-white hover:bg-[#F4EDE2] border border-[#D8C7B4] py-2 rounded-xl transition-colors"
+                >
+                  Ajustar / cortar a foto atual
+                </button>
+              )}
+              <p className="text-[10px] text-[#8C7A6B] text-center">Depois de escolher, você ajusta e corta a foto</p>
             </div>
 
             {/* OPÇÃO 2: Escolher Emoji ou Ícone Personalizado */}

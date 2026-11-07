@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { X, Check, Plus, Sun, Home, Moon, Sparkles } from 'lucide-react';
+import { X, Check, Plus, Sun, Home, Moon, Sparkles, Trash2 } from 'lucide-react';
 import { PeriodKey } from '../types';
 
 export const RoutineModal: React.FC = () => {
@@ -9,7 +9,11 @@ export const RoutineModal: React.FC = () => {
     setActivePeriodModal,
     routineTasks,
     toggleRoutineTask,
-    addRoutineTask
+    addRoutineTask,
+    deleteRoutineTask,
+    dailyChronologicalSteps,
+    toggleDailyChronologicalStep,
+    deleteDailyChronologicalStep
   } = useApp();
 
   const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -42,7 +46,32 @@ export const RoutineModal: React.FC = () => {
   };
 
   const currentMeta = periodMeta[activePeriodModal];
-  const tasks = routineTasks.filter((t) => t.period === activePeriodModal);
+  // Routine tasks + timeline steps of this period, in time order
+  const tasks = [
+    ...routineTasks
+      .filter((t) => t.period === activePeriodModal)
+      .map((t) => ({ ...t, kind: 'task' as const })),
+    ...dailyChronologicalSteps
+      .filter((st) => st.period === activePeriodModal)
+      .map((st) => ({
+        id: st.id,
+        title: `${st.icon ? `${st.icon} ` : ''}${st.title}`,
+        subtitle: st.description,
+        time: st.time,
+        completed: st.completed,
+        locked: !!st.isRecurringAuto,
+        kind: 'step' as const
+      }))
+  ].sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+
+  const toggleItem = (item: (typeof tasks)[number]) =>
+    item.kind === 'task' ? toggleRoutineTask(item.id) : toggleDailyChronologicalStep(item.id);
+
+  const deleteItem = (item: (typeof tasks)[number]) => {
+    if (!window.confirm(`Apagar "${item.title}"?`)) return;
+    if (item.kind === 'task') deleteRoutineTask(item.id);
+    else deleteDailyChronologicalStep(item.id);
+  };
 
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,17 +120,17 @@ export const RoutineModal: React.FC = () => {
           ) : (
             tasks.map((task) => (
               <div
-                key={task.id}
-                onClick={() => toggleRoutineTask(task.id)}
+                key={`${task.kind}-${task.id}`}
+                onClick={() => toggleItem(task)}
                 className={`p-3.5 rounded-2xl border cursor-pointer flex items-center justify-between transition-all ${
                   task.completed
                     ? 'bg-[#F2ECE2] border-[#DDD3C5] opacity-75'
                     : 'bg-[#FAF8F5] border-[#EFE8DE] hover:bg-[#F6EFE6]'
                 }`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className={`w-6 h-6 rounded-lg flex items-center justify-center border transition-colors ${
+                    className={`w-6 h-6 shrink-0 rounded-lg flex items-center justify-center border transition-colors ${
                       task.completed
                         ? 'bg-[#8C7A6B] border-[#8C7A6B] text-white'
                         : 'border-[#C4B6A6] bg-white'
@@ -123,11 +152,27 @@ export const RoutineModal: React.FC = () => {
                   </div>
                 </div>
 
-                {task.time && (
-                  <span className="text-[10px] text-[#8C7A6B] font-medium bg-[#EFE8DE] px-2 py-0.5 rounded-md">
-                    {task.time}
-                  </span>
-                )}
+                <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                  {task.time && (
+                    <span className="text-[10px] text-[#8C7A6B] font-medium bg-[#EFE8DE] px-2 py-0.5 rounded-md tabular-nums whitespace-nowrap">
+                      {task.time}
+                    </span>
+                  )}
+                  {!('locked' in task && task.locked) && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteItem(task);
+                      }}
+                      className="p-1.5 rounded-lg text-[#A39385] hover:text-[#9E6C52] hover:bg-[#F7EDE8]"
+                      title="Apagar"
+                      aria-label={`Apagar ${task.title}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
             ))
           )}

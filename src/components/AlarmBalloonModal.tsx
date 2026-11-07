@@ -8,6 +8,7 @@ export const AlarmBalloonModal: React.FC = () => {
 
   useEffect(() => {
     if (!activeAlarm || isMuted) return;
+    let repeats = 0;
 
     // Helper to play soft chime beep via Web Audio API
     const playChimeBeep = () => {
@@ -32,7 +33,12 @@ export const AlarmBalloonModal: React.FC = () => {
     };
 
     const triggerAnnounce = () => {
-      speakVoiceReminder(`Lembrete para ${activeAlarm.memberName || 'você'}: ${activeAlarm.title}`);
+      const title = activeAlarm.title.replace(/^[^\p{L}\p{N}]+/u, '');
+      if (activeAlarm.voice !== false) {
+        speakVoiceReminder(
+          `${activeAlarm.memberName ? `${activeAlarm.memberName}, ` : ''}são ${activeAlarm.time}. Hora de: ${title}.`
+        );
+      }
       setTimeout(playChimeBeep, 1200);
     };
 
@@ -40,7 +46,13 @@ export const AlarmBalloonModal: React.FC = () => {
     triggerAnnounce();
 
     // Repeat voice alert + beep every 10 seconds until user interacts
+    // Repeats for about 1 minute, then stays silent on screen until answered
     const interval = setInterval(() => {
+      repeats += 1;
+      if (repeats > 5) {
+        clearInterval(interval);
+        return;
+      }
       triggerAnnounce();
     }, 10000);
 
@@ -111,7 +123,7 @@ export const AlarmBalloonModal: React.FC = () => {
           {/* Voice indicator notice */}
           <div className="mt-2 text-[11px] font-semibold text-[#8C7A6B] flex items-center gap-1.5 bg-[#F4EDE2] px-3 py-1 rounded-full">
             <Volume2 className="w-3.5 h-3.5 text-[#7D9D7F] animate-pulse" />
-            <span>Aviso de voz ativo (repete a cada 10s)</span>
+            <span>{activeAlarm.voice !== false ? 'Aviso de voz ativo' : 'Lembrete no horário'}</span>
           </div>
         </div>
 

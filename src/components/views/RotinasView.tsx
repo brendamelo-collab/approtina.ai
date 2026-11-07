@@ -307,7 +307,7 @@ export const RotinasView: React.FC = () => {
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-[#5C4F44] bg-[#F4EDE2] px-1.5 py-0.5 rounded text-[10px]">
+                        <span className="font-extrabold text-[#5C4F44] bg-[#F4EDE2] px-1.5 py-0.5 rounded text-[10px] shrink-0 whitespace-nowrap tabular-nums">
                           {step.time}
                         </span>
                         <h4

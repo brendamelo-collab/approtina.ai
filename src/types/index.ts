@@ -189,6 +189,7 @@ export interface RoutineTask {
   reminder?: RoutineTaskReminder;
   statusHistory?: 'pendente' | 'viu' | 'fez' | 'adiado';
   snoozedUntil?: string;
+  completedOn?: string; // YYYY-MM-DD: routines are daily, so "done" only counts on that day
 }
 
 export interface DailyChronologicalStep {
@@ -201,6 +202,7 @@ export interface DailyChronologicalStep {
   voiceAlert: boolean;
   period: PeriodKey;
   isRecurringAuto?: boolean;
+  completedOn?: string; // YYYY-MM-DD
 }
 
 export interface ContextualReminder {

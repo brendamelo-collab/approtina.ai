@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { todayISO, toISODate, shiftISODate, MONTH_NAMES } from '../../utils/dateUtils';
+import { agendaOccursOn } from '../../utils/routineCalculations';
 import { AgendaItem, WeeklyFixedTopic, AgendaCategory } from '../../types';
 import {
   ChevronLeft,
@@ -59,8 +61,25 @@ export const AgendaView: React.FC = () => {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  // State for active calendar day selection (Day 16 = Hoje in Nov 2026)
-  const [activeDayNum, setActiveDayNum] = useState<number>(16);
+  // Calendar month being viewed + selected day (starts on the real today)
+  const today = new Date();
+  const [viewYear, setViewYear] = useState<number>(today.getFullYear());
+  const [viewMonth, setViewMonth] = useState<number>(today.getMonth());
+  const [activeDayNum, setActiveDayNum] = useState<number>(today.getDate());
+  const isoForDay = (dayNum: number) => toISODate(new Date(viewYear, viewMonth, dayNum));
+  const monthLabel = `${MONTH_NAMES[viewMonth]} de ${viewYear}`;
+  const goToMonth = (delta: number) => {
+    const d = new Date(viewYear, viewMonth + delta, 1);
+    setViewYear(d.getFullYear());
+    setViewMonth(d.getMonth());
+    setActiveDayNum(1);
+  };
+  const goToToday = () => {
+    const t = new Date();
+    setViewYear(t.getFullYear());
+    setViewMonth(t.getMonth());
+    setActiveDayNum(t.getDate());
+  };
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -69,14 +88,14 @@ export const AgendaView: React.FC = () => {
 
   // Form states for new event
   const [newTitle, setNewTitle] = useState('');
-  const [newDate, setNewDate] = useState('2026-11-16');
+  const [newDate, setNewDate] = useState(todayISO());
   const [newTime, setNewTime] = useState('17:00');
   const [newCategoryId, setNewCategoryId] = useState<string>(agendaCategories[0]?.id || 'cat-familia');
   const [newIcon, setNewIcon] = useState('⚽');
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrenceInterval, setRecurrenceInterval] = useState('7'); // em dias
   const [recurrenceType, setRecurrenceType] = useState<'semanal' | 'diario' | 'quinzenal' | 'mensal' | 'personalizado'>('semanal');
-  const [recurrenceEndDate, setRecurrenceEndDate] = useState('2026-12-31');
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState(shiftISODate(todayISO(), 60));
   const [reminderMinutes, setReminderMinutes] = useState<number>(15);
   const [hasVisualNotification, setHasVisualNotification] = useState<boolean>(true);
   const [alarmEnabled, setAlarmEnabled] = useState<boolean>(true);
@@ -100,11 +119,11 @@ export const AgendaView: React.FC = () => {
   const daysOfWeekLetters = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
   const daysOfWeekNames = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
-  // Days with registered events in November 2026
+  // Events (direct + recurring) for a day of the month being viewed
   const getEventsForDay = (dayNum: number) => {
-    const dateStr = `2026-11-${String(dayNum).padStart(2, '0')}`;
-    const dayOfWeek = new Date(2026, 10, dayNum).getDay();
-    const directEvents = agendaItems.filter((item) => item.date === dateStr);
+    const dateStr = isoForDay(dayNum);
+    const dayOfWeek = new Date(viewYear, viewMonth, dayNum).getDay();
+    const directEvents = agendaItems.filter((item) => agendaOccursOn(item, dateStr));
     const recurringEvents = recurringTasks
       .filter((t) => (t.showOnCalendar ?? true) && (t.daysOfWeek ? t.daysOfWeek.includes(dayOfWeek) : true))
       .map((t) => ({
@@ -122,18 +141,19 @@ export const AgendaView: React.FC = () => {
     return [...directEvents, ...recurringEvents];
   };
 
-  const selectedDateStr = `2026-11-${String(activeDayNum).padStart(2, '0')}`;
+  const selectedDateStr = isoForDay(activeDayNum);
   const selectedDayEvents = getEventsForDay(activeDayNum);
 
-  // Day of week for selected day (Nov 1 2026 was Sunday = 0)
-  const selectedDayDateObj = new Date(2026, 10, activeDayNum);
+  const selectedDayDateObj = new Date(viewYear, viewMonth, activeDayNum);
   const selectedDayOfWeek = selectedDayDateObj.getDay();
   const selectedDayOfWeekName = daysOfWeekNames[selectedDayOfWeek];
 
   // Fixed weekly topic for selected day
   const fixedTopicForSelectedDay = weeklyFixedTopics.find((t) => t.dayOfWeek === selectedDayOfWeek);
 
-  const calendarDays = Array.from({ length: 30 }, (_, i) => {
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const leadingBlanks = new Date(viewYear, viewMonth, 1).getDay();
+  const calendarDays = Array.from({ length: daysInMonth }, (_, i) => {
     const day = i + 1;
     const hasEvents = getEventsForDay(day).length > 0;
     return { day, hasEvents };
@@ -272,7 +292,7 @@ export const AgendaView: React.FC = () => {
                   1. Calendário Interativo
                 </h2>
                 <p className="text-xs text-[#8C7A6B]">
-                  Novembro de 2026 • Clique em qualquer dia para ver os detalhes abaixo
+                  {monthLabel} • Clique em qualquer dia para ver os detalhes abaixo
                 </p>
               </div>
             </div>
@@ -290,15 +310,31 @@ export const AgendaView: React.FC = () => {
           {openSections.calendario && (
             <div className="px-4 sm:px-5 pb-5 pt-1 border-t border-[#EFE8DE]/60 space-y-4">
               <div className="flex items-center justify-between pb-1">
-                <span className="text-xs font-bold text-[#2C2C2C]">
-                  Novembro de 2026
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => goToMonth(-1)}
+                    className="w-7 h-7 rounded-full bg-[#F4EDE2] hover:bg-[#EAE0D2] flex items-center justify-center text-[#5C4F44]"
+                    aria-label="Mês anterior"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="text-xs font-bold text-[#2C2C2C] min-w-[120px] text-center">{monthLabel}</span>
+                  <button
+                    type="button"
+                    onClick={() => goToMonth(1)}
+                    className="w-7 h-7 rounded-full bg-[#F4EDE2] hover:bg-[#EAE0D2] flex items-center justify-center text-[#5C4F44]"
+                    aria-label="Próximo mês"
+                  >
+                    <ChevronLeft className="w-4 h-4 rotate-180" />
+                  </button>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setActiveDayNum(16)}
+                  onClick={goToToday}
                   className="text-[11px] font-bold text-[#5C4F44] bg-[#EAE0D2] hover:bg-[#E4DACD] px-2.5 py-1 rounded-full transition-colors"
                 >
-                  Ir para Hoje (16)
+                  Ir para Hoje ({today.getDate()})
                 </button>
               </div>
 
@@ -311,11 +347,14 @@ export const AgendaView: React.FC = () => {
                 ))}
               </div>
 
-              {/* Calendar Grid 1 to 30 */}
+              {/* Calendar grid of the month being viewed */}
               <div className="grid grid-cols-7 gap-1.5 text-center">
+                {Array.from({ length: leadingBlanks }, (_, i) => (
+                  <span key={`blank-${i}`} />
+                ))}
                 {calendarDays.map((cd) => {
                   const isSelected = activeDayNum === cd.day;
-                  const isToday = cd.day === 16;
+                  const isToday = isoForDay(cd.day) === todayISO();
                   return (
                     <button
                       key={cd.day}
@@ -348,7 +387,7 @@ export const AgendaView: React.FC = () => {
                   <span>Pontinho indica compromissos no dia</span>
                 </span>
                 <span className="font-semibold text-[#5C4F44]">
-                  Selecionado: {selectedDayOfWeekName}, {activeDayNum}/11
+                  Selecionado: {selectedDayOfWeekName}, {activeDayNum}/{viewMonth + 1}
                 </span>
               </div>
             </div>
@@ -364,7 +403,7 @@ export const AgendaView: React.FC = () => {
               <span className="text-xl">📅</span>
               <div>
                 <h3 className="text-sm font-bold text-[#2C2C2C]">
-                  Programação de {selectedDayOfWeekName}, {activeDayNum} de Novembro
+                  Programação de {selectedDayOfWeekName}, {activeDayNum} de {MONTH_NAMES[viewMonth]}
                 </h3>
                 <p className="text-[11px] text-[#8C7A6B]">
                   {selectedDayEvents.length} compromissos agendados para este dia
@@ -405,7 +444,7 @@ export const AgendaView: React.FC = () => {
                   </div>
                 </div>
                 {fixedTopicForSelectedDay.time && (
-                  <span className="text-xs font-bold text-[#5C4F44] bg-[#EAE0D2] px-2.5 py-1 rounded-xl">
+                  <span className="text-xs font-bold text-[#5C4F44] bg-[#EAE0D2] px-2.5 py-1 rounded-xl shrink-0 whitespace-nowrap tabular-nums">
                     {fixedTopicForSelectedDay.time}
                   </span>
                 )}
@@ -416,7 +455,7 @@ export const AgendaView: React.FC = () => {
             {selectedDayEvents.length === 0 ? (
               <div className="text-center py-6 bg-white border border-[#EFE8DE] rounded-2xl space-y-2">
                 <p className="text-xs text-[#8C7A6B]">
-                  Nenhum compromisso específico marcado para o dia {activeDayNum}/11.
+                  Nenhum compromisso específico marcado para o dia {activeDayNum}/{viewMonth + 1}.
                 </p>
                 <button
                   onClick={() => {
@@ -435,18 +474,18 @@ export const AgendaView: React.FC = () => {
                     key={item.id}
                     className="p-3.5 rounded-2xl bg-white border border-[#EFE8DE] flex items-center justify-between gap-3 shadow-2xs"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{item.icon}</span>
-                      <div>
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <span className="text-2xl shrink-0">{item.icon}</span>
+                      <div className="min-w-0">
                         <h4
-                          className={`text-xs font-bold ${
+                          className={`text-xs font-bold break-words ${
                             item.completed ? 'line-through text-[#8C7A6B]' : 'text-[#2C2C2C]'
                           }`}
                         >
                           {item.title}
                         </h4>
-                        <div className="flex items-center gap-2 text-[10px] text-[#8C7A6B] mt-0.5">
-                          <span className="flex items-center gap-1 font-semibold text-[#5C4F44]">
+                        <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-[10px] text-[#8C7A6B] mt-1">
+                          <span className="flex items-center gap-1 font-semibold text-[#5C4F44] whitespace-nowrap">
                             <Clock className="w-3 h-3 text-[#B78A58]" />
                             {item.time}
                           </span>

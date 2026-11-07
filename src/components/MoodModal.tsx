@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { X, Check } from 'lucide-react';
+import { X, Check, Trash2 } from 'lucide-react';
 import { MoodValue } from '../types';
 
 export const MoodModal: React.FC = () => {
-  const { isMoodModalOpen, setIsMoodModalOpen, currentMood, saveMoodEntry, selectedDate } = useApp();
+  const { isMoodModalOpen, setIsMoodModalOpen, currentMood, saveMoodEntry, deleteMoodRecord, selectedDate } = useApp();
 
   const [selectedMood, setSelectedMood] = useState<MoodValue>((currentMood?.value || currentMood?.mood || 'bem') as MoodValue);
   const [selectedFactors, setSelectedFactors] = useState<string[]>(
@@ -146,6 +146,21 @@ export const MoodModal: React.FC = () => {
           <Check className="w-4 h-4" />
           <span>Salvar registro</span>
         </button>
+
+        {currentMood && (
+          <button
+            onClick={() => {
+              if (window.confirm('Apagar o registro de humor deste dia?')) {
+                deleteMoodRecord(currentMood.id);
+                setIsMoodModalOpen(false);
+              }
+            }}
+            className="w-full mt-2 py-2.5 rounded-2xl bg-transparent hover:bg-[#F7EDE8] text-[#9E6C52] text-xs font-bold transition-all flex items-center justify-center gap-2"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Apagar registro deste dia</span>
+          </button>
+        )}
       </div>
     </div>
   );

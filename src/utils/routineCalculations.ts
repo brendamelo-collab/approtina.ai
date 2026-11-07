@@ -338,9 +338,6 @@ export function generateMonthlyReview(params: {
 }
 
 export function formatBrazilianDate(isoDateString: string): string {
-  if (isoDateString === '2026-11-16' || isoDateString === '2025-11-16') {
-    return 'Sábado, 16 de Novembro';
-  }
   try {
     const parts = isoDateString.split('-');
     if (parts.length === 3) {
@@ -378,12 +375,42 @@ export function formatBrazilianDate(isoDateString: string): string {
   } catch {
     // fallback
   }
-  return 'Sábado, 16 de Novembro';
+  return isoDateString;
+}
+
+const isoToDayNumber = (iso: string) => {
+  const [y, m, d] = iso.split('-').map((p) => parseInt(p, 10));
+  return Math.round(Date.UTC(y, (m || 1) - 1, d || 1) / 86400000);
+};
+
+/** True when an agenda item (single or recurring) happens on the given YYYY-MM-DD date */
+export function agendaOccursOn(item: AgendaItem, dateStr: string): boolean {
+  if (!item.date || !dateStr) return false;
+  if (item.date === dateStr) return true;
+  if (!item.isRecurring) return false;
+  if (dateStr < item.date) return false;
+  if (item.recurrenceEndDate && dateStr > item.recurrenceEndDate) return false;
+  const diff = isoToDayNumber(dateStr) - isoToDayNumber(item.date);
+  switch (item.recurrenceType) {
+    case 'diario':
+      return true;
+    case 'quinzenal':
+      return diff % 14 === 0;
+    case 'mensal':
+      return item.date.slice(8) === dateStr.slice(8);
+    case 'personalizado': {
+      const interval = item.recurrenceIntervalDays || 7;
+      return interval > 0 && diff % interval === 0;
+    }
+    case 'semanal':
+    default:
+      return diff % 7 === 0;
+  }
 }
 
 export function filterAgendaByDate(items: AgendaItem[], dateStr: string): AgendaItem[] {
   if (!dateStr) return items;
-  return items.filter((item) => item.date === dateStr);
+  return items.filter((item) => agendaOccursOn(item, dateStr));
 }
 
 export function calculateDayRoutineProgress(

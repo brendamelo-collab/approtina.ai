@@ -39,6 +39,7 @@ import {
   MemberType
 } from '../types';
 import { resolveResponseValue } from '../utils/routineCalculations';
+import { todayISO } from '../utils/dateUtils';
 import { auth, onAuthStateChanged, saveUserRealtimeData, loadUserRealtimeData, logoutFirebase } from '../firebase';
 
 // Maps each synced state field to its localStorage key suffix (must match the persist effect)
@@ -79,6 +80,8 @@ export interface ActiveAlarmPayload {
   time: string;
   memberName?: string;
   dosage?: string;
+  key?: string; // scheduler id (used to snooze)
+  voice?: boolean; // speak the reminder out loud
 }
 
 interface AppContextType {
@@ -1233,7 +1236,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Date Selection
-  const [selectedDate, setSelectedDate] = useState<string>('2026-11-16');
+  const [selectedDate, setSelectedDate] = useState<string>(() => todayISO());
+
+  // Real current day; keeps "Hoje" correct when the app stays open past midnight
+  const [currentDay, setCurrentDay] = useState<string>(() => todayISO());
+  useEffect(() => {
+    let lastToday = todayISO();
+    const timer = setInterval(() => {
+      const now = todayISO();
+      if (now !== lastToday) {
+        setSelectedDate((prev) => (prev === lastToday ? now : prev));
+        setCurrentDay(now);
+        lastToday = now;
+      }
+    }, 60 * 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Mood Options
   const [moodOptions, setMoodOptions] = useState<MoodOption[]>(() => {
@@ -1298,7 +1316,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setMoodRecords((prev) => [newRecord, ...prev.filter((r) => !(r.date === record.date && r.period === record.period))]);
   };
 
-  const currentMood = moodRecords.length > 0 ? moodRecords[0] : null;
+  // Latest mood registered for the selected day (none if nothing was registered that day)
+  const currentMood =
+    moodRecords
+      .filter((r) => r.date === selectedDate)
+      .sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''))[0] || null;
   const moodEntries = moodRecords;
 
   const saveMoodEntry = (moodValue: string, note?: string) => {
@@ -1715,8 +1737,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   });
 
+  // Routines repeat every day: a task only counts as done on the day it was checked
+  const routineTasksToday = React.useMemo(
+    () => routineTasks.map((t) => ({ ...t, completed: !!t.completed && t.completedOn === currentDay })),
+    [routineTasks, currentDay]
+  );
+
   const toggleRoutineTask = (id: string) => {
-    setRoutineTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)));
+    setRoutineTasks((prev) =>
+      prev.map((t) => {
+        if (t.id !== id) return t;
+        const doneToday = !!t.completed && t.completedOn === currentDay;
+        return doneToday
+          ? { ...t, completed: false, completedOn: undefined, statusHistory: 'pendente' }
+          : { ...t, completed: true, completedOn: currentDay, statusHistory: 'fez' };
+      })
+    );
   };
 
   const addRoutineTask = (task: Omit<RoutineTask, 'id' | 'completed'>) => {
@@ -1748,8 +1784,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   });
 
+  const dailyChronologicalStepsToday = React.useMemo(
+    () => dailyChronologicalSteps.map((s) => ({ ...s, completed: !!s.completed && s.completedOn === currentDay })),
+    [dailyChronologicalSteps, currentDay]
+  );
+
   const toggleDailyChronologicalStep = (id: string) => {
-    setDailyChronologicalSteps((prev) => prev.map((s) => (s.id === id ? { ...s, completed: !s.completed } : s)));
+    setDailyChronologicalSteps((prev) =>
+      prev.map((s) => {
+        if (s.id !== id) return s;
+        const doneToday = !!s.completed && s.completedOn === currentDay;
+        return doneToday ? { ...s, completed: false, completedOn: undefined } : { ...s, completed: true, completedOn: currentDay };
+      })
+    );
   };
 
   const addDailyChronologicalStep = (step: Omit<DailyChronologicalStep, 'id' | 'completed'>) => {
@@ -1785,15 +1832,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Contextual Reminders
-  const [contextualReminders, setContextualReminders] = useState<ContextualReminder[]>([
-    {
-      id: 'cr-1',
-      text: 'Hoje é dia de esfoliação corporal durante o banho da noite!',
-      period: 'noite',
-      active: true,
-      date: '2026-11-16'
-    }
-  ]);
+  // Contextual reminders (no demo reminder)
+  const [contextualReminders, setContextualReminders] = useState<ContextualReminder[]>([]);
 
   const dismissContextualReminder = (id: string) => {
     setContextualReminders((prev) => prev.filter((r) => r.id !== id));
@@ -2082,12 +2122,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Global Interactive Alarm State (Balão + Alarme)
   const [activeAlarm, setActiveAlarm] = useState<ActiveAlarmPayload | null>(null);
 
+  // The balloon (AlarmBalloonModal) speaks the reminder; here only the chime
   const triggerAlarm = (payload: ActiveAlarmPayload) => {
-    setActiveAlarm(payload);
+    setActiveAlarm({
+      ...payload,
+      voice: payload.voice !== false && notificationPreferences.voiceAlerts !== false
+    });
     playGentleChime();
-    if (notificationPreferences.voiceAlerts) {
-      speakVoiceReminder(`Atenção Brenda: ${payload.title}.`);
-    }
   };
 
   const dismissAlarm = () => {
@@ -2099,12 +2140,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (activeAlarm.type === 'medicamento') {
       setMedicationStatus(activeAlarm.id, action === 'fez' ? 'fez' : action === 'viu' ? 'viu' : 'adiado', snoozeMinutes);
     } else if (activeAlarm.type === 'rotina') {
+      const kind = (activeAlarm.key || '').split(':')[0];
       if (action === 'fez') {
-        toggleRoutineTask(activeAlarm.id);
+        if (kind === 'etapa') toggleDailyChronologicalStep(activeAlarm.id);
+        else if (kind !== 'recorrente') toggleRoutineTask(activeAlarm.id);
+      } else if (action === 'viu' && kind !== 'etapa' && kind !== 'recorrente') {
+        setRoutineTasks((prev) => prev.map((t) => (t.id === activeAlarm.id ? { ...t, statusHistory: 'viu' } : t)));
       }
     } else if (activeAlarm.type === 'agenda') {
       if (action === 'fez') {
         toggleAgendaItem(activeAlarm.id);
+      }
+    }
+    // "Adiar": the scheduler shows this reminder again after the chosen minutes
+    if (action === 'adiar' && activeAlarm.key) {
+      try {
+        const snoozes = JSON.parse(localStorage.getItem('rotina_ai_alarms_snooze') || '{}');
+        snoozes[activeAlarm.key] = Date.now() + snoozeMinutes * 60 * 1000;
+        localStorage.setItem('rotina_ai_alarms_snooze', JSON.stringify(snoozes));
+      } catch {
+        // ignore
       }
     }
     setActiveAlarm(null);
@@ -2533,7 +2588,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateWeeklyFixedTopic,
         deleteWeeklyFixedTopic,
 
-        routineTasks,
+        routineTasks: routineTasksToday,
         toggleRoutineTask,
         addRoutineTask,
         updateRoutineTask,
@@ -2541,7 +2596,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activePeriodModal,
         setActivePeriodModal,
 
-        dailyChronologicalSteps,
+        dailyChronologicalSteps: dailyChronologicalStepsToday,
         toggleDailyChronologicalStep,
         addDailyChronologicalStep,
         updateDailyChronologicalStep,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { todayISO } from '../../utils/dateUtils';
 import {
   ChevronLeft,
   ChevronDown,
@@ -252,7 +253,7 @@ export const MeuMapaView: React.FC = () => {
                 {formatBrazilianDate(selectedDate)}
               </span>
               <span className="text-[10px] text-[#8C7A6B]">
-                {selectedDate === '2026-11-16' ? 'Hoje' : 'Data do registro'}
+                {selectedDate === todayISO() ? 'Hoje' : 'Data do registro'}
               </span>
             </div>
 

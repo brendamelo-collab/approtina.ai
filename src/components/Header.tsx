@@ -5,6 +5,7 @@ import { UserAvatar } from './UserAvatar';
 import { PWAInstallButton } from './PWAInstallButton';
 import { Calendar, Bell, ChevronDown, Sparkles, Heart, Users, UserCheck, Settings } from 'lucide-react';
 import { formatBrazilianDate } from '../utils/routineCalculations';
+import { todayISO, shiftISODate } from '../utils/dateUtils';
 
 export const Header: React.FC = () => {
   const {
@@ -24,9 +25,9 @@ export const Header: React.FC = () => {
   const unreadNotifications = notifications.filter((n) => !n.read).length;
 
   const dateOptions = [
-    { label: 'Hoje', value: '2026-11-16' },
-    { label: 'Amanhã', value: '2026-11-17' },
-    { label: 'Ontem', value: '2026-11-15' },
+    { label: 'Hoje', value: todayISO() },
+    { label: 'Amanhã', value: shiftISODate(todayISO(), 1) },
+    { label: 'Ontem', value: shiftISODate(todayISO(), -1) },
     { label: 'Outro dia...', value: 'custom' }
   ];
 
@@ -174,7 +175,7 @@ export const Header: React.FC = () => {
               className="flex items-center gap-1.5 text-xs font-semibold text-[#5C4F44] bg-[#EFE8DE] hover:bg-[#E4DACD] px-3 py-1.5 rounded-xl transition-colors"
               aria-label="Selecionar período da data"
             >
-              <span>{selectedDate === '2026-11-16' ? 'Hoje' : 'Data'}</span>
+              <span>{selectedDate === todayISO() ? 'Hoje' : 'Data'}</span>
               <ChevronDown className="w-3.5 h-3.5 text-[#8C7A6B]" />
             </button>
 

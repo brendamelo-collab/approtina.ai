@@ -7,7 +7,8 @@ export const MeuMapaCard: React.FC = () => {
   const { currentMood, questionResponses, questions, selectedDate, setIsMoodModalOpen, setActiveTab } = useApp();
   const dayResponses = questionResponses.filter((r) => r.date === selectedDate);
   const metrics = calculatePerformanceMetrics(dayResponses, questions);
-  const positivePercent = metrics.hasEvaluatedAnswers ? metrics.positivePercentage : 80;
+  const hasAnswers = metrics.hasEvaluatedAnswers;
+  const positivePercent = hasAnswers ? metrics.positivePercentage : 0;
 
   // SVG Circular progress math (radius 40, circumference ~251.3)
   const radius = 40;
@@ -24,8 +25,8 @@ export const MeuMapaCard: React.FC = () => {
     ansiosa: '🥺'
   };
 
-  const currentEmoji = currentMood ? moodEmojis[currentMood.value || currentMood.mood] || '😊' : '😊';
-  const currentLabel = currentMood ? currentMood.label : 'Bem';
+  const currentEmoji = currentMood ? moodEmojis[currentMood.value || currentMood.mood] || '😊' : '🙂';
+  const currentLabel = currentMood ? currentMood.label : 'Registrar humor';
 
   return (
     <section className="w-full max-w-xl mx-auto px-4 sm:px-6 my-3.5 select-none">
@@ -86,10 +87,10 @@ export const MeuMapaCard: React.FC = () => {
               {/* Inside Value */}
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                 <span className="text-2xl font-extrabold text-[#2C2C2C] leading-none">
-                  {positivePercent}%
+                  {hasAnswers ? `${positivePercent}%` : '—'}
                 </span>
                 <span className="text-[11px] font-medium text-[#8C7A6B] mt-1">
-                  Positivo
+                  {hasAnswers ? 'Positivo' : 'Sem respostas'}
                 </span>
               </div>
             </div>
@@ -120,7 +121,11 @@ export const MeuMapaCard: React.FC = () => {
             <Lightbulb className="w-3.5 h-3.5 text-[#B78A58]" />
           </div>
           <p className="text-xs text-[#5C4F44] leading-relaxed">
-            Você foi mais paciente com as crianças nesta semana. Parabéns! 💛
+            {hasAnswers
+              ? positivePercent >= 70
+                ? `Dia leve: ${positivePercent}% das suas respostas foram positivas. Continue assim! 💛`
+                : `Dia puxado: ${positivePercent}% das respostas foram positivas. Seja gentil com você hoje. 💛`
+              : 'Responda as perguntas do Meu Mapa para ver aqui como foi o seu dia.'}
           </p>
         </div>
       </div>
