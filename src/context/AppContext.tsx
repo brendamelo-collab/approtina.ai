@@ -39,7 +39,37 @@ import {
   MemberType
 } from '../types';
 import { resolveResponseValue } from '../utils/routineCalculations';
-import { auth, onAuthStateChanged, saveUserRealtimeData, logoutFirebase } from '../firebase';
+import { auth, onAuthStateChanged, saveUserRealtimeData, loadUserRealtimeData, logoutFirebase } from '../firebase';
+
+// Maps each synced state field to its localStorage key suffix (must match the persist effect)
+const CLOUD_SYNC_FIELDS: Record<string, string> = {
+  profiles: 'profiles',
+  bottomNavSlots: 'bottom_nav_slots',
+  notificationPreferences: 'notif_prefs',
+  moodOptions: 'mood_options',
+  moodRecords: 'mood_records',
+  availableFactors: 'available_factors',
+  dayFactors: 'day_factors',
+  dayNotes: 'day_notes',
+  lifeAreas: 'life_areas',
+  questionGroups: 'question_groups',
+  questions: 'questions',
+  questionResponses: 'question_responses',
+  agendaItems: 'agenda_items',
+  agendaCategories: 'agenda_categories',
+  weeklyFixedTopics: 'weekly_topics',
+  routineTasks: 'routine_tasks',
+  dailyChronologicalSteps: 'daily_chrono_steps',
+  healthDateItems: 'health_dates',
+  healthMedications: 'health_meds',
+  healthNoteItems: 'health_notes',
+  healthGroups: 'health_groups',
+  goals: 'goals',
+  goalCategories: 'goal_categories',
+  recurringTasks: 'recurring_tasks',
+  recurringHistory: 'recurring_history',
+  notifications: 'notifications'
+};
 
 export interface ActiveAlarmPayload {
   id: string;
@@ -2028,14 +2058,48 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return localStorage.getItem(`${STORAGE_KEY}_is_logged_in`) === 'true' || true;
   });
 
+  // Cloud sync only starts after the user's data was read from Realtime Database,
+  // so local defaults never overwrite what is already saved in the cloud.
+  const [cloudSyncReady, setCloudSyncReady] = useState<boolean>(false);
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUserEmail(user.email || 'brenda.m.magalhaes@gmail.com');
         setIsLoggedIn(true);
         localStorage.setItem(`${STORAGE_KEY}_user_email`, user.email || '');
         localStorage.setItem(`${STORAGE_KEY}_is_logged_in`, 'true');
+
+        const hydratedFlag = `${STORAGE_KEY}_rtdb_hydrated_${user.uid}`;
+        const remote = await loadUserRealtimeData(user.uid);
+        if (remote === undefined) {
+          // Read failed: keep working locally and do not overwrite the cloud copy
+          setCloudSyncReady(false);
+          return;
+        }
+        if (remote && !sessionStorage.getItem(hydratedFlag)) {
+          // Load the cloud copy into local storage once per session, then reload the app with it
+          try {
+            Object.entries(CLOUD_SYNC_FIELDS).forEach(([field, suffix]) => {
+              const key = `${STORAGE_KEY}_${suffix}`;
+              if (remote[field] !== undefined) {
+                localStorage.setItem(key, JSON.stringify(remote[field]));
+              } else if ((localStorage.getItem(key) || '').trim().startsWith('[')) {
+                // Realtime Database does not store empty lists
+                localStorage.setItem(key, '[]');
+              }
+            });
+            sessionStorage.setItem(hydratedFlag, '1');
+            window.location.reload();
+            return;
+          } catch {
+            // Storage unavailable: fall through and sync from the current state
+          }
+        }
+        sessionStorage.setItem(hydratedFlag, '1');
+        setCloudSyncReady(true);
       } else {
+        setCloudSyncReady(false);
         setIsLoggedIn(false);
       }
     });
@@ -2117,7 +2181,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem(`${STORAGE_KEY}_notifications`, JSON.stringify(notifications));
 
       // If user is authenticated in Firebase, save to Realtime Database instance (app-rotinaai-default-rtdb)
-      if (auth.currentUser) {
+      if (auth.currentUser && cloudSyncReady) {
         saveUserRealtimeData(auth.currentUser.uid, appStatePayload);
       }
     } catch {
@@ -2149,7 +2213,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     goalCategories,
     recurringTasks,
     recurringHistory,
-    notifications
+    notifications,
+    cloudSyncReady
   ]);
 
   const exportAppData = (): string => {

@@ -17,7 +17,14 @@ import { getDatabase, ref, set, onValue, get } from 'firebase/database';
 // Firebase Web Configuration provided by user for app-rotinaai
 export const firebaseConfig = {
   apiKey: "AIzaSyCLMC4UquqfqVgP3eHrV3wI9zWqfpSVh0I",
-  authDomain: "app-rotinaai.firebaseapp.com",
+  // When served from Firebase Hosting, use the current host as authDomain so the
+  // Google sign-in handler (/__/auth/handler) is same-origin (avoids third-party
+  // storage blocking in Safari/Chrome and in the installed PWA).
+  authDomain:
+    typeof window !== 'undefined' &&
+    /(^|\.)app-rotinaai\.(web\.app|firebaseapp\.com)$/.test(window.location.hostname)
+      ? window.location.hostname
+      : "app-rotinaai.firebaseapp.com",
   databaseURL: "https://app-rotinaai-default-rtdb.firebaseio.com",
   projectId: "app-rotinaai",
   storageBucket: "app-rotinaai.firebasestorage.app",
@@ -36,12 +43,41 @@ export const rtdb = getDatabase(app);
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
+const isStandalonePWA = () =>
+  typeof window !== 'undefined' &&
+  (window.matchMedia?.('(display-mode: standalone)').matches || (navigator as any).standalone === true);
+
+// Completes a Google sign-in that was started with signInWithRedirect
+getRedirectResult(auth).catch((error) => {
+  console.warn('Google redirect auth error:', error);
+});
+
 export const loginWithGoogle = async () => {
   try {
+    // Popups are unreliable inside an installed PWA (especially iOS): use redirect there
+    if (isStandalonePWA()) {
+      await signInWithRedirect(auth, googleProvider);
+      return { user: null, error: null };
+    }
     const result = await signInWithPopup(auth, googleProvider);
     return { user: result.user, error: null };
   } catch (error: any) {
     console.warn('Google popup auth error:', error);
+    if (
+      error.code === 'auth/popup-blocked' ||
+      error.code === 'auth/operation-not-supported-in-environment' ||
+      error.code === 'auth/web-storage-unsupported'
+    ) {
+      try {
+        await signInWithRedirect(auth, googleProvider);
+        return { user: null, error: null };
+      } catch (redirectError: any) {
+        console.warn('Google redirect auth error:', redirectError);
+      }
+    }
+    if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+      return { user: null, error: 'Login com o Google cancelado.' };
+    }
     let msg = error.message || 'Erro ao fazer login com o Google';
     if (error.code === 'auth/unauthorized-domain') {
       msg = 'Domínio não autorizado no Console do Firebase (Authentication > Settings > Authorized domains). Use Login com E-mail e Senha abaixo.';
@@ -96,14 +132,26 @@ export type { FirebaseUser };
 export const saveUserRealtimeData = async (uid: string, payload: any) => {
   try {
     const userRef = ref(rtdb, `users/${uid}`);
+    // Realtime Database rejects `undefined` values; a JSON round-trip strips them
+    const clean = JSON.parse(JSON.stringify(payload ?? {}));
     await set(userRef, {
-      ...payload,
+      ...clean,
       updatedAt: new Date().toISOString()
     });
     return true;
   } catch (err) {
     console.warn('Realtime DB write error (verifique regras do Realtime DB no Firebase):', err);
     return false;
+  }
+};
+
+export const loadUserRealtimeData = async (uid: string) => {
+  try {
+    const snapshot = await get(ref(rtdb, `users/${uid}`));
+    return snapshot.exists() ? snapshot.val() : null;
+  } catch (err) {
+    console.warn('Realtime DB read error (verifique regras do Realtime DB no Firebase):', err);
+    return undefined; // undefined = read failed (do not overwrite cloud data)
   }
 };
 

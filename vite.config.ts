@@ -47,6 +47,8 @@ export default defineConfig(() => {
         workbox: {
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+          // Never serve the SPA shell for Firebase reserved URLs (Google sign-in handler) or API calls
+          navigateFallbackDenylist: [/^\/__\//, /^\/api\//],
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
