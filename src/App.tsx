@@ -23,7 +23,7 @@ import { RelatoriosModal } from './components/RelatoriosModal';
 import { AlarmBalloonModal } from './components/AlarmBalloonModal';
 import { CustomizeBottomNavModal } from './components/CustomizeBottomNavModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
-import { GitHubUpdateBanner } from './components/GitHubUpdateBanner';
+import { AutoUpdater } from './components/AutoUpdater';
 import { MeuMapaView } from './components/views/MeuMapaView';
 import { AgendaView } from './components/views/AgendaView';
 import { RotinasView } from './components/views/RotinasView';
@@ -54,8 +54,6 @@ const MainContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#2C2C2C] flex flex-col justify-between selection:bg-[#EAE0D2]">
-      {/* GitHub Update Notification Banner */}
-      <GitHubUpdateBanner />
 
       {/* Dynamic Screen Routing based on active bottom navigation tab */}
       <main className="flex-1 w-full max-w-xl mx-auto pb-32 sm:pb-36">
@@ -103,6 +101,8 @@ const MainContent: React.FC = () => {
 export default function App() {
   return (
     <AppProvider>
+      {/* Warns while a new version is being published and reloads the page when it is live */}
+      <AutoUpdater />
       <MainContent />
     </AppProvider>
   );
