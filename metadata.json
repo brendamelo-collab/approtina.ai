@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix Rotina.ai",
+  "description": "Assistente pessoal inteligente para organização da vida, rotinas, acompanhamento de comportamentos e cuidados familiares.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

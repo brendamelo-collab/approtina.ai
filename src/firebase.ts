@@ -1,0 +1,119 @@
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  User as FirebaseUser
+} from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getDatabase, ref, set, onValue, get } from 'firebase/database';
+
+// Firebase Web Configuration provided by user for app-rotinaai
+export const firebaseConfig = {
+  apiKey: "AIzaSyCLMC4UquqfqVgP3eHrV3wI9zWqfpSVh0I",
+  authDomain: "app-rotinaai.firebaseapp.com",
+  databaseURL: "https://app-rotinaai-default-rtdb.firebaseio.com",
+  projectId: "app-rotinaai",
+  storageBucket: "app-rotinaai.firebasestorage.app",
+  messagingSenderId: "659541135196",
+  appId: "1:659541135196:web:05efdf61c2d47f6786fb99",
+  measurementId: "G-SQ0BGVGXXR"
+};
+
+// Initialize Firebase App singleton
+export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const rtdb = getDatabase(app);
+
+// Authentication Services
+export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+export const loginWithGoogle = async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    return { user: result.user, error: null };
+  } catch (error: any) {
+    console.warn('Google popup auth error:', error);
+    let msg = error.message || 'Erro ao fazer login com o Google';
+    if (error.code === 'auth/unauthorized-domain') {
+      msg = 'Domínio não autorizado no Console do Firebase (Authentication > Settings > Authorized domains). Use Login com E-mail e Senha abaixo.';
+    } else if (error.code === 'auth/popup-blocked') {
+      msg = 'O navegador bloqueou o pop-up de login do Google. Use Login com E-mail e Senha abaixo.';
+    }
+    return { user: null, error: msg };
+  }
+};
+
+export const loginWithEmail = async (email: string, pass: string) => {
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, pass);
+    return { user: result.user, error: null };
+  } catch (error: any) {
+    let msg = error.message || 'Erro ao autenticar com e-mail e senha';
+    if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+      msg = 'E-mail ou senha incorretos, ou usuário não cadastrado. Clique em "Criar nova conta" abaixo.';
+    }
+    return { user: null, error: msg };
+  }
+};
+
+export const registerWithEmail = async (email: string, pass: string) => {
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, pass);
+    return { user: result.user, error: null };
+  } catch (error: any) {
+    let msg = error.message || 'Erro ao criar conta no Firebase';
+    if (error.code === 'auth/email-already-in-use') {
+      msg = 'Este e-mail já está cadastrado. Faça login com sua senha.';
+    } else if (error.code === 'auth/weak-password') {
+      msg = 'A senha deve ter pelo menos 6 caracteres.';
+    }
+    return { user: null, error: msg };
+  }
+};
+
+export const logoutFirebase = async () => {
+  try {
+    await signOut(auth);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+};
+
+export { onAuthStateChanged };
+export type { FirebaseUser };
+
+// Realtime Database User Data Sync (Secured by rules: $uid === auth.uid)
+export const saveUserRealtimeData = async (uid: string, payload: any) => {
+  try {
+    const userRef = ref(rtdb, `users/${uid}`);
+    await set(userRef, {
+      ...payload,
+      updatedAt: new Date().toISOString()
+    });
+    return true;
+  } catch (err) {
+    console.warn('Realtime DB write error (verifique regras do Realtime DB no Firebase):', err);
+    return false;
+  }
+};
+
+export const subscribeUserRealtimeData = (uid: string, callback: (data: any) => void) => {
+  const userRef = ref(rtdb, `users/${uid}`);
+  return onValue(userRef, (snapshot) => {
+    if (snapshot.exists()) {
+      callback(snapshot.val());
+    }
+  }, (err) => {
+    console.warn('Realtime DB subscription error:', err);
+  });
+};
