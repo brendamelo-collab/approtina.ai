@@ -1,0 +1,641 @@
+/* ARQUIVO GERADO por tools/themes/generate-themes.py: edite o script, não este arquivo. */
+/* Paletas alternativas. A paleta Bege (padrão) não usa data-theme e não é afetada. */
+
+[data-theme="nude"] {
+  --t-page: #FCF8F7;
+  --t-card: #FFFBFA;
+  --t-soft: #F7EDEA;
+  --t-line: #EEDFDB;
+  --t-high: #EBD7D1;
+  --t-strong: #D9C0B9;
+  --t-ink1: #2F2628;
+  --t-ink2: #5A4347;
+  --t-ink3: #875D60;
+  --t-muted: #A3878A;
+  --t-accent: #9A6260;
+  --t-accent-dark: #7E4C4B;
+  --t-accent2: #B06E62;
+  --t-accent2-soft: #E9C9C0;
+  --t-ok-ink: #2C5230;
+  --t-ok-bg: #EEF5EF;
+  --t-ok-line: #B7D2B9;
+  --t-ok-mid: #6E9472;
+  --t-bad-ink: #8C3A24;
+  --t-bad-bg: #FDF2EE;
+  --t-bad-line: #E8C2B8;
+  --t-bad-mid: #B8563E;
+  --t-warn-bg: #FEF9E7;
+  --t-warn-ink: #7A5E14;
+  --t-warn-line: #EADB9B;
+  --t-warn-mid: #C9971A;
+  --bg-cream: #FCF8F7;
+  --card-beige: #FFFBFA;
+  --card-beige-alt: #F7EDEA;
+  --card-border: #EEDFDB;
+  --text-primary: #2F2628;
+  --text-secondary: #875D60;
+  --text-dark: #5A4347;
+  --text-muted: #A3878A;
+  --accent-earth: #9A6260;
+  --accent-earth-dark: #7E4C4B;
+  --accent-warm-soft: #F7EDEA;
+  --accent-caramel: #B06E62;
+  --accent-highlight: #EBD7D1;
+  --modal-bg: #FCF8F7;
+}
+[data-theme="verde"] {
+  --t-page: #F8FAF6;
+  --t-card: #FCFDFB;
+  --t-soft: #EEF3EB;
+  --t-line: #E1E9DD;
+  --t-high: #D6E2D1;
+  --t-strong: #BFCFB9;
+  --t-ink1: #232A24;
+  --t-ink2: #3E4C40;
+  --t-ink3: #58705D;
+  --t-muted: #869A88;
+  --t-accent: #557658;
+  --t-accent-dark: #425D45;
+  --t-accent2: #9A7B4E;
+  --t-accent2-soft: #E4D8BF;
+  --t-ok-ink: #2C5230;
+  --t-ok-bg: #EEF5EF;
+  --t-ok-line: #B7D2B9;
+  --t-ok-mid: #6E9472;
+  --t-bad-ink: #8C3A24;
+  --t-bad-bg: #FDF2EE;
+  --t-bad-line: #E8C2B8;
+  --t-bad-mid: #B8563E;
+  --t-warn-bg: #FEF9E7;
+  --t-warn-ink: #7A5E14;
+  --t-warn-line: #EADB9B;
+  --t-warn-mid: #C9971A;
+  --bg-cream: #F8FAF6;
+  --card-beige: #FCFDFB;
+  --card-beige-alt: #EEF3EB;
+  --card-border: #E1E9DD;
+  --text-primary: #232A24;
+  --text-secondary: #58705D;
+  --text-dark: #3E4C40;
+  --text-muted: #869A88;
+  --accent-earth: #557658;
+  --accent-earth-dark: #425D45;
+  --accent-warm-soft: #EEF3EB;
+  --accent-caramel: #9A7B4E;
+  --accent-highlight: #D6E2D1;
+  --modal-bg: #F8FAF6;
+}
+[data-theme="azul"] {
+  --t-page: #F7F9FC;
+  --t-card: #FCFDFF;
+  --t-soft: #EDF2F8;
+  --t-line: #DFE7F1;
+  --t-high: #D3DEEC;
+  --t-strong: #B9C8DB;
+  --t-ink1: #1F2733;
+  --t-ink2: #3A4A5F;
+  --t-ink3: #536A86;
+  --t-muted: #8494AA;
+  --t-accent: #4C6890;
+  --t-accent-dark: #3A5274;
+  --t-accent2: #6F64A0;
+  --t-accent2-soft: #DAD5EE;
+  --t-ok-ink: #2C5230;
+  --t-ok-bg: #EEF5EF;
+  --t-ok-line: #B7D2B9;
+  --t-ok-mid: #6E9472;
+  --t-bad-ink: #8C3A24;
+  --t-bad-bg: #FDF2EE;
+  --t-bad-line: #E8C2B8;
+  --t-bad-mid: #B8563E;
+  --t-warn-bg: #FEF9E7;
+  --t-warn-ink: #7A5E14;
+  --t-warn-line: #EADB9B;
+  --t-warn-mid: #C9971A;
+  --bg-cream: #F7F9FC;
+  --card-beige: #FCFDFF;
+  --card-beige-alt: #EDF2F8;
+  --card-border: #DFE7F1;
+  --text-primary: #1F2733;
+  --text-secondary: #536A86;
+  --text-dark: #3A4A5F;
+  --text-muted: #8494AA;
+  --accent-earth: #4C6890;
+  --accent-earth-dark: #3A5274;
+  --accent-warm-soft: #EDF2F8;
+  --accent-caramel: #6F64A0;
+  --accent-highlight: #D3DEEC;
+  --modal-bg: #F7F9FC;
+}
+[data-theme="escuro"] {
+  --t-page: #171412;
+  --t-card: #211D1A;
+  --t-soft: #2A2521;
+  --t-line: #36302A;
+  --t-high: #3D352E;
+  --t-strong: #4D433B;
+  --t-ink1: #F2EBE3;
+  --t-ink2: #DCCEC0;
+  --t-ink3: #BCA997;
+  --t-muted: #9A8C7E;
+  --t-accent: #8E6C4F;
+  --t-accent-dark: #A3805F;
+  --t-accent2: #D9A86F;
+  --t-accent2-soft: #5B4733;
+  --t-ok-ink: #A3D3A9;
+  --t-ok-bg: #1D2D21;
+  --t-ok-line: #355239;
+  --t-ok-mid: #72A97C;
+  --t-bad-ink: #F2AA95;
+  --t-bad-bg: #35221E;
+  --t-bad-line: #5C3429;
+  --t-bad-mid: #D9775E;
+  --t-warn-bg: #332B19;
+  --t-warn-ink: #E8C870;
+  --t-warn-line: #5E5026;
+  --t-warn-mid: #D6A92E;
+  --bg-cream: #171412;
+  --card-beige: #211D1A;
+  --card-beige-alt: #2A2521;
+  --card-border: #36302A;
+  --text-primary: #F2EBE3;
+  --text-secondary: #BCA997;
+  --text-dark: #DCCEC0;
+  --text-muted: #9A8C7E;
+  --accent-earth: #8E6C4F;
+  --accent-earth-dark: #A3805F;
+  --accent-warm-soft: #2A2521;
+  --accent-caramel: #D9A86F;
+  --accent-highlight: #3D352E;
+  --modal-bg: #171412;
+  color-scheme: dark;
+}
+
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]), :is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) body, :is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) main, :is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .min-h-screen {
+  background-color: var(--t-page) !important;
+  color: var(--t-ink1);
+}
+
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#8C7A6B\]\/30 { --tw-ring-color: color-mix(in srgb, var(--t-accent) 30%, transparent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#8C7A6B\]\/50 { --tw-ring-color: color-mix(in srgb, var(--t-accent) 50%, transparent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#C06C54\]\/30 { --tw-ring-color: color-mix(in srgb, var(--t-bad-mid) 30%, transparent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#C06C54\]\/40 { --tw-ring-color: color-mix(in srgb, var(--t-bad-mid) 40%, transparent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#7D9D7F\]\/30 { --tw-ring-color: color-mix(in srgb, var(--t-ok-mid) 30%, transparent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#7D9D7F\]\/40 { --tw-ring-color: color-mix(in srgb, var(--t-ok-mid) 40%, transparent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#B8AEA0\]\/40 { --tw-ring-color: color-mix(in srgb, var(--t-strong) 40%, transparent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#D4A017\]\/40 { --tw-ring-color: color-mix(in srgb, var(--t-warn-mid) 40%, transparent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .focus-visible\:ring-\[\#8C7A6B\]:focus-visible,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .focus\:ring-\[\#8C7A6B\]:focus,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#8C7A6B\] { --tw-ring-color: var(--t-accent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#EFE8DE\] { --tw-ring-color: var(--t-line) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#7D9D7F\] { --tw-ring-color: var(--t-ok-mid) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#FDFBF7\] { --tw-ring-color: var(--t-page) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FAF8F5\]\/98 { background-color: color-mix(in srgb, var(--t-card) 98%, transparent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FDFBF7\]\/95 { background-color: color-mix(in srgb, var(--t-page) 95%, transparent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#F7EEE3\]\/50 { background-color: color-mix(in srgb, var(--t-soft) 50%, transparent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#F2ECE0\]\/70 { background-color: color-mix(in srgb, var(--t-soft) 70%, transparent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#8C7A6B\] { background-color: var(--t-accent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#786657\]:hover { background-color: var(--t-accent-dark) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#B78A58\] { background-color: var(--t-accent2) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FDF2EE\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F2E5E0\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F7EDE8\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#FDF2EE\]:hover { background-color: var(--t-bad-bg) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#8C3A24\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#C0563C\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#722F1D\]:hover { background-color: var(--t-bad-ink) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#B8472E\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#C06C54\] { background-color: var(--t-bad-mid) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FAF5ED\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FAF5EE\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FAF6F0\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FAF8F5\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F9F6F0\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F9F6F1\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#FAF8F5\]:hover { background-color: var(--t-card) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#DCD4C8\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#DDD3C5\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#EAE0D2\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#DFD3C3\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#E4DACD\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#EAE0D2\]:hover { background-color: var(--t-high) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#2C2C2C\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#3C3C3C\] { background-color: var(--t-ink1) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#9E9488\] { background-color: var(--t-ink3) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#E8DFC8\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#EAE4D9\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#EFE4D2\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#EFE5D5\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#EFE8DE\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#ECE4D4\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#EFE8DE\]:hover { background-color: var(--t-line) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#EEF5EF\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#EEF5EF\]:hover { background-color: var(--t-ok-bg) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#487E50\] { background-color: var(--t-ok-ink) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#3B7A42\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#7D9D7F\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#68886A\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#6C8B6E\]:hover { background-color: var(--t-ok-mid) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FCFAF6\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FDFBF7\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#FDFBF7\]:hover { background-color: var(--t-page) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#F0ECE4\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#F2ECE2\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#F4EDE2\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#F5ECE2\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#F7EDE4\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#F7EEE3\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#F7F1E6\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#F7F2EA\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#F7F4EE\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#F9F4EB\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FAF2EB\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F0ECE4\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F1E8DA\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F2ECE0\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F3ECE0\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F4EDE2\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F5ECE0\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F6EFE6\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F7F2EA\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F7F4EE\]:hover { background-color: var(--t-soft) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#D8C7B4\]:hover { background-color: var(--t-strong) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FEF9E7\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#FEF9E7\]:hover { background-color: var(--t-warn-bg) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#D4A017\] { background-color: var(--t-warn-mid) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:border-\[\#8C7A6B\]\/40:hover { border-color: color-mix(in srgb, var(--t-accent) 40%, transparent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#B78A58\]\/40 { border-color: color-mix(in srgb, var(--t-accent2) 40%, transparent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EAE0D2\]\/70 { border-color: color-mix(in srgb, var(--t-high) 70%, transparent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EFE8DE\]\/60 { border-color: color-mix(in srgb, var(--t-line) 60%, transparent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#8C7A6B\] { border-color: var(--t-accent) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#E8C2B8\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EAA598\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#F0D5CD\] { border-color: var(--t-bad-line) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#C06C54\] { border-color: var(--t-bad-mid) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#DCD3C5\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#DDD3C5\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#E4DACD\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EAE0D2\] { border-color: var(--t-high) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#E2D8CA\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#E2DDD3\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#E8DFC8\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#E8E2D5\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EADFCB\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EADFCF\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EAE1D1\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EAE3D6\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#ECE3D5\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EFE8DE\] { border-color: var(--t-line) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#D3E4D5\] { border-color: var(--t-ok-bg) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#97C29B\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#B7D2B9\] { border-color: var(--t-ok-line) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#7D9D7F\] { border-color: var(--t-ok-mid) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#B8AEA0\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#C4B6A6\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#C8B8A6\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#D8C7B4\] { border-color: var(--t-strong) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EADB9B\] { border-color: var(--t-warn-line) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#D4A017\] { border-color: var(--t-warn-mid) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:text-\[\#9E6C52\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#9E6C52\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#A87053\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#B78A58\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#C58B68\] { color: var(--t-accent2) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#E6C8A8\] { color: var(--t-accent2-soft) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:text-\[\#8C3A24\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#6E2A18\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#8C3A24\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#A85A48\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#A85B48\] { color: var(--t-bad-ink) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:text-\[\#2C2C2C\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#2C2C2C\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#3C3C3C\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#4A3E34\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#4A4A4A\] { color: var(--t-ink1) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:text-\[\#5C4F44\]:hover,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#5C4F44\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#6E5D4F\] { color: var(--t-ink2) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#8C7A6B\] { color: var(--t-ink3) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .placeholder\:text-\[\#A8988B\]::placeholder,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .placeholder\:text-\[\#B2A396\]::placeholder,
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#A39284\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#A39385\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#A8988B\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#B4A597\] { color: var(--t-muted) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#1E3B21\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#2C5230\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#3B663F\] { color: var(--t-ok-ink) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#7D9D7F\] { color: var(--t-ok-mid) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#5A4510\],
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#8C6D1F\] { color: var(--t-warn-ink) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .fill-\[\#8C7A6B\] { fill: var(--t-ink3) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .fill-\[\#F6E9DC\] { fill: var(--t-soft) !important; }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#1E3B21" i] { stroke: var(--t-ok-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#2C2C2C" i] { stroke: var(--t-ink1); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#2C5230" i] { stroke: var(--t-ok-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#3B663F" i] { stroke: var(--t-ok-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#3B7A42" i] { stroke: var(--t-ok-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#3C3C3C" i] { stroke: var(--t-ink1); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#487E50" i] { stroke: var(--t-ok-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#4A3E34" i] { stroke: var(--t-ink1); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#4A4A4A" i] { stroke: var(--t-ink1); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#5A4510" i] { stroke: var(--t-warn-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#5C4F44" i] { stroke: var(--t-ink2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#68886A" i] { stroke: var(--t-ok-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#6C8B6E" i] { stroke: var(--t-ok-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#6E2A18" i] { stroke: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#6E5D4F" i] { stroke: var(--t-ink2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#722F1D" i] { stroke: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#786657" i] { stroke: var(--t-accent-dark); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#7A6B5D" i] { stroke: var(--t-ink2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#7D9D7F" i] { stroke: var(--t-ok-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#8C3A24" i] { stroke: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#8C6D1F" i] { stroke: var(--t-warn-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#8C7A6B" i] { stroke: var(--t-accent); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#97C29B" i] { stroke: var(--t-ok-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#9E6C52" i] { stroke: var(--t-accent2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#9E9488" i] { stroke: var(--t-ink3); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#A39284" i] { stroke: var(--t-muted); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#A39385" i] { stroke: var(--t-muted); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#A85A48" i] { stroke: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#A85B48" i] { stroke: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#A87053" i] { stroke: var(--t-accent2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#A8988B" i] { stroke: var(--t-muted); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#B2A396" i] { stroke: var(--t-muted); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#B4A597" i] { stroke: var(--t-muted); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#B78A58" i] { stroke: var(--t-accent2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#B7D2B9" i] { stroke: var(--t-ok-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#B8472E" i] { stroke: var(--t-bad-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#B8AEA0" i] { stroke: var(--t-strong); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#C0563C" i] { stroke: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#C06C54" i] { stroke: var(--t-bad-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#C4B6A6" i] { stroke: var(--t-strong); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#C58B68" i] { stroke: var(--t-accent2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#C8B8A6" i] { stroke: var(--t-strong); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#D3E4D5" i] { stroke: var(--t-ok-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#D4A017" i] { stroke: var(--t-warn-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#D8C7B4" i] { stroke: var(--t-strong); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#DCD3C5" i] { stroke: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#DCD4C8" i] { stroke: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#DDD3C5" i] { stroke: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#DFD3C3" i] { stroke: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#E2D8CA" i] { stroke: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#E2DDD3" i] { stroke: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#E4DACD" i] { stroke: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#E6C8A8" i] { stroke: var(--t-accent2-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#E8C2B8" i] { stroke: var(--t-bad-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#E8DFC8" i] { stroke: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#E8E2D5" i] { stroke: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#EAA598" i] { stroke: var(--t-bad-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#EADB9B" i] { stroke: var(--t-warn-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#EADFCB" i] { stroke: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#EADFCF" i] { stroke: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#EAE0D2" i] { stroke: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#EAE1D1" i] { stroke: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#EAE3D6" i] { stroke: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#EAE4D9" i] { stroke: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#ECE3D5" i] { stroke: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#ECE4D4" i] { stroke: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#EEF5EF" i] { stroke: var(--t-ok-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#EFE4D2" i] { stroke: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#EFE5D5" i] { stroke: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#EFE8DE" i] { stroke: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F0D5CD" i] { stroke: var(--t-bad-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F0ECE4" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F1E8DA" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F2E5E0" i] { stroke: var(--t-bad-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F2ECE0" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F2ECE2" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F3ECE0" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F4EDE2" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F5ECE0" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F5ECE2" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F6E9DC" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F6EFE6" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F7EDE4" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F7EDE8" i] { stroke: var(--t-bad-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F7EEE3" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F7F1E6" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F7F2EA" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F7F4EE" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F9F4EB" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F9F6F0" i] { stroke: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#F9F6F1" i] { stroke: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#FAF2EB" i] { stroke: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#FAF5ED" i] { stroke: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#FAF5EE" i] { stroke: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#FAF6F0" i] { stroke: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#FAF8F5" i] { stroke: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#FCFAF6" i] { stroke: var(--t-page); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#FDF2EE" i] { stroke: var(--t-bad-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#FDFBF7" i] { stroke: var(--t-page); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#FEF9E7" i] { stroke: var(--t-warn-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#1E3B21" i] { fill: var(--t-ok-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#2C2C2C" i] { fill: var(--t-ink1); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#2C5230" i] { fill: var(--t-ok-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#3B663F" i] { fill: var(--t-ok-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#3B7A42" i] { fill: var(--t-ok-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#3C3C3C" i] { fill: var(--t-ink1); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#487E50" i] { fill: var(--t-ok-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#4A3E34" i] { fill: var(--t-ink1); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#4A4A4A" i] { fill: var(--t-ink1); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#5A4510" i] { fill: var(--t-warn-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#5C4F44" i] { fill: var(--t-ink2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#68886A" i] { fill: var(--t-ok-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#6C8B6E" i] { fill: var(--t-ok-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#6E2A18" i] { fill: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#6E5D4F" i] { fill: var(--t-ink2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#722F1D" i] { fill: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#786657" i] { fill: var(--t-accent-dark); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#7A6B5D" i] { fill: var(--t-ink2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#7D9D7F" i] { fill: var(--t-ok-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#8C3A24" i] { fill: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#8C6D1F" i] { fill: var(--t-warn-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#8C7A6B" i] { fill: var(--t-accent); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#97C29B" i] { fill: var(--t-ok-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#9E6C52" i] { fill: var(--t-accent2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#9E9488" i] { fill: var(--t-ink3); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#A39284" i] { fill: var(--t-muted); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#A39385" i] { fill: var(--t-muted); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#A85A48" i] { fill: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#A85B48" i] { fill: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#A87053" i] { fill: var(--t-accent2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#A8988B" i] { fill: var(--t-muted); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#B2A396" i] { fill: var(--t-muted); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#B4A597" i] { fill: var(--t-muted); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#B78A58" i] { fill: var(--t-accent2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#B7D2B9" i] { fill: var(--t-ok-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#B8472E" i] { fill: var(--t-bad-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#B8AEA0" i] { fill: var(--t-strong); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#C0563C" i] { fill: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#C06C54" i] { fill: var(--t-bad-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#C4B6A6" i] { fill: var(--t-strong); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#C58B68" i] { fill: var(--t-accent2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#C8B8A6" i] { fill: var(--t-strong); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#D3E4D5" i] { fill: var(--t-ok-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#D4A017" i] { fill: var(--t-warn-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#D8C7B4" i] { fill: var(--t-strong); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#DCD3C5" i] { fill: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#DCD4C8" i] { fill: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#DDD3C5" i] { fill: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#DFD3C3" i] { fill: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#E2D8CA" i] { fill: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#E2DDD3" i] { fill: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#E4DACD" i] { fill: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#E6C8A8" i] { fill: var(--t-accent2-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#E8C2B8" i] { fill: var(--t-bad-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#E8DFC8" i] { fill: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#E8E2D5" i] { fill: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#EAA598" i] { fill: var(--t-bad-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#EADB9B" i] { fill: var(--t-warn-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#EADFCB" i] { fill: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#EADFCF" i] { fill: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#EAE0D2" i] { fill: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#EAE1D1" i] { fill: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#EAE3D6" i] { fill: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#EAE4D9" i] { fill: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#ECE3D5" i] { fill: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#ECE4D4" i] { fill: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#EEF5EF" i] { fill: var(--t-ok-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#EFE4D2" i] { fill: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#EFE5D5" i] { fill: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#EFE8DE" i] { fill: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F0D5CD" i] { fill: var(--t-bad-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F0ECE4" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F1E8DA" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F2E5E0" i] { fill: var(--t-bad-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F2ECE0" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F2ECE2" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F3ECE0" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F4EDE2" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F5ECE0" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F5ECE2" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F6E9DC" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F6EFE6" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F7EDE4" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F7EDE8" i] { fill: var(--t-bad-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F7EEE3" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F7F1E6" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F7F2EA" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F7F4EE" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F9F4EB" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F9F6F0" i] { fill: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#F9F6F1" i] { fill: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#FAF2EB" i] { fill: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#FAF5ED" i] { fill: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#FAF5EE" i] { fill: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#FAF6F0" i] { fill: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#FAF8F5" i] { fill: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#FCFAF6" i] { fill: var(--t-page); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#FDF2EE" i] { fill: var(--t-bad-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#FDFBF7" i] { fill: var(--t-page); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#FEF9E7" i] { fill: var(--t-warn-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#1E3B21" i] { stop-color: var(--t-ok-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#2C2C2C" i] { stop-color: var(--t-ink1); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#2C5230" i] { stop-color: var(--t-ok-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#3B663F" i] { stop-color: var(--t-ok-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#3B7A42" i] { stop-color: var(--t-ok-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#3C3C3C" i] { stop-color: var(--t-ink1); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#487E50" i] { stop-color: var(--t-ok-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#4A3E34" i] { stop-color: var(--t-ink1); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#4A4A4A" i] { stop-color: var(--t-ink1); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#5A4510" i] { stop-color: var(--t-warn-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#5C4F44" i] { stop-color: var(--t-ink2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#68886A" i] { stop-color: var(--t-ok-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#6C8B6E" i] { stop-color: var(--t-ok-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#6E2A18" i] { stop-color: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#6E5D4F" i] { stop-color: var(--t-ink2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#722F1D" i] { stop-color: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#786657" i] { stop-color: var(--t-accent-dark); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#7A6B5D" i] { stop-color: var(--t-ink2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#7D9D7F" i] { stop-color: var(--t-ok-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#8C3A24" i] { stop-color: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#8C6D1F" i] { stop-color: var(--t-warn-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#8C7A6B" i] { stop-color: var(--t-accent); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#97C29B" i] { stop-color: var(--t-ok-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#9E6C52" i] { stop-color: var(--t-accent2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#9E9488" i] { stop-color: var(--t-ink3); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#A39284" i] { stop-color: var(--t-muted); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#A39385" i] { stop-color: var(--t-muted); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#A85A48" i] { stop-color: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#A85B48" i] { stop-color: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#A87053" i] { stop-color: var(--t-accent2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#A8988B" i] { stop-color: var(--t-muted); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#B2A396" i] { stop-color: var(--t-muted); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#B4A597" i] { stop-color: var(--t-muted); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#B78A58" i] { stop-color: var(--t-accent2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#B7D2B9" i] { stop-color: var(--t-ok-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#B8472E" i] { stop-color: var(--t-bad-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#B8AEA0" i] { stop-color: var(--t-strong); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#C0563C" i] { stop-color: var(--t-bad-ink); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#C06C54" i] { stop-color: var(--t-bad-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#C4B6A6" i] { stop-color: var(--t-strong); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#C58B68" i] { stop-color: var(--t-accent2); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#C8B8A6" i] { stop-color: var(--t-strong); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#D3E4D5" i] { stop-color: var(--t-ok-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#D4A017" i] { stop-color: var(--t-warn-mid); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#D8C7B4" i] { stop-color: var(--t-strong); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#DCD3C5" i] { stop-color: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#DCD4C8" i] { stop-color: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#DDD3C5" i] { stop-color: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#DFD3C3" i] { stop-color: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#E2D8CA" i] { stop-color: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#E2DDD3" i] { stop-color: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#E4DACD" i] { stop-color: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#E6C8A8" i] { stop-color: var(--t-accent2-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#E8C2B8" i] { stop-color: var(--t-bad-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#E8DFC8" i] { stop-color: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#E8E2D5" i] { stop-color: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#EAA598" i] { stop-color: var(--t-bad-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#EADB9B" i] { stop-color: var(--t-warn-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#EADFCB" i] { stop-color: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#EADFCF" i] { stop-color: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#EAE0D2" i] { stop-color: var(--t-high); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#EAE1D1" i] { stop-color: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#EAE3D6" i] { stop-color: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#EAE4D9" i] { stop-color: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#ECE3D5" i] { stop-color: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#ECE4D4" i] { stop-color: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#EEF5EF" i] { stop-color: var(--t-ok-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#EFE4D2" i] { stop-color: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#EFE5D5" i] { stop-color: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#EFE8DE" i] { stop-color: var(--t-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F0D5CD" i] { stop-color: var(--t-bad-line); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F0ECE4" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F1E8DA" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F2E5E0" i] { stop-color: var(--t-bad-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F2ECE0" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F2ECE2" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F3ECE0" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F4EDE2" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F5ECE0" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F5ECE2" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F6E9DC" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F6EFE6" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F7EDE4" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F7EDE8" i] { stop-color: var(--t-bad-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F7EEE3" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F7F1E6" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F7F2EA" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F7F4EE" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F9F4EB" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F9F6F0" i] { stop-color: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#F9F6F1" i] { stop-color: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#FAF2EB" i] { stop-color: var(--t-soft); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#FAF5ED" i] { stop-color: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#FAF5EE" i] { stop-color: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#FAF6F0" i] { stop-color: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#FAF8F5" i] { stop-color: var(--t-card); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#FCFAF6" i] { stop-color: var(--t-page); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#FDF2EE" i] { stop-color: var(--t-bad-bg); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#FDFBF7" i] { stop-color: var(--t-page); }
+:is([data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#FEF9E7" i] { stop-color: var(--t-warn-bg); }
+
+[data-theme="escuro"] .bg-white { background-color: var(--t-card) !important; }
+[data-theme="escuro"] .bg-white\/70, [data-theme="escuro"] .bg-white\/80, [data-theme="escuro"] .bg-white\/60, [data-theme="escuro"] .bg-white\/90 { background-color: color-mix(in srgb, var(--t-card) 85%, transparent) !important; }
+[data-theme="escuro"] .hover\:bg-white:hover { background-color: var(--t-soft) !important; }
+[data-theme="escuro"] .border-white { border-color: var(--t-line) !important; }
+[data-theme="escuro"] input, [data-theme="escuro"] textarea, [data-theme="escuro"] select { color: var(--t-ink1); }
+[data-theme="escuro"] ::placeholder { color: var(--t-muted); }
+[data-theme="escuro"] .text-black { color: var(--t-ink1) !important; }
+

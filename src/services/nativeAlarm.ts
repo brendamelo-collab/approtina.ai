@@ -11,6 +11,17 @@ export interface NativeAlarm {
   spoken: string;
   timeLabel: string;
   at: number; // epoch ms
+  sound?: string; // alarm sound chosen in Configurações (see utils/alarmSounds.ts)
+  voice?: string; // Android voice name ('' = phone default)
+  rate?: number; // speech speed
+  pitch?: number; // speech pitch
+}
+
+export interface NativeVoice {
+  name: string;
+  locale: string;
+  network: boolean;
+  quality: number;
 }
 
 export interface NativeAlarmAction {
@@ -57,5 +68,12 @@ export const nativeAlarm = {
   },
   getStatus: () => call<NativeAlarmStatus>('getStatus'),
   openSetting: (which: keyof NativeAlarmStatus) => call('openSetting', { which }),
-  testAlarm: (seconds = 10) => call('testAlarm', { seconds })
+  testAlarm: (seconds = 10, options: Record<string, any> = {}) => call('testAlarm', { seconds, ...options }),
+  // Available only in APKs built after the sound/voice settings were added
+  getVoices: async (): Promise<NativeVoice[]> => {
+    const res = await call<{ voices?: NativeVoice[] }>('getVoices');
+    return res?.voices || [];
+  },
+  previewSound: (sound: string) => call('previewSound', { sound }),
+  previewVoice: (options: { voice?: string; rate?: number; pitch?: number; text?: string }) => call('previewVoice', options)
 };

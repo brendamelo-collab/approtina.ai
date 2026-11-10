@@ -39,7 +39,8 @@ export const NativeAlarmSync: React.FC = () => {
     agendaItems,
     recurringTasks,
     healthMedications,
-    currentProfile
+    currentProfile,
+    notificationPreferences
   } = app;
 
   // 1) Keep the native alarm list up to date with the user's data
@@ -152,10 +153,21 @@ export const NativeAlarmSync: React.FC = () => {
       }
 
       alarms.sort((a, b) => a.at - b.at);
-      nativeAlarm.setAlarms(alarms.slice(0, MAX_ALARMS)).catch(() => undefined);
+      // Sound and voice chosen in Configurações > Sons e voz
+      const prefs = notificationPreferences || ({} as typeof notificationPreferences);
+      const style = {
+        sound: prefs.alarmSound || 'padrao',
+        voice: prefs.nativeVoiceName || '',
+        rate: prefs.voiceRate ?? 0.95,
+        pitch: prefs.voicePitch ?? 1
+      };
+      const speak = prefs.voiceAlerts !== false;
+      nativeAlarm
+        .setAlarms(alarms.slice(0, MAX_ALARMS).map((a) => ({ ...a, ...style, spoken: speak ? a.spoken : '' })))
+        .catch(() => undefined);
     }, 1500);
     return () => clearTimeout(timer);
-  }, [native, isLoggedIn, routineTasks, dailyChronologicalSteps, agendaItems, recurringTasks, healthMedications, currentProfile]);
+  }, [native, isLoggedIn, routineTasks, dailyChronologicalSteps, agendaItems, recurringTasks, healthMedications, currentProfile, notificationPreferences]);
 
   // 2) Apply "Já fiz" / "Adiar" answered on the native alarm screen
   useEffect(() => {
@@ -219,6 +231,7 @@ const PERMISSION_LABELS: Record<keyof NativeAlarmStatus, { title: string; why: s
 
 /** Card on the home screen (Android app only) to enable the alarm permissions and test it. */
 export const NativeAlarmSetupCard: React.FC = () => {
+  const { notificationPreferences: prefs } = useApp();
   const native = isNativeAlarmAvailable();
   const [status, setStatus] = useState<NativeAlarmStatus | null>(null);
   const [testing, setTesting] = useState(false);
@@ -280,7 +293,14 @@ export const NativeAlarmSetupCard: React.FC = () => {
           <button
             onClick={() => {
               setTesting(true);
-              nativeAlarm.testAlarm(10).catch(() => undefined);
+              nativeAlarm
+                .testAlarm(10, {
+                  sound: prefs?.alarmSound || 'padrao',
+                  voice: prefs?.nativeVoiceName || '',
+                  rate: prefs?.voiceRate ?? 0.95,
+                  pitch: prefs?.voicePitch ?? 1
+                })
+                .catch(() => undefined);
               setTimeout(() => setTesting(false), 12000);
             }}
             disabled={testing}

@@ -19,7 +19,8 @@ import {
   Trash2,
   Edit2,
   X,
-  CheckCircle2
+  CheckCircle2,
+  Pencil
 } from 'lucide-react';
 import {
   calculatePerformanceMetrics,
@@ -27,6 +28,10 @@ import {
   formatBrazilianDate
 } from '../../utils/routineCalculations';
 import { DayPeriod, QuestionResponseValue, QuestionItem, MoodOption } from '../../types';
+import { buildPeriod, bucketsFor, countAnswers, factorReport, moodReport } from '../../utils/reportStats';
+import { BarSeries, EmptyState, ProgressRow } from '../reports/ReportCharts';
+
+const FACTOR_EMOJIS = ['😴', '🔋', '👶', '💸', '⏳', '⚡', '🤕', '🌿', '☀️', '🤝', '🥗', '😰', '🎉', '🏠', '🚗', '💼', '🌧️', '❤️', '📚', '🙏'];
 
 export const MeuMapaView: React.FC = () => {
   const {
@@ -95,6 +100,11 @@ export const MeuMapaView: React.FC = () => {
   // State for adding custom factor
   const [isAddingFactor, setIsAddingFactor] = useState(false);
   const [newFactorName, setNewFactorName] = useState('');
+  const [newFactorIcon, setNewFactorIcon] = useState('✨');
+  // Edit an existing factor (name + emoji) without losing the days already marked
+  const [editingFactorId, setEditingFactorId] = useState<string | null>(null);
+  const [editFactorLabel, setEditFactorLabel] = useState('');
+  const [editFactorIcon, setEditFactorIcon] = useState('');
 
   // Expandable state for life areas inside questions section
   const [expandedAreaId, setExpandedAreaId] = useState<string>(lifeAreas[0]?.id || '');
@@ -108,6 +118,21 @@ export const MeuMapaView: React.FC = () => {
   const moodListForDay = getMoodRecordsForDate(selectedDate);
   // Per-day isolated factors (restarts for each selected day)
   const selectedFactorsForDay = dayFactors[selectedDate] || [];
+  const selectedFactorLabels = Array.from(
+    new Set(
+      selectedFactorsForDay
+        .map((x) => availableFactors.find((f) => f.id === x || f.label === x))
+        .filter((f): f is NonNullable<typeof f> => !!f)
+        .map((f) => `${f.icon ? `${f.icon} ` : ''}${f.label}`)
+    )
+  );
+
+  // Resumo do mês (aba "Resumo & Análises") — só registros reais
+  const monthPeriod = buildPeriod('mes', selectedDate);
+  const monthBuckets = bucketsFor(monthPeriod.from, monthPeriod.to, 'semana');
+  const monthAnswers = countAnswers(questions, questionResponses, monthPeriod.from, monthPeriod.to, todayISO());
+  const monthMood = moodReport(moodRecords, moodOptions, monthPeriod, monthBuckets);
+  const monthFactors = factorReport(dayFactors, availableFactors, monthPeriod);
 
   const periodOptions: { period: DayPeriod; label: string; icon: string }[] = [
     { period: 'manha', label: 'Manhã', icon: '☀️' },
@@ -147,10 +172,26 @@ export const MeuMapaView: React.FC = () => {
   const handleCreateFactor = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFactorName.trim()) return;
-    addCustomFactor(newFactorName.trim());
-    toggleDayFactor(selectedDate, newFactorName.trim());
+    const id = addCustomFactor(newFactorName.trim(), newFactorIcon.trim() || '✨');
+    toggleDayFactor(selectedDate, id);
     setNewFactorName('');
+    setNewFactorIcon('✨');
     setIsAddingFactor(false);
+  };
+
+  const startEditFactor = (id: string) => {
+    const f = availableFactors.find((x) => x.id === id);
+    if (!f) return;
+    setEditingFactorId(id);
+    setEditFactorLabel(f.label);
+    setEditFactorIcon(f.icon || '');
+  };
+
+  const handleSaveFactor = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingFactorId || !editFactorLabel.trim()) return;
+    updateCustomFactor(editingFactorId, editFactorLabel.trim(), editFactorIcon.trim() || '✨');
+    setEditingFactorId(null);
   };
 
   const handleDateChange = (daysDelta: number) => {
@@ -532,6 +573,20 @@ export const MeuMapaView: React.FC = () => {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
+                            startEditFactor(f.id);
+                          }}
+                          className={`p-1 rounded-full opacity-70 hover:opacity-100 ${
+                            isSelected ? 'hover:bg-white/20 text-white' : 'hover:bg-[#EAE0D2] text-[#8C7A6B]'
+                          }`}
+                          title="Editar nome e emoji"
+                          aria-label={`Editar ${f.label}`}
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
                             deleteCustomFactor(f.id);
                           }}
                           className={`p-1 mr-1 rounded-full opacity-60 hover:opacity-100 ${
@@ -546,6 +601,54 @@ export const MeuMapaView: React.FC = () => {
                   })}
                 </div>
 
+                {/* Edit factor: name + emoji (the days already marked keep this factor) */}
+                {editingFactorId && (
+                  <form onSubmit={handleSaveFactor} className="bg-white border border-[#EFE8DE] rounded-2xl p-3 space-y-2.5">
+                    <p className="text-xs font-bold text-[#4A3E34]">Editar fator</p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={editFactorIcon}
+                        onChange={(e) => setEditFactorIcon(e.target.value)}
+                        className="w-14 shrink-0 text-center text-lg bg-[#F7F4EE] border border-[#EFE8DE] rounded-xl py-1.5 focus:outline-none focus:ring-1 focus:ring-[#8C7A6B]"
+                        aria-label="Emoji do fator"
+                        maxLength={8}
+                      />
+                      <input
+                        type="text"
+                        value={editFactorLabel}
+                        onChange={(e) => setEditFactorLabel(e.target.value)}
+                        className="flex-1 min-w-0 text-xs text-[#2C2C2C] bg-[#F7F4EE] border border-[#EFE8DE] rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#8C7A6B]"
+                        aria-label="Nome do fator"
+                      />
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {FACTOR_EMOJIS.map((em) => (
+                        <button
+                          key={em}
+                          type="button"
+                          onClick={() => setEditFactorIcon(em)}
+                          className={`w-8 h-8 rounded-lg text-base flex items-center justify-center ${
+                            editFactorIcon === em ? 'bg-[#EAE0D2] ring-1 ring-[#8C7A6B]' : 'bg-[#F7F4EE] hover:bg-[#EAE0D2]'
+                          }`}
+                          aria-label={`Usar ${em}`}
+                        >
+                          {em}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-[#8C7A6B]">Os dias em que você já marcou este fator continuam registrados.</p>
+                    <div className="flex gap-2">
+                      <button type="submit" className="flex-1 py-2 bg-[#8C7A6B] text-white text-xs font-bold rounded-xl">
+                        Salvar
+                      </button>
+                      <button type="button" onClick={() => setEditingFactorId(null)} className="px-3 py-2 text-xs font-bold text-[#8C7A6B] bg-[#F4EDE2] rounded-xl">
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                )}
+
                 {/* Add Custom Factor */}
                 <div className="pt-2">
                   {!isAddingFactor ? (
@@ -558,13 +661,21 @@ export const MeuMapaView: React.FC = () => {
                       <span>Criar novo fator personalizado</span>
                     </button>
                   ) : (
-                    <form onSubmit={handleCreateFactor} className="flex gap-2 bg-white border border-[#EFE8DE] p-2 rounded-2xl">
+                    <form onSubmit={handleCreateFactor} className="flex flex-wrap items-center gap-2 bg-white border border-[#EFE8DE] p-2 rounded-2xl">
                       <input
                         type="text"
-                        placeholder="Ex: Visita inesperada, Reforma, Noite excelente..."
+                        value={newFactorIcon}
+                        onChange={(e) => setNewFactorIcon(e.target.value)}
+                        className="w-11 shrink-0 text-center text-base bg-[#F7F4EE] rounded-xl py-1.5 focus:outline-none"
+                        aria-label="Emoji do novo fator"
+                        maxLength={8}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Ex: Visita inesperada, Reforma..."
                         value={newFactorName}
                         onChange={(e) => setNewFactorName(e.target.value)}
-                        className="flex-1 bg-transparent text-xs text-[#2C2C2C] focus:outline-none px-2"
+                        className="flex-1 min-w-[8rem] bg-transparent text-xs text-[#2C2C2C] focus:outline-none px-2 py-1.5"
                         autoFocus
                       />
                       <button
@@ -807,194 +918,120 @@ export const MeuMapaView: React.FC = () => {
          ========================================================================= */}
       {subTab === 'resumo' && (
         <div className="space-y-4">
-          {/* Card 1: Seu humor este mês (Bar chart S1-S4 + smiley badge) */}
-          <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 shadow-[0_4px_20px_rgba(140,122,107,0.05)]">
-            <h2 className="text-xs sm:text-sm font-bold text-[#2C2C2C] mb-3">
-              Seu humor este mês
-            </h2>
-
-            <div className="flex items-end justify-between gap-4">
-              {/* Weekly Bars: S1, S2, S3, S4 */}
-              <div className="flex-1 flex items-end justify-between gap-2 h-28 pt-2">
-                {[
-                  { week: 'S1', height: '65%', score: '65%' },
-                  { week: 'S2', height: '80%', score: '80%' },
-                  { week: 'S3', height: '70%', score: '70%' },
-                  { week: 'S4', height: '88%', score: '88%' }
-                ].map((bar) => (
-                  <div key={bar.week} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
-                    <span className="text-[9px] font-bold text-[#8C7A6B]">{bar.score}</span>
-                    <div className="w-full bg-[#EAE0D2] rounded-t-xl overflow-hidden h-20 flex items-end">
-                      <div
-                        style={{ height: bar.height }}
-                        className="w-full bg-[#8C7A6B] rounded-t-xl transition-all duration-500"
-                      />
-                    </div>
-                    <span className="text-[10px] font-bold text-[#5C4F44]">{bar.week}</span>
-                  </div>
-                ))}
+          {/* Mês do dia selecionado, calculado só com registros reais */}
+          <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 shadow-[0_4px_20px_rgba(140,122,107,0.05)] space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="text-sm font-bold text-[#2C2C2C] leading-snug">Seu mês até agora</h2>
+                <p className="text-[11px] text-[#8C7A6B] capitalize">{monthPeriod.label}</p>
               </div>
-
-              {/* Smiley Badge: 83% positivo */}
-              <div className="w-24 h-24 rounded-2xl bg-[#EEF5EF] border border-[#B7D2B9] flex flex-col items-center justify-center text-center p-2 shrink-0 shadow-2xs">
-                <span className="text-3xl mb-0.5">😊</span>
-                <span className="text-sm font-extrabold text-[#2C5230] leading-none">83%</span>
-                <span className="text-[10px] font-semibold text-[#3B663F]">positivo</span>
+              <div
+                className={`shrink-0 w-20 rounded-2xl border flex flex-col items-center justify-center text-center py-2 ${
+                  monthAnswers.pctPositivo === null ? 'bg-white border-[#EFE8DE]' : 'bg-[#EEF5EF] border-[#B7D2B9]'
+                }`}
+              >
+                <span className={`text-lg font-extrabold leading-none ${monthAnswers.pctPositivo === null ? 'text-[#B4A597]' : 'text-[#2C5230]'}`}>
+                  {monthAnswers.pctPositivo === null ? '—' : `${monthAnswers.pctPositivo}%`}
+                </span>
+                <span className="text-[10px] font-semibold text-[#3B663F] mt-0.5">positivo</span>
               </div>
             </div>
-          </div>
-
-          {/* Card 2: Principais fatores (Ordered Descending) */}
-          <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 shadow-[0_4px_20px_rgba(140,122,107,0.05)]">
-            <h2 className="text-xs sm:text-sm font-bold text-[#2C2C2C] mb-3">
-              Principais fatores
-            </h2>
-
-            <div className="space-y-2.5">
-              {[
-                { factor: 'Cansaço', percent: 32 },
-                { factor: 'Sobrecarga', percent: 28 },
-                { factor: 'Sono ruim', percent: 24 },
-                { factor: 'Família', percent: 16 }
-              ].map((item) => (
-                <div key={item.factor} className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold text-[#4A3E34]">
-                    <span>{item.factor}</span>
-                    <span className="font-bold text-[#8C7A6B]">{item.percent}%</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-[#EFE8DE] overflow-hidden">
-                    <div
-                      style={{ width: `${item.percent}%` }}
-                      className="h-full bg-[#B78A58] rounded-full transition-all duration-500"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Card 3: Análise da IA */}
-          <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 shadow-[0_4px_20px_rgba(140,122,107,0.05)] space-y-2.5">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">🤖</span>
-              <h3 className="text-xs sm:text-sm font-bold text-[#2C2C2C]">
-                Análise da IA
-              </h3>
-            </div>
-
-            <p className="text-xs text-[#5C4F44] leading-relaxed">
-              Você se sente melhor nos dias em que dorme bem. Tente manter uma rotina de sono mais consistente para preservar sua calma e disposição com as crianças.
+            <p className="text-[11px] text-[#5C4F44] leading-snug">
+              {monthAnswers.validas
+                ? `${monthAnswers.positivo} positivas e ${monthAnswers.negativo} negativas em ${monthAnswers.validas} respostas válidas.`
+                : 'Ainda sem respostas válidas neste mês.'}
             </p>
-
-            <button
-              onClick={() => setActiveTab('relatorios')}
-              className="text-xs font-bold text-[#8C7A6B] hover:text-[#5C4F44] flex items-center gap-1 pt-1"
-            >
-              <span>Ver mais detalhes</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="space-y-1.5">
+              <p className="text-xs font-bold text-[#4A3E34]">Humor por semana (média de 1 a 5)</p>
+              <BarSeries
+                values={monthMood.series}
+                labels={monthBuckets.map((b) => b.label)}
+                max={5}
+                tone="accent"
+                format={(v) => String(v).replace('.', ',')}
+                emptyText="Registre seu humor para ver a evolução."
+              />
+            </div>
           </div>
 
-          {/* Card 4: 4. Resumo & Evolução do Dia */}
-          <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(140,122,107,0.05)]">
-            <button
-              onClick={() => toggleSection('resumo')}
-              className="w-full p-4 sm:p-5 flex items-center justify-between text-left focus:outline-none"
-              aria-expanded={openSections.resumo}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-xl">
-                  📊
-                </div>
-                <div>
-                  <h2 className="text-sm sm:text-base font-bold text-[#2C2C2C]">
-                    4. Resumo & Evolução do Dia
-                  </h2>
-                  <p className="text-xs text-[#8C7A6B]">
-                    Desempenho comportamental consolidado
-                  </p>
-                </div>
-              </div>
-
-              <span className="text-xs font-extrabold text-[#5C4F44] bg-[#EFE8DE] px-2.5 py-0.5 rounded-full">
-                {metrics.hasEvaluatedAnswers ? `${metrics.positivePercentage}%` : '83%'}
-              </span>
-            </button>
-
-            {openSections.resumo && (
-              <div className="px-4 sm:px-5 pb-5 pt-1 border-t border-[#EFE8DE]/60 space-y-4">
-                <div className="bg-white border border-[#EFE8DE] rounded-2xl p-4 flex items-center gap-4 shadow-2xs">
-                  <div className="w-16 h-16 rounded-full bg-[#EEF5EF] border border-[#B7D2B9] flex flex-col items-center justify-center shrink-0">
-                    <span className="text-base font-extrabold text-[#2C5230]">
-                      {metrics.hasEvaluatedAnswers ? metrics.positivePercentage : 83}%
-                    </span>
-                    <span className="text-[9px] font-semibold text-[#3B663F]">Positivo</span>
-                  </div>
-
-                  <div className="space-y-1 text-xs">
-                    <div className="flex justify-between gap-3 text-[#2C2C2C]">
-                      <span className="text-[#8C7A6B]">Respostas Positivas:</span>
-                      <strong className="text-[#2C5230]">{metrics.positivoCount || 5}</strong>
-                    </div>
-                    <div className="flex justify-between gap-3 text-[#2C2C2C]">
-                      <span className="text-[#8C7A6B]">Respostas Negativas:</span>
-                      <strong className="text-[#8C3A24]">{metrics.negativoCount || 1}</strong>
-                    </div>
-                    <div className="flex justify-between gap-3 text-[#2C2C2C]">
-                      <span className="text-[#8C7A6B]">Neutras (N/A / Não lembro):</span>
-                      <strong className="text-[#5C4F44]">{metrics.neutralCount || 1}</strong>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Performance by area (sorted descending) */}
-                <div className="space-y-2">
-                  <h4 className="text-xs font-bold text-[#4A3E34]">
-                    Desempenho por Área da Vida
-                  </h4>
-                  <div className="space-y-1.5">
-                    {lifeAreas.map((area) => {
-                      const areaPerf = calculateAreaPerformance(
-                        area.id,
-                        questionResponses.filter((r) => r.date === selectedDate),
-                        questions
-                      );
-                      return (
-                        <div
-                          key={area.id}
-                          className="p-2.5 rounded-xl bg-white border border-[#EFE8DE] flex items-center justify-between text-xs"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span>{area.icon || '📌'}</span>
-                            <span className="font-semibold text-[#2C2C2C]">{area.name}</span>
-                          </div>
-                          <span className="font-extrabold text-[#5C4F44]">
-                            {areaPerf.hasEvaluatedAnswers
-                              ? `${areaPerf.positivePercentage}% positivo`
-                              : 'Sem respostas'}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Day factors note */}
-                <p className="text-xs text-[#6E5D4F] bg-[#FAF5ED] p-3 rounded-2xl border border-[#EAE0D2]">
-                  Fatores ativos hoje:{' '}
-                  <strong>{selectedFactorsForDay.length > 0 ? selectedFactorsForDay.join(', ') : 'Dia tranquilo'}</strong>.
-                  Mesmo com esses contextos, você manteve suas ações alinhadas com seus valores familiares!
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('relatorios')}
-                  className="w-full py-2.5 rounded-2xl bg-[#8C7A6B] hover:bg-[#786657] text-white font-bold text-xs transition-colors shadow-2xs"
-                >
-                  Ver Relatório Geral Completo (Semanal • Mensal • Anual)
-                </button>
-              </div>
+          {/* Fatores mais marcados no mês */}
+          <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 shadow-[0_4px_20px_rgba(140,122,107,0.05)] space-y-2.5">
+            <h2 className="text-sm font-bold text-[#2C2C2C]">Principais fatores do mês</h2>
+            {monthFactors.rows.filter((r) => r.days > 0).length === 0 ? (
+              <EmptyState hint="Marque os fatores do dia para ver quais mais aparecem." />
+            ) : (
+              monthFactors.rows
+                .filter((r) => r.days > 0)
+                .slice(0, 5)
+                .map((r) => (
+                  <ProgressRow
+                    key={r.factor.id}
+                    label={`${r.factor.icon ? `${r.factor.icon} ` : ''}${r.factor.label}`}
+                    value={r.pctDays}
+                    tone="gold"
+                    detail={`${r.days} de ${monthFactors.daysMarked} dias com fatores marcados`}
+                  />
+                ))
             )}
+          </div>
+
+          {/* Resumo do dia selecionado */}
+          <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 shadow-[0_4px_20px_rgba(140,122,107,0.05)] space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="text-sm font-bold text-[#2C2C2C] leading-snug">Resumo do dia</h2>
+                <p className="text-[11px] text-[#8C7A6B]">{formatBrazilianDate(selectedDate)}</p>
+              </div>
+              <span className="shrink-0 text-xs font-extrabold text-[#5C4F44] bg-[#EFE8DE] px-2.5 py-0.5 rounded-full">
+                {metrics.hasEvaluatedAnswers ? `${metrics.positivePercentage}% positivo` : 'Sem respostas'}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="bg-white border border-[#EFE8DE] rounded-2xl p-2">
+                <p className="text-lg font-extrabold text-[#2C5230] leading-none">{metrics.positivoCount}</p>
+                <p className="text-[10px] text-[#8C7A6B] mt-1">Positivas</p>
+              </div>
+              <div className="bg-white border border-[#EFE8DE] rounded-2xl p-2">
+                <p className="text-lg font-extrabold text-[#8C3A24] leading-none">{metrics.negativoCount}</p>
+                <p className="text-[10px] text-[#8C7A6B] mt-1">Negativas</p>
+              </div>
+              <div className="bg-white border border-[#EFE8DE] rounded-2xl p-2">
+                <p className="text-lg font-extrabold text-[#5C4F44] leading-none">{metrics.neutralCount}</p>
+                <p className="text-[10px] text-[#8C7A6B] mt-1 leading-tight">Não se aplica / não lembro</p>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <h4 className="text-xs font-bold text-[#4A3E34]">Por área da vida</h4>
+              {lifeAreas.map((area) => {
+                const areaPerf = calculateAreaPerformance(
+                  area.id,
+                  questionResponses.filter((r) => r.date === selectedDate),
+                  questions
+                );
+                return (
+                  <div key={area.id} className="p-2.5 rounded-xl bg-white border border-[#EFE8DE] flex items-center justify-between gap-2 text-xs">
+                    <span className="flex items-center gap-2 min-w-0">
+                      <span className="shrink-0">{area.icon || '📌'}</span>
+                      <span className="font-semibold text-[#2C2C2C] truncate">{area.name}</span>
+                    </span>
+                    <span className="shrink-0 font-extrabold text-[#5C4F44]">
+                      {areaPerf.hasEvaluatedAnswers ? `${areaPerf.positivePercentage}% positivo` : 'Sem respostas'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-xs text-[#6E5D4F] bg-[#FAF5ED] p-3 rounded-2xl border border-[#EAE0D2] leading-snug">
+              Fatores marcados neste dia:{' '}
+              <strong>{selectedFactorLabels.length ? selectedFactorLabels.join(', ') : 'nenhum'}</strong>
+            </p>
+            <button
+              type="button"
+              onClick={() => setActiveTab('relatorios')}
+              className="w-full py-2.5 rounded-2xl bg-[#8C7A6B] hover:bg-[#786657] text-white font-bold text-xs transition-colors shadow-2xs inline-flex items-center justify-center gap-1"
+            >
+              Ver relatórios completos <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       )}

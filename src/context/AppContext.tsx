@@ -36,10 +36,14 @@ import {
   MonthlyReviewData,
   TaskExecutionRecord,
   NotificationPreferences,
-  MemberType
+  MemberType,
+  ActivityLog,
+  ActivityStatus,
+  DataMaintenance
 } from '../types';
 import { resolveResponseValue } from '../utils/routineCalculations';
 import { todayISO } from '../utils/dateUtils';
+import { playWebSound, speakText } from '../utils/alarmSounds';
 import { auth, onAuthStateChanged, saveUserRealtimeData, loadUserRealtimeData, logoutFirebase } from '../firebase';
 
 // Maps each synced state field to its localStorage key suffix (must match the persist effect)
@@ -69,7 +73,9 @@ const CLOUD_SYNC_FIELDS: Record<string, string> = {
   goalCategories: 'goal_categories',
   recurringTasks: 'recurring_tasks',
   recurringHistory: 'recurring_history',
-  notifications: 'notifications'
+  notifications: 'notifications',
+  activityLog: 'activity_log',
+  dataMaintenance: 'data_maintenance'
 };
 
 export interface ActiveAlarmPayload {
@@ -109,6 +115,16 @@ interface AppContextType {
   // Preferences & Data
   notificationPreferences: NotificationPreferences;
   toggleNotificationPreference: (key: keyof NotificationPreferences) => void;
+  updateNotificationPreferences: (updates: Partial<NotificationPreferences>) => void;
+
+  // Histórico diário (relatórios) e revisão dos dados de exemplo
+  activityLog: ActivityLog;
+  dataMaintenance: DataMaintenance;
+  demoCandidates: DemoCandidate[];
+  demoRemovedCount: number;
+  removeDemoItems: (items: { field: DemoField; id: string }[]) => void;
+  keepDemoItems: (items: { field: DemoField; id: string }[]) => void;
+  undoDemoCleanup: () => void;
   exportAppData: () => string;
   importAppData: (jsonString: string) => boolean;
   resetAppToDefaults: () => void;
@@ -134,7 +150,7 @@ interface AppContextType {
 
   // Meu Mapa - Factors Management (per-day independent selection)
   availableFactors: FactorOption[];
-  addCustomFactor: (label: string, icon?: string) => void;
+  addCustomFactor: (label: string, icon?: string) => string;
   updateCustomFactor: (id: string, label: string, icon?: string) => void;
   deleteCustomFactor: (id: string) => void;
   dayFactors: Record<string, string[]>; // date -> factorIds
@@ -1087,29 +1103,64 @@ const clearLocalAppState = () => {
   localStorage.removeItem(`${STORAGE_KEY}_is_logged_in`);
 };
 
-const AppContext = createContext<AppContextType | undefined>(undefined);
+// Exemplos que vinham pré-carregados nas primeiras versões (usados só para reconhecê-los e retirá-los)
+const DEMO_QUESTION_RESPONSES: QuestionResponse[] = [
+        { id: 'qr-1', questionId: 'q-paciencia', date: '2026-11-16', choice: 'nao', value: 'positivo', updatedAt: '2026-11-16T10:00:00Z' },
+        { id: 'qr-2', questionId: 'q-afeto', date: '2026-11-16', choice: 'sim', value: 'positivo', updatedAt: '2026-11-16T11:00:00Z' },
+        { id: 'qr-3', questionId: 'q-sono-criancas', date: '2026-11-16', choice: 'sim', value: 'positivo', updatedAt: '2026-11-16T21:40:00Z' },
+        { id: 'qr-4', questionId: 'q-tempo-para-mim', date: '2026-11-16', choice: 'sim', value: 'positivo', updatedAt: '2026-11-16T15:00:00Z' },
+        { id: 'qr-5', questionId: 'q-sobrecarga', date: '2026-11-16', choice: 'sim', value: 'negativo', updatedAt: '2026-11-16T16:00:00Z' },
+        { id: 'qr-6', questionId: 'q-pia-limpa', date: '2026-11-16', choice: 'sim', value: 'positivo', updatedAt: '2026-11-16T22:00:00Z' },
+        { id: 'qr-7', questionId: 'q-agua', date: '2026-11-16', choice: 'nao_se_aplica', value: 'nao_se_aplica', updatedAt: '2026-11-16T22:00:00Z' }
+      ];
+const DEMO_MOOD_RECORDS: MoodRecord[] = [
+        {
+          id: 'mr-1',
+          date: '2026-11-16',
+          period: 'manha',
+          mood: 'muito_bem',
+          label: 'Muito Bem',
+          intensity: 4,
+          notes: 'Acordei com disposição e as crianças brincaram alegremente.',
+          timestamp: '2026-11-16T08:30:00Z'
+        },
+        {
+          id: 'mr-2',
+          date: '2026-11-16',
+          period: 'tarde',
+          mood: 'bem',
+          label: 'Bem',
+          intensity: 3,
+          notes: 'Almoço nutritivo e lição de casa tranquila.',
+          timestamp: '2026-11-16T14:15:00Z'
+        }
+      ];
+const DEMO_DAY_FACTORS: Record<string, string[]> = {
+        '2026-11-16': ['dia_tranquilo', 'passeio'],
+        '2026-11-15': ['sono_ruim', 'cansaco_fisico']
+      };
 
-// Web Audio Soft Chime Generator (No external audio file dependencies)
-function playGentleChime() {
-  try {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.3); // A5
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 1.2);
-  } catch {
-    // AudioContext blocked by browser gesture policy
-  }
+export type DemoField =
+  | 'routineTasks'
+  | 'dailyChronologicalSteps'
+  | 'agendaItems'
+  | 'weeklyFixedTopics'
+  | 'healthMedications'
+  | 'healthDateItems'
+  | 'healthNoteItems'
+  | 'goals'
+  | 'recurringTasks'
+  | 'profiles';
+
+export interface DemoCandidate {
+  field: DemoField;
+  id: string;
+  label: string;
+  group: string;
+  unchanged: boolean; // igual ao exemplo original (provavelmente nunca usado)
 }
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Profiles
@@ -1235,6 +1286,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setNotificationPreferences((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const updateNotificationPreferences = (updates: Partial<NotificationPreferences>) => {
+    setNotificationPreferences((prev) => ({ ...prev, ...updates }));
+  };
+
   // Date Selection
   const [selectedDate, setSelectedDate] = useState<string>(() => todayISO());
 
@@ -1252,6 +1307,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 60 * 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Daily history of what was done (routines, steps, medications, agenda) used by the reports.
+  // Only what the person marks is stored: a day without a mark is "sem registro", never "não fez".
+  const [activityLog, setActivityLog] = useState<ActivityLog>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_activity_log`);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const logActivity = (kind: 'r' | 's' | 'a', id: string, status: ActivityStatus | null, date: string = currentDay) => {
+    setActivityLog((prev) => {
+      const days = { ...(prev.days || {}) };
+      const day = { ...(days[date] || {}) };
+      const bucket = { ...((day[kind] as Record<string, ActivityStatus>) || {}) };
+      if (status) bucket[id] = status;
+      else delete bucket[id];
+      day[kind] = bucket;
+      days[date] = day;
+      return { since: prev.since || currentDay, days };
+    });
+  };
+
+  const logMedication = (id: string, status: ActivityStatus | null, date: string = currentDay) => {
+    setActivityLog((prev) => {
+      const days = { ...(prev.days || {}) };
+      const day = { ...(days[date] || {}) };
+      const bucket = { ...(day.m || {}) };
+      if (status) bucket[id] = { st: status, at: new Date().toISOString() };
+      else delete bucket[id];
+      day.m = bucket;
+      days[date] = day;
+      return { since: prev.since || currentDay, days };
+    });
+  };
+
+  // Maintenance info (demo-data cleanup) synced with the account
+  const [dataMaintenance, setDataMaintenance] = useState<DataMaintenance>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_data_maintenance`);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
 
   // Mood Options
   const [moodOptions, setMoodOptions] = useState<MoodOption[]>(() => {
@@ -1280,28 +1382,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [moodRecords, setMoodRecords] = useState<MoodRecord[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_mood_records`);
-      return saved ? JSON.parse(saved) : [
-        {
-          id: 'mr-1',
-          date: '2026-11-16',
-          period: 'manha',
-          mood: 'muito_bem',
-          label: 'Muito Bem',
-          intensity: 4,
-          notes: 'Acordei com disposição e as crianças brincaram alegremente.',
-          timestamp: '2026-11-16T08:30:00Z'
-        },
-        {
-          id: 'mr-2',
-          date: '2026-11-16',
-          period: 'tarde',
-          mood: 'bem',
-          label: 'Bem',
-          intensity: 3,
-          notes: 'Almoço nutritivo e lição de casa tranquila.',
-          timestamp: '2026-11-16T14:15:00Z'
-        }
-      ];
+      return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
@@ -1357,12 +1438,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const addCustomFactor = (label: string, icon: string = '✨') => {
-    const newId = `fct-${Date.now()}`;
+    const newId = `factor-${Date.now()}`;
     setAvailableFactors((prev) => [...prev, { id: newId, label, icon, visible: true }]);
+    return newId;
   };
 
+  // Rename / new emoji: the day records keep pointing to the same factor (by id), so history is preserved
   const updateCustomFactor = (id: string, label: string, icon?: string) => {
+    const old = availableFactors.find((f) => f.id === id);
     setAvailableFactors((prev) => prev.map((f) => (f.id === id ? { ...f, label, icon: icon || f.icon } : f)));
+    // Older versions saved some day factors by their name: point them to the id before renaming
+    if (old && old.label !== label) {
+      setDayFactors((prev) => {
+        let changed = false;
+        const next: Record<string, string[]> = {};
+        Object.entries(prev).forEach(([date, list]) => {
+          const mapped = Array.from(new Set(list.map((x) => (x === old.label ? id : x))));
+          if (mapped.length !== list.length || mapped.some((x, i) => x !== list[i])) changed = true;
+          next[date] = mapped;
+        });
+        return changed ? next : prev;
+      });
+    }
   };
 
   const deleteCustomFactor = (id: string) => {
@@ -1372,21 +1469,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [dayFactors, setDayFactors] = useState<Record<string, string[]>>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_day_factors`);
-      return saved ? JSON.parse(saved) : {
-        '2026-11-16': ['dia_tranquilo', 'passeio'],
-        '2026-11-15': ['sono_ruim', 'cansaco_fisico']
-      };
+      return saved ? JSON.parse(saved) : {};
     } catch {
       return {};
     }
   });
 
   const toggleDayFactor = (date: string, factorId: string) => {
+    // Older versions saved some factors by name: treat name and id as the same factor
+    const label = availableFactors.find((f) => f.id === factorId)?.label;
     setDayFactors((prev) => {
       const current = prev[date] || [];
-      const updated = current.includes(factorId)
-        ? current.filter((f) => f !== factorId)
-        : [...current, factorId];
+      const isOn = current.includes(factorId) || (!!label && current.includes(label));
+      const updated = isOn ? current.filter((f) => f !== factorId && f !== label) : [...current, factorId];
       return { ...prev, [date]: updated };
     });
   };
@@ -1590,15 +1685,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [questionResponses, setQuestionResponses] = useState<QuestionResponse[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_question_responses`);
-      return saved ? JSON.parse(saved) : [
-        { id: 'qr-1', questionId: 'q-paciencia', date: '2026-11-16', choice: 'nao', value: 'positivo', updatedAt: '2026-11-16T10:00:00Z' },
-        { id: 'qr-2', questionId: 'q-afeto', date: '2026-11-16', choice: 'sim', value: 'positivo', updatedAt: '2026-11-16T11:00:00Z' },
-        { id: 'qr-3', questionId: 'q-sono-criancas', date: '2026-11-16', choice: 'sim', value: 'positivo', updatedAt: '2026-11-16T21:40:00Z' },
-        { id: 'qr-4', questionId: 'q-tempo-para-mim', date: '2026-11-16', choice: 'sim', value: 'positivo', updatedAt: '2026-11-16T15:00:00Z' },
-        { id: 'qr-5', questionId: 'q-sobrecarga', date: '2026-11-16', choice: 'sim', value: 'negativo', updatedAt: '2026-11-16T16:00:00Z' },
-        { id: 'qr-6', questionId: 'q-pia-limpa', date: '2026-11-16', choice: 'sim', value: 'positivo', updatedAt: '2026-11-16T22:00:00Z' },
-        { id: 'qr-7', questionId: 'q-agua', date: '2026-11-16', choice: 'nao_se_aplica', value: 'nao_se_aplica', updatedAt: '2026-11-16T22:00:00Z' }
-      ];
+      return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
@@ -1656,9 +1743,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_agenda_items`);
-      return saved ? JSON.parse(saved) : defaultAgendaItems;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return defaultAgendaItems;
+      return [];
     }
   });
 
@@ -1676,6 +1763,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const toggleAgendaItem = (id: string) => {
+    const item = agendaItems.find((a) => a.id === id);
+    if (item) logActivity('a', id, item.completed ? null : 'fez', item.isRecurring ? currentDay : item.date || currentDay);
     setAgendaItems((prev) => prev.map((a) => (a.id === id ? { ...a, completed: !a.completed } : a)));
   };
 
@@ -1708,9 +1797,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [weeklyFixedTopics, setWeeklyFixedTopics] = useState<WeeklyFixedTopic[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_weekly_topics`);
-      return saved ? JSON.parse(saved) : defaultWeeklyFixedTopics;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return defaultWeeklyFixedTopics;
+      return [];
     }
   });
 
@@ -1731,9 +1820,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [routineTasks, setRoutineTasks] = useState<RoutineTask[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_routine_tasks`);
-      return saved ? JSON.parse(saved) : defaultRoutineTasks;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return defaultRoutineTasks;
+      return [];
     }
   });
 
@@ -1744,6 +1833,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 
   const toggleRoutineTask = (id: string) => {
+    const task = routineTasks.find((t) => t.id === id);
+    const wasDone = !!task && !!task.completed && task.completedOn === currentDay;
+    logActivity('r', id, wasDone ? null : 'fez');
     setRoutineTasks((prev) =>
       prev.map((t) => {
         if (t.id !== id) return t;
@@ -1778,9 +1870,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [dailyChronologicalSteps, setDailyChronologicalSteps] = useState<DailyChronologicalStep[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_daily_chrono_steps`);
-      return saved ? JSON.parse(saved) : defaultDailyChronologicalSteps;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return defaultDailyChronologicalSteps;
+      return [];
     }
   });
 
@@ -1790,6 +1882,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 
   const toggleDailyChronologicalStep = (id: string) => {
+    const step = dailyChronologicalSteps.find((x) => x.id === id);
+    const wasDone = !!step && !!step.completed && step.completedOn === currentDay;
+    logActivity('s', id, wasDone ? null : 'fez');
     setDailyChronologicalSteps((prev) =>
       prev.map((s) => {
         if (s.id !== id) return s;
@@ -1816,20 +1911,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setDailyChronologicalSteps((prev) => prev.filter((s) => s.id !== id));
   };
 
-  // Web Speech API Voice Reminder
-  const speakVoiceReminder = (text: string) => {
-    if (!('speechSynthesis' in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'pt-BR';
-      utterance.rate = 1.0;
-      utterance.pitch = 1.05;
-      window.speechSynthesis.speak(utterance);
-    } catch {
-      // Ignore
-    }
-  };
+  // Voice reminder with the voice, speed and pitch chosen in Configurações > Sons e voz
+  const speakVoiceReminder = React.useCallback(
+    (text: string) => {
+      speakText(text, {
+        voiceName: notificationPreferences.voiceName,
+        nativeVoiceName: notificationPreferences.nativeVoiceName,
+        voiceRate: notificationPreferences.voiceRate,
+        voicePitch: notificationPreferences.voicePitch
+      });
+    },
+    [
+      notificationPreferences.voiceName,
+      notificationPreferences.nativeVoiceName,
+      notificationPreferences.voiceRate,
+      notificationPreferences.voicePitch
+    ]
+  );
 
   // Contextual Reminders
   // Contextual reminders (no demo reminder)
@@ -1843,9 +1941,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [healthDateItems, setHealthDateItems] = useState<HealthDateItem[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_health_dates`);
-      return saved ? JSON.parse(saved) : defaultHealthDateItems;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return defaultHealthDateItems;
+      return [];
     }
   });
 
@@ -1869,9 +1967,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [healthMedications, setHealthMedications] = useState<HealthMedication[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_health_meds`);
-      return saved ? JSON.parse(saved) : defaultHealthMedications;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return defaultHealthMedications;
+      return [];
     }
   });
 
@@ -1889,23 +1987,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const toggleHealthMedication = (id: string) => {
+    const med = healthMedications.find((m) => m.id === id);
+    const confirmedToday = !!med && !!med.confirmed && med.statusOn === currentDay;
+    logMedication(id, confirmedToday ? null : 'fez');
     setHealthMedications((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, confirmed: !m.confirmed, status: !m.confirmed ? 'fez' : 'pendente' } : m))
+      prev.map((m) =>
+        m.id === id
+          ? { ...m, confirmed: !confirmedToday, status: !confirmedToday ? 'fez' : 'pendente', statusOn: currentDay }
+          : m
+      )
     );
   };
 
   const setMedicationStatus = (id: string, status: 'pendente' | 'viu' | 'fez' | 'adiado', snoozeMinutes?: number) => {
+    // "viu" never overwrites a dose already marked as taken today
+    const med = healthMedications.find((m) => m.id === id);
+    const takenToday = !!med && med.status === 'fez' && med.statusOn === currentDay;
+    if (!(status === 'viu' && takenToday)) logMedication(id, status === 'pendente' ? null : status);
     setHealthMedications((prev) =>
       prev.map((m) => {
         if (m.id !== id) return m;
         const snoozedUntil = snoozeMinutes
           ? new Date(Date.now() + snoozeMinutes * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           : undefined;
+        if (status === 'viu' && m.status === 'fez' && m.statusOn === currentDay) return m;
         return {
           ...m,
           status,
           confirmed: status === 'fez',
-          snoozedUntil
+          snoozedUntil,
+          statusOn: currentDay
         };
       })
     );
@@ -1914,9 +2025,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [healthNoteItems, setHealthNoteItems] = useState<HealthNoteItem[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_health_notes`);
-      return saved ? JSON.parse(saved) : defaultHealthNoteItems;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return defaultHealthNoteItems;
+      return [];
     }
   });
 
@@ -1957,8 +2068,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setHealthGroups((prev) => prev.filter((g) => g.id !== id));
   };
 
+  // Doses repeat every day: a status only counts on the day it was given
+  const healthMedicationsToday = React.useMemo(
+    () =>
+      healthMedications.map((m) =>
+        m.statusOn === currentDay
+          ? m
+          : { ...m, status: 'pendente' as const, confirmed: false, snoozedUntil: undefined }
+      ),
+    [healthMedications, currentDay]
+  );
+
   // Backwards compatibility aliases for Cuidados
-  const healthItems = healthMedications;
+  const healthItems = healthMedicationsToday;
   const toggleHealthItem = toggleHealthMedication;
   const addHealthItem = addHealthMedication;
   const deleteHealthItem = deleteHealthMedication;
@@ -1989,9 +2111,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [goals, setGoals] = useState<GoalItem[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_goals`);
-      return saved ? JSON.parse(saved) : defaultGoals;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return defaultGoals;
+      return [];
     }
   });
 
@@ -2051,18 +2173,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [recurringTasks, setRecurringTasks] = useState<RecurringTaskItem[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_recurring_tasks`);
-      return saved ? JSON.parse(saved) : defaultRecurringTasks;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return defaultRecurringTasks;
+      return [];
     }
   });
 
   const [recurringHistory, setRecurringHistory] = useState<TaskExecutionRecord[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_recurring_history`);
-      return saved ? JSON.parse(saved) : defaultRecurringHistory;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return defaultRecurringHistory;
+      return [];
     }
   });
 
@@ -2099,9 +2221,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [notifications, setNotifications] = useState<AppNotification[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_notifications`);
-      return saved ? JSON.parse(saved) : defaultNotifications;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return defaultNotifications;
+      return [];
     }
   });
 
@@ -2128,7 +2250,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...payload,
       voice: payload.voice !== false && notificationPreferences.voiceAlerts !== false
     });
-    playGentleChime();
+    if (notificationPreferences.soundAlerts !== false) playWebSound(notificationPreferences.alarmSound || 'padrao');
   };
 
   const dismissAlarm = () => {
@@ -2145,7 +2267,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (kind === 'etapa') toggleDailyChronologicalStep(activeAlarm.id);
         else if (kind !== 'recorrente') toggleRoutineTask(activeAlarm.id);
       } else if (action === 'viu' && kind !== 'etapa' && kind !== 'recorrente') {
+        const t = routineTasks.find((x) => x.id === activeAlarm.id);
+        if (!(t && t.completed && t.completedOn === currentDay)) logActivity('r', activeAlarm.id, 'viu');
         setRoutineTasks((prev) => prev.map((t) => (t.id === activeAlarm.id ? { ...t, statusHistory: 'viu' } : t)));
+      } else if (action === 'adiar' && kind !== 'etapa' && kind !== 'recorrente') {
+        const t = routineTasks.find((x) => x.id === activeAlarm.id);
+        if (!(t && t.completed && t.completedOn === currentDay)) logActivity('r', activeAlarm.id, 'adiado');
       }
     } else if (activeAlarm.type === 'agenda') {
       if (action === 'fez') {
@@ -2284,6 +2411,186 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
 
+  // ------------------------------------------------------------------
+  // Dados de exemplo (demonstração) das primeiras versões do app
+  // ------------------------------------------------------------------
+  // 1) Registros claramente fictícios (respostas, humores, fatores e históricos de exemplo, com os
+  //    mesmos identificadores e conteúdos dos exemplos) são retirados automaticamente uma única vez,
+  //    com cópia guardada para poder desfazer.
+  // 2) Cadastros de exemplo (rotinas, agenda, remédios, metas...) podem ter sido adotados pela pessoa:
+  //    nunca são apagados sozinhos; aparecem em Configurações para ela revisar.
+  const DEMO_RECORDS = React.useMemo(
+    () => ({
+      questionResponses: DEMO_QUESTION_RESPONSES,
+      moodRecords: DEMO_MOOD_RECORDS,
+      recurringHistory: defaultRecurringHistory,
+      notifications: defaultNotifications
+    }),
+    []
+  );
+
+  useEffect(() => {
+    if (!cloudSyncReady) return;
+    // First day of the activity history + keeps today's marks made before this version
+    if (!activityLog.since) {
+      setActivityLog((prev) => {
+        const day: any = { ...((prev.days || {})[currentDay] || {}) };
+        const r: Record<string, ActivityStatus> = { ...(day.r || {}) };
+        routineTasks.forEach((t) => {
+          if (t.completed && t.completedOn === currentDay) r[t.id] = 'fez';
+        });
+        const st: Record<string, ActivityStatus> = { ...(day.s || {}) };
+        dailyChronologicalSteps.forEach((x) => {
+          if (x.completed && x.completedOn === currentDay) st[x.id] = 'fez';
+        });
+        return { since: currentDay, days: { ...(prev.days || {}), [currentDay]: { ...day, r, s: st } } };
+      });
+    }
+    if ((dataMaintenance.demoCleanupVersion || 0) >= 1) return;
+
+    const sameAs = (a: any, b: any, keys: string[]) => keys.every((k) => JSON.stringify(a?.[k]) === JSON.stringify(b?.[k]));
+    const removed: Record<string, any[]> = {};
+    const take = <T extends { id: string }>(field: string, list: T[], demo: T[], keys: string[]) => {
+      const out: T[] = [];
+      const gone: T[] = [];
+      list.forEach((item) => {
+        const d = demo.find((x) => x.id === item.id);
+        if (d && sameAs(item, d, keys)) gone.push(item);
+        else out.push(item);
+      });
+      if (gone.length) removed[field] = gone;
+      return { out, changed: gone.length > 0 };
+    };
+
+    const qr = take('questionResponses', questionResponses, DEMO_RECORDS.questionResponses, ['questionId', 'date', 'value']);
+    const mr = take('moodRecords', moodRecords, DEMO_RECORDS.moodRecords, ['date', 'mood', 'period']);
+    const rh = take('recurringHistory', recurringHistory, DEMO_RECORDS.recurringHistory, ['taskId', 'completedAt']);
+    const nt = take('notifications', notifications, DEMO_RECORDS.notifications, ['title', 'message']);
+
+    const df = { ...dayFactors };
+    const dfGone: any[] = [];
+    Object.entries(DEMO_DAY_FACTORS).forEach(([date, list]) => {
+      if (JSON.stringify(df[date] || []) === JSON.stringify(list)) {
+        dfGone.push({ id: date, date, factors: list });
+        delete df[date];
+      }
+    });
+    if (dfGone.length) removed.dayFactors = dfGone;
+
+    if (qr.changed) setQuestionResponses(qr.out);
+    if (mr.changed) setMoodRecords(mr.out);
+    if (rh.changed) setRecurringHistory(rh.out);
+    if (nt.changed) setNotifications(nt.out);
+    if (dfGone.length) setDayFactors(df);
+    setDataMaintenance((prev) => ({
+      ...prev,
+      demoCleanupVersion: 1,
+      demoCleanupAt: new Date().toISOString(),
+      demoRemoved: Object.keys(removed).length ? { ...(prev.demoRemoved || {}), ...removed } : prev.demoRemoved
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cloudSyncReady]);
+
+  // Cadastros que vieram como exemplo e continuam no app (para revisão em Configurações)
+  const demoCandidates = React.useMemo(() => {
+    const kept = new Set(dataMaintenance.demoKept || []);
+    const out: DemoCandidate[] = [];
+    const check = (field: DemoField, list: any[], demo: any[], label: (x: any) => string, keys: string[], group: string) => {
+      list.forEach((item) => {
+        const d = demo.find((x) => x.id === item.id);
+        if (!d || kept.has(`${field}:${item.id}`)) return;
+        out.push({ field, id: item.id, label: label(item), group, unchanged: keys.every((k) => JSON.stringify(item[k]) === JSON.stringify(d[k])) });
+      });
+    };
+    check('routineTasks', routineTasks, defaultRoutineTasks, (x) => x.title, ['title', 'time', 'period'], 'Rotinas');
+    check('dailyChronologicalSteps', dailyChronologicalSteps, defaultDailyChronologicalSteps, (x) => `${x.time} ${x.title}`, ['title', 'time'], 'Rotina diária (passo a passo)');
+    check('agendaItems', agendaItems, defaultAgendaItems, (x) => x.title, ['title', 'date', 'time'], 'Agenda');
+    check('weeklyFixedTopics', weeklyFixedTopics, defaultWeeklyFixedTopics, (x) => `${x.dayName}: ${x.title}`, ['title', 'dayOfWeek'], 'Agenda (fixos da semana)');
+    check('healthMedications', healthMedications, defaultHealthMedications, (x) => `${x.name} (${x.memberName})`, ['name', 'time', 'memberName'], 'Medicamentos e suplementos');
+    check('healthDateItems', healthDateItems, defaultHealthDateItems, (x) => `${x.title} (${x.memberName})`, ['title', 'date'], 'Consultas e exames');
+    check('healthNoteItems', healthNoteItems, defaultHealthNoteItems, (x) => `${x.title} (${x.memberName})`, ['title', 'content'], 'Anotações de saúde');
+    check('goals', goals, defaultGoals, (x) => x.title, ['title', 'dueDate'], 'Metas');
+    check('recurringTasks', recurringTasks, defaultRecurringTasks, (x) => x.title, ['title', 'recurrence'], 'Tarefas recorrentes');
+    check('profiles', profiles.filter((p) => !p.isPrimary), defaultProfiles.filter((p) => !p.isPrimary), (x) => `${x.name} (${x.role})`, ['name', 'role', 'email'], 'Membros da família');
+    return out;
+  }, [dataMaintenance.demoKept, routineTasks, dailyChronologicalSteps, agendaItems, weeklyFixedTopics, healthMedications, healthDateItems, healthNoteItems, goals, recurringTasks, profiles]);
+
+  const SETTERS: Record<DemoField, React.Dispatch<React.SetStateAction<any[]>>> = {
+    routineTasks: setRoutineTasks as any,
+    dailyChronologicalSteps: setDailyChronologicalSteps as any,
+    agendaItems: setAgendaItems as any,
+    weeklyFixedTopics: setWeeklyFixedTopics as any,
+    healthMedications: setHealthMedications as any,
+    healthDateItems: setHealthDateItems as any,
+    healthNoteItems: setHealthNoteItems as any,
+    goals: setGoals as any,
+    recurringTasks: setRecurringTasks as any,
+    profiles: setProfiles as any
+  };
+  const CURRENT: Record<DemoField, any[]> = {
+    routineTasks,
+    dailyChronologicalSteps,
+    agendaItems,
+    weeklyFixedTopics,
+    healthMedications,
+    healthDateItems,
+    healthNoteItems,
+    goals,
+    recurringTasks,
+    profiles
+  };
+
+  /** Removes the chosen example items (a copy is kept so it can be undone). */
+  const removeDemoItems = (items: { field: DemoField; id: string }[]) => {
+    const byField: Record<string, Set<string>> = {};
+    items.forEach((i) => (byField[i.field] = byField[i.field] || new Set()).add(i.id));
+    const removed: Record<string, any[]> = {};
+    (Object.keys(byField) as DemoField[]).forEach((field) => {
+      const ids = byField[field];
+      removed[field] = CURRENT[field].filter((x) => ids.has(x.id));
+      SETTERS[field]((prev: any[]) => prev.filter((x) => !ids.has(x.id)));
+    });
+    setDataMaintenance((prev) => {
+      const backup = { ...(prev.demoRemoved || {}) };
+      Object.entries(removed).forEach(([f, list]) => (backup[f] = [...(backup[f] || []), ...list]));
+      return { ...prev, demoRemoved: backup };
+    });
+  };
+
+  /** Marks example items as the person's own (they stop showing in the review). */
+  const keepDemoItems = (items: { field: DemoField; id: string }[]) => {
+    setDataMaintenance((prev) => ({
+      ...prev,
+      demoKept: Array.from(new Set([...(prev.demoKept || []), ...items.map((i) => `${i.field}:${i.id}`)]))
+    }));
+  };
+
+  /** Puts back everything removed as example data. */
+  const undoDemoCleanup = () => {
+    const backup = dataMaintenance.demoRemoved || {};
+    const restore = <T extends { id: string }>(list: T[] | undefined, setter: (fn: (prev: T[]) => T[]) => void) => {
+      if (!list || !list.length) return;
+      setter((prev) => [...prev, ...list.filter((x) => !prev.some((p) => p.id === x.id))]);
+    };
+    restore(backup.questionResponses, setQuestionResponses as any);
+    restore(backup.moodRecords, setMoodRecords as any);
+    restore(backup.recurringHistory, setRecurringHistory as any);
+    restore(backup.notifications, setNotifications as any);
+    if (backup.dayFactors?.length) {
+      setDayFactors((prev) => {
+        const next = { ...prev };
+        backup.dayFactors.forEach((d: any) => {
+          if (!next[d.date]) next[d.date] = d.factors;
+        });
+        return next;
+      });
+    }
+    (Object.keys(SETTERS) as DemoField[]).forEach((f) => restore(backup[f], SETTERS[f] as any));
+    setDataMaintenance((prev) => ({ ...prev, demoRemoved: {} }));
+  };
+
+  const demoRemovedCount = Object.values(dataMaintenance.demoRemoved || {}).reduce((n, l) => n + (l?.length || 0), 0);
+
   // Persist State to LocalStorage & Sync to Firebase Realtime Database
   useEffect(() => {
     const appStatePayload = {
@@ -2312,7 +2619,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       goalCategories,
       recurringTasks,
       recurringHistory,
-      notifications
+      notifications,
+      activityLog,
+      dataMaintenance
     };
 
     try {
@@ -2342,6 +2651,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem(`${STORAGE_KEY}_recurring_tasks`, JSON.stringify(recurringTasks));
       localStorage.setItem(`${STORAGE_KEY}_recurring_history`, JSON.stringify(recurringHistory));
       localStorage.setItem(`${STORAGE_KEY}_notifications`, JSON.stringify(notifications));
+      localStorage.setItem(`${STORAGE_KEY}_activity_log`, JSON.stringify(activityLog));
+      localStorage.setItem(`${STORAGE_KEY}_data_maintenance`, JSON.stringify(dataMaintenance));
 
       // If user is authenticated in Firebase, save to Realtime Database instance (app-rotinaai-default-rtdb)
       if (auth.currentUser && cloudSyncReady) {
@@ -2377,6 +2688,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     recurringTasks,
     recurringHistory,
     notifications,
+    activityLog,
+    dataMaintenance,
     cloudSyncReady
   ]);
 
@@ -2408,7 +2721,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       goalCategories,
       recurringTasks,
       recurringHistory,
-      notifications
+      notifications,
+      activityLog
     };
     return JSON.stringify(data, null, 2);
   };
@@ -2439,6 +2753,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (data.goals) setGoals(data.goals);
       if (data.goalCategories) setGoalCategories(data.goalCategories);
       if (data.recurringTasks) setRecurringTasks(data.recurringTasks);
+      if (data.recurringHistory) setRecurringHistory(data.recurringHistory);
+      if (data.moodRecords === undefined && data.moodEntries) setMoodRecords(data.moodEntries);
+      if (data.activityLog) setActivityLog(data.activityLog);
       return true;
     } catch {
       return false;
@@ -2447,29 +2764,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const resetAppToDefaults = () => {
     localStorage.clear();
-    setProfiles(defaultProfiles);
+    // Mantém só o próprio perfil; registros pessoais começam vazios (sem dados de exemplo)
+    const own = profiles.filter((p) => p.isPrimary);
+    setProfiles(own.length ? own : profiles.slice(0, 1));
     setBottomNavSlotsState(defaultBottomNavSlots);
     setMoodOptions(defaultMoodOptions);
     setAvailableFactors(defaultAvailableFactors);
     setDayFactors({});
     setDayNotes({});
+    setMoodRecords([]);
+    setQuestionResponses([]);
     setLifeAreas(defaultLifeAreas);
     setQuestionGroups(defaultQuestionGroups);
     setQuestions(defaultQuestions);
-    setAgendaItems(defaultAgendaItems);
+    setAgendaItems([]);
     setAgendaCategories(defaultAgendaCategories);
-    setWeeklyFixedTopics(defaultWeeklyFixedTopics);
-    setRoutineTasks(defaultRoutineTasks);
-    setDailyChronologicalSteps(defaultDailyChronologicalSteps);
-    setHealthDateItems(defaultHealthDateItems);
-    setHealthMedications(defaultHealthMedications);
-    setHealthNoteItems(defaultHealthNoteItems);
+    setWeeklyFixedTopics([]);
+    setRoutineTasks([]);
+    setDailyChronologicalSteps([]);
+    setHealthDateItems([]);
+    setHealthMedications([]);
+    setHealthNoteItems([]);
     setHealthGroups(defaultHealthGroups);
-    setGoals(defaultGoals);
+    setGoals([]);
     setGoalCategories(defaultGoalCategories);
-    setRecurringTasks(defaultRecurringTasks);
-    setRecurringHistory(defaultRecurringHistory);
-    setNotifications(defaultNotifications);
+    setRecurringTasks([]);
+    setRecurringHistory([]);
+    setNotifications([]);
+    setActivityLog({ since: todayISO(), days: {} });
   };
 
   return (
@@ -2495,6 +2817,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         notificationPreferences,
         toggleNotificationPreference,
+        updateNotificationPreferences,
+        activityLog,
+        dataMaintenance,
+        demoCandidates,
+        demoRemovedCount,
+        removeDemoItems,
+        keepDemoItems,
+        undoDemoCleanup,
         exportAppData,
         importAppData,
         resetAppToDefaults,
@@ -2612,7 +2942,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         deleteHealthDateItem,
         toggleHealthDateItem,
 
-        healthMedications,
+        healthMedications: healthMedicationsToday,
         addHealthMedication,
         updateHealthMedication,
         deleteHealthMedication,

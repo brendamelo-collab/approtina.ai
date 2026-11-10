@@ -1,35 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { playWebSound } from '../utils/alarmSounds';
 import { Bell, Clock, Check, Eye, X, Volume2, VolumeX } from 'lucide-react';
 
 export const AlarmBalloonModal: React.FC = () => {
-  const { activeAlarm, dismissAlarm, confirmAlarmAction, speakVoiceReminder } = useApp();
+  const { activeAlarm, dismissAlarm, confirmAlarmAction, speakVoiceReminder, notificationPreferences } = useApp();
   const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
     if (!activeAlarm || isMuted) return;
     let repeats = 0;
 
-    // Helper to play soft chime beep via Web Audio API
+    // Sound chosen in Configurações > Sons e voz
     const playChimeBeep = () => {
-      try {
-        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-        if (!AudioCtx) return;
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15); // A5
-        gain.gain.setValueAtTime(0.2, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.35);
-      } catch {
-        // Ignore audio context autoplay restrictions
-      }
+      if (notificationPreferences.soundAlerts === false) return;
+      playWebSound(notificationPreferences.alarmSound || 'padrao');
     };
 
     const triggerAnnounce = () => {
@@ -57,7 +42,7 @@ export const AlarmBalloonModal: React.FC = () => {
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [activeAlarm, isMuted, speakVoiceReminder]);
+  }, [activeAlarm, isMuted, speakVoiceReminder, notificationPreferences.soundAlerts, notificationPreferences.alarmSound]);
 
   if (!activeAlarm) return null;
 

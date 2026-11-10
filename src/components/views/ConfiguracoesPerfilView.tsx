@@ -4,6 +4,8 @@ import { PhotoCropper } from '../PhotoCropper';
 import { UserProfile, NotificationPreferences, ColorPalette, FontSizeScale } from '../../types';
 import { UserAvatar } from '../UserAvatar';
 import { PWAInstallButton } from '../PWAInstallButton';
+import { SoundVoiceSettings } from '../SoundVoiceSettings';
+import { DemoDataReview } from '../DemoDataReview';
 import { checkGitHubUpdates, applyGitHubUpdate } from '../../services/githubService';
 import {
   ChevronLeft,
@@ -280,35 +282,35 @@ export const ConfiguracoesPerfilView: React.FC = () => {
     },
     {
       key: 'nude',
-      title: 'Rosa Nude & Terracota',
-      subtitle: 'Rosa suave, blush delicado e terracota',
-      bg: '#FDF8F6',
-      card: '#FAF2EF',
-      accent: '#B87C6D'
+      title: 'Rosé Suave',
+      subtitle: 'Rosa antigo com terracota clara',
+      bg: '#FCF8F7',
+      card: '#FFFBFA',
+      accent: '#9A6260'
     },
     {
       key: 'verde',
-      title: 'Verde Botânico & Sálvia',
-      subtitle: 'Tons de folhagem, sálvia e natureza',
-      bg: '#F6F8F5',
-      card: '#EFF4EE',
-      accent: '#6B8E6E'
+      title: 'Verde Sálvia',
+      subtitle: 'Folhagem calma com toques de areia',
+      bg: '#F8FAF6',
+      card: '#FCFDFB',
+      accent: '#557658'
     },
     {
       key: 'azul',
-      title: 'Azul Sereno & Lavanda',
-      subtitle: 'Azul acinzentado calmo e lavanda leve',
-      bg: '#F5F7FA',
-      card: '#EEF2F7',
-      accent: '#6A82A5'
+      title: 'Azul Sereno',
+      subtitle: 'Azul acinzentado com lavanda',
+      bg: '#F7F9FC',
+      card: '#FCFDFF',
+      accent: '#4C6890'
     },
     {
       key: 'escuro',
-      title: 'Café Modo Escuro (Dark Roast)',
-      subtitle: 'Modo escuro aconchegante com tons de café',
-      bg: '#181614',
-      card: '#24211D',
-      accent: '#B78A58'
+      title: 'Café Escuro',
+      subtitle: 'Fundo escuro aconchegante, textos claros',
+      bg: '#171412',
+      card: '#211D1A',
+      accent: '#D9A86F'
     }
   ];
 
@@ -920,6 +922,15 @@ export const ConfiguracoesPerfilView: React.FC = () => {
                   />
                 </button>
               </div>
+
+              {/* Sons e voz: escolher, ouvir e salvar */}
+              <div className="p-3.5 bg-white border border-[#EFE8DE] rounded-2xl space-y-3">
+                <div className="min-w-0">
+                  <h4 className="text-xs font-bold text-[#2C2C2C]">Sons e voz</h4>
+                  <p className="text-[11px] text-[#8C7A6B] mt-0.5">Escolha o som do alarme e a voz que lê os lembretes.</p>
+                </div>
+                <SoundVoiceSettings onSaved={showToast} />
+              </div>
             </div>
           )}
         </div>
@@ -963,6 +974,9 @@ export const ConfiguracoesPerfilView: React.FC = () => {
                   </p>
                 </div>
               </div>
+
+              {/* Dados de exemplo das primeiras versões */}
+              <DemoDataReview onDone={showToast} />
 
               {/* PWA Install Banner */}
               <PWAInstallButton variant="banner" />

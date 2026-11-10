@@ -12,7 +12,7 @@ export const CuidadosMetasCards: React.FC = () => {
     completeRecurringTask
   } = useApp();
 
-  const { percent: healthPercent } = calculateHealthCompliance(healthItems);
+  const { percent: healthPercent, total: healthTotal, confirmed: healthConfirmed } = calculateHealthCompliance(healthItems);
   const { completed, total, averageProgress } = calculateGoalSummary(goals);
 
   // Next pending recurring task from Screen 1 (e.g. "Lavar os sapatos")
@@ -71,11 +71,15 @@ export const CuidadosMetasCards: React.FC = () => {
                 />
               </svg>
               <span className="absolute text-[8px] font-bold text-[#5C4F44]">
-                {healthPercent}%
+                {healthTotal > 0 ? `${healthPercent}%` : '–'}
               </span>
             </div>
             <div className="text-[10px] font-medium text-[#4A3E34] leading-tight">
-              {healthPercent === 100 ? '100% Em dia' : `${healthPercent}% Feito`}
+              {healthTotal === 0
+                ? 'Nenhum cadastrado'
+                : healthConfirmed === healthTotal
+                  ? 'Tudo tomado hoje'
+                  : `${healthConfirmed} de ${healthTotal} hoje`}
             </div>
           </div>
         </div>

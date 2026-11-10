@@ -248,6 +248,7 @@ export interface HealthMedication {
   status?: 'pendente' | 'viu' | 'fez' | 'adiado';
   snoozedUntil?: string;
   instructions?: string;
+  statusOn?: string; // YYYY-MM-DD: the status only counts on that day (doses repeat daily)
 }
 
 export interface HealthNoteItem {
@@ -333,6 +334,12 @@ export interface NotificationPreferences {
   mapaDailyReminder: boolean;
   soundAlerts: boolean;
   voiceAlerts: boolean;
+  // Configurações > Sons e voz
+  alarmSound?: string; // id em utils/alarmSounds.ts ('padrao' = som original)
+  voiceName?: string; // voz do navegador ('' = padrão)
+  nativeVoiceName?: string; // voz do app Android ('' = padrão do celular)
+  voiceRate?: number; // velocidade da fala
+  voicePitch?: number; // tom da fala
 }
 
 export type NavTab =
@@ -391,4 +398,26 @@ export interface MonthlyReviewData {
   patternsDetected: string[];
   warmAnalysisText: string;
   suggestionsNextMonth: string[];
+}
+
+// Histórico diário do que foi feito (base dos relatórios de Rotinas, Saúde e Agenda).
+// Só guarda o que a pessoa marcou; dia sem marcação = "sem registro", nunca "não fez".
+export type ActivityStatus = 'fez' | 'viu' | 'adiado' | 'nao_fez';
+export interface ActivityDay {
+  r?: Record<string, ActivityStatus>; // rotinas
+  s?: Record<string, ActivityStatus>; // etapas da rotina diária
+  m?: Record<string, { st: ActivityStatus; at: string }>; // medicamentos e suplementos
+  a?: Record<string, ActivityStatus>; // compromissos da agenda
+}
+export interface ActivityLog {
+  since?: string; // YYYY-MM-DD: primeiro dia acompanhado
+  days?: Record<string, ActivityDay>;
+}
+
+// Limpeza dos dados de exemplo (demonstração) que vinham nas primeiras versões
+export interface DataMaintenance {
+  demoCleanupVersion?: number;
+  demoCleanupAt?: string;
+  demoRemoved?: Record<string, any[]>; // cópia do que foi removido (permite desfazer)
+  demoKept?: string[]; // itens de exemplo que a pessoa decidiu manter (campo:id)
 }

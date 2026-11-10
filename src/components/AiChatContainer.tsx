@@ -61,6 +61,7 @@ export const AiChatContainer: React.FC<{ isEmbeddedView?: boolean; onClose?: () 
     currentProfile,
     routineTasks,
     agendaItems,
+    healthItems,
     moodRecords,
     moodEntries,
     questionResponses,
@@ -367,14 +368,21 @@ export const AiChatContainer: React.FC<{ isEmbeddedView?: boolean; onClose?: () 
         if (lower.includes('hoje') || lower.includes('fazer')) {
           const remainingRoutines = routineTasks.filter((t) => !t.completed);
           const nextAgenda = agendaItems.find((a) => !a.completed);
-          reply = `Hoje você tem ${remainingRoutines.length} atividades pendentes na rotina (ex: ${remainingRoutines.slice(0, 2).map((r) => r.title).join(', ') || 'rotinas em dia!'}) e o próximo compromisso é "${nextAgenda?.title || 'Futebol das crianças às 17h'}". Não se cobre perfeição: respirar fundo e curtir os meninos já é uma vitória! 💛`;
+          reply = `Hoje você tem ${remainingRoutines.length} ${remainingRoutines.length === 1 ? 'atividade pendente' : 'atividades pendentes'} na rotina${remainingRoutines.length ? ` (ex: ${remainingRoutines.slice(0, 2).map((r) => r.title).join(', ')})` : ''}${nextAgenda ? ` e o próximo compromisso é "${nextAgenda.title}"` : ' e nenhum compromisso pendente na agenda'}. Não se cobre perfeição: um passo de cada vez já é uma vitória! 💛`;
         } else if (lower.includes('lembre') || lower.includes('importante')) {
-          reply = `Lembrete de ouro: O suplemento infantil às 09h já foi dado? E lembre-se da esfoliação corporal durante o banho da noite hoje. Você merece esse carinho consigo mesma. 🌿`;
+          {
+            const pendingMeds = healthItems.filter((h) => !h.confirmed);
+            reply = pendingMeds.length
+              ? `Lembrete: ainda falta confirmar ${pendingMeds.slice(0, 3).map((h) => `${h.name}${h.time ? ` (${h.time})` : ''}`).join(', ')} hoje. Você merece esse cuidado. 🌿`
+              : `Por aqui está tudo em dia nos remédios e cuidados de hoje. Você merece esse carinho consigo mesma. 🌿`;
+          }
         } else if (lower.includes('mês') || lower.includes('mes') || lower.includes('humor') || lower.includes('relatório')) {
           const positiveCount = questionResponses.filter((r) => r.value === 'positivo').length;
           const total = questionResponses.filter((r) => r.value === 'positivo' || r.value === 'negativo').length;
-          const rate = total > 0 ? Math.round((positiveCount / total) * 100) : 83;
-          reply = `Analisando seu histórico de Novembro: Seu índice de momentos positivos está em ${rate}%! Continue registrando seu dia para eu acompanhar sua evolução com mais precisão. Continue cultivando essas pequenas pausas diárias. 💕`;
+          reply =
+            total > 0
+              ? `Pelos seus registros no Meu Mapa, ${Math.round((positiveCount / total) * 100)}% das respostas válidas foram positivas (${positiveCount} de ${total}). Veja os detalhes por período em Relatórios. 💕`
+              : `Ainda não há respostas suficientes no Meu Mapa para eu analisar. Continue registrando seu dia e eu acompanho sua evolução com você. 💕`;
         } else {
           reply = `Compreendo perfeitamente, ${currentProfile.name}. Estou aqui para acolher você, acompanhar sua família, organizar seus horários e planejar um dia mais leve. Como posso te apoiar agora? ✨`;
         }

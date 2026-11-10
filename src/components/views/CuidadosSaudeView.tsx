@@ -314,7 +314,7 @@ export const CuidadosSaudeView: React.FC = () => {
       {/* Resumo do Mês Card (Screen 7: 87% Donut chart & "26 de 30 administrações") */}
       <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 shadow-[0_4px_20px_rgba(140,122,107,0.05)] space-y-3">
         <h3 className="text-xs font-bold text-[#8C7A6B] uppercase tracking-wider">
-          Resumo do mês
+          Resumo de hoje
         </h3>
 
         <div className="flex items-center justify-around gap-4 pt-1">
@@ -344,7 +344,7 @@ export const CuidadosSaudeView: React.FC = () => {
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
               <span className="text-xl font-extrabold text-[#2C2C2C] leading-none">
-                {percent}%
+                {total > 0 ? `${percent}%` : '—'}
               </span>
             </div>
           </div>
@@ -352,10 +352,10 @@ export const CuidadosSaudeView: React.FC = () => {
           {/* Counts */}
           <div className="space-y-1 text-center sm:text-left">
             <div className="text-lg sm:text-xl font-extrabold text-[#2C2C2C] leading-tight">
-              {confirmed} de {total > 0 ? total : 30} administrações
+              {total > 0 ? `${confirmed} de ${total} hoje` : 'Nenhum cadastrado'}
             </div>
             <p className="text-xs text-[#8C7A6B] leading-snug">
-              Consistência nos cuidados de saúde da família neste ciclo de Novembro.
+              Doses marcadas como tomadas hoje.
             </p>
           </div>
         </div>

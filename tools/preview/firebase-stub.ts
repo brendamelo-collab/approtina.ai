@@ -1,5 +1,5 @@
 // Test-only stand-in for src/firebase.ts: a signed-in fake user whose cloud data comes from window.__FIXTURE__
-const fakeUser = { uid: 'test-uid', email: 'teste@exemplo.com', displayName: 'Teste' };
+const fakeUser = { uid: 'test-uid', email: ((globalThis as any).__TEST_EMAIL__ as string) || 'teste@exemplo.com', displayName: 'Teste' };
 export const firebaseConfig = {};
 export const app = {};
 export const auth: any = { currentUser: fakeUser };
