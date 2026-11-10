@@ -298,15 +298,13 @@ export const RelatoriosView: React.FC = () => {
           <SplitBar
             parts={[
               { value: mapAll.positivo, tone: 'ok', label: 'Positivo' },
-              { value: mapAll.negativo, tone: 'bad', label: 'Negativo' },
-              { value: mapAll.naoSeAplica + mapAll.naoLembro, tone: 'neutral', label: 'Não se aplica / não lembro' }
+              { value: mapAll.negativo, tone: 'bad', label: 'Negativo' }
             ]}
           />
-          {mapAll.semResposta > 0 && (
-            <p className="text-[10px] text-[#8C7A6B]">
-              {plural(mapAll.semResposta, 'pergunta prevista ficou', 'perguntas previstas ficaram')} sem resposta (não contam como negativas).
-            </p>
-          )}
+          <p className="text-[10px] text-[#8C7A6B] leading-snug">
+            Fora da conta: {mapAll.naoSeAplica} “não se aplica”, {mapAll.naoLembro} “não lembro”
+            {mapAll.semResposta > 0 ? ` e ${plural(mapAll.semResposta, 'pergunta prevista sem resposta', 'perguntas previstas sem resposta')}` : ''}.
+          </p>
         </>
       )}
     </Card>
