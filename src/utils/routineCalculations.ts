@@ -54,9 +54,8 @@ export function calculatePerformanceMetrics(
 
   const evaluatedCount = positivoCount + negativoCount;
   const hasEvaluatedAnswers = evaluatedCount > 0;
-  const positivePercentage = hasEvaluatedAnswers
-    ? Math.round((positivoCount / evaluatedCount) * 100)
-    : 100; // Baseline when nothing is negative
+  // Sem respostas válidas não existe percentual: as telas mostram "Sem respostas"
+  const positivePercentage = hasEvaluatedAnswers ? Math.round((positivoCount / evaluatedCount) * 100) : 0;
 
   return {
     totalQuestions: relevantQuestions ? relevantQuestions.length : filtered.length,
@@ -122,13 +121,13 @@ export function calculateQuestionStats(
 
   const isGood = (question.habitType || (question.positiveIf === 'sim' ? 'bom' : 'ruim')) === 'bom';
 
-  // Seed baseline fallbacks if no actual entries logged yet for realistic mockup
-  const positivoCount = metrics.hasEvaluatedAnswers ? metrics.positivoCount : isGood ? 26 : 28;
-  const negativoCount = metrics.hasEvaluatedAnswers ? metrics.negativoCount : isGood ? 3 : 2;
-  const naoSeAplicaCount = metrics.naoSeAplicaCount || 1;
-  const naoLembroCount = metrics.naoLembroCount || 1;
+  // Somente respostas reais (sem números de exemplo)
+  const positivoCount = metrics.positivoCount;
+  const negativoCount = metrics.negativoCount;
+  const naoSeAplicaCount = metrics.naoSeAplicaCount;
+  const naoLembroCount = metrics.naoLembroCount;
   const evaluatedCount = positivoCount + negativoCount;
-  const successRate = evaluatedCount > 0 ? Math.round((positivoCount / evaluatedCount) * 100) : 100;
+  const successRate = evaluatedCount > 0 ? Math.round((positivoCount / evaluatedCount) * 100) : 0;
 
   const totalOccurrences = isGood ? positivoCount : negativoCount;
   const badgeText = isGood
@@ -166,14 +165,8 @@ export function calculateFactorFrequencies(
   dayFactors: Record<string, string[]> | Record<string, string[]>,
   totalDaysSample: number = 25
 ): FactorFrequency[] {
-  const counts: Record<string, number> = {
-    'Cansaço físico': 8,
-    'Sobrecarga': 7,
-    'Sono ruim': 6,
-    'Família': 4,
-    'Dia tranquilo': 10,
-    'Passeio ao ar livre': 5
-  };
+  // Somente fatores marcados de verdade (sem números de exemplo)
+  const counts: Record<string, number> = {};
 
   // Merge any actual day factors
   Object.values(dayFactors).forEach((factorsList) => {
@@ -182,7 +175,7 @@ export function calculateFactorFrequencies(
     });
   });
 
-  const total = Math.max(totalDaysSample, Object.keys(dayFactors).length || 1);
+  const total = Object.values(dayFactors).filter((l) => l && l.length > 0).length || totalDaysSample || 1;
 
   return Object.entries(counts)
     .map(([factor, count]) => ({
@@ -199,7 +192,7 @@ export function calculateRoutineProgress(
 ): { total: number; completed: number; percent: number } {
   const filtered = period ? tasks.filter((t) => t.period === period) : tasks;
   const total = filtered.length;
-  if (total === 0) return { total: 0, completed: 0, percent: 100 };
+  if (total === 0) return { total: 0, completed: 0, percent: 0 };
   const completed = filtered.filter((t) => t.completed).length;
   const percent = Math.round((completed / total) * 100);
   return { total, completed, percent };
@@ -209,7 +202,7 @@ export function calculateHealthCompliance(
   items: HealthMedication[]
 ): { total: number; confirmed: number; percent: number } {
   const total = items.length;
-  if (total === 0) return { total: 0, confirmed: 0, percent: 100 };
+  if (total === 0) return { total: 0, confirmed: 0, percent: 0 };
   const confirmed = items.filter((item) => item.confirmed).length;
   const percent = Math.round((confirmed / total) * 100);
   return { total, confirmed, percent };
@@ -231,7 +224,7 @@ export function calculateMoodMetrics(
   entries: MoodEntry[]
 ): { positivePercent: number; count: number } {
   if (!entries || entries.length === 0) {
-    return { positivePercent: 78, count: 0 }; // Default baseline
+    return { positivePercent: 0, count: 0 }; // sem registros
   }
   const sum = entries.reduce((acc, e) => acc + e.positiveScore, 0);
   const positivePercent = Math.round(sum / entries.length);
@@ -248,23 +241,11 @@ export function generateMonthlyReview(params: {
   healthItems: HealthMedication[];
   goals: GoalItem[];
 }): MonthlyReviewData {
-  const {
-    periodLabel,
-    responses,
-    questions,
-    lifeAreas,
-    routineTasks,
-    agendaItems,
-    healthItems,
-    goals
-  } = params;
-
+  // Retrato só com dados reais; o que não tem registro fica em zero (as telas indicam "sem dados")
+  const { periodLabel, responses, questions, lifeAreas, routineTasks, agendaItems, healthItems, goals } = params;
   const mapMetrics = calculatePerformanceMetrics(responses, questions);
-  const positiveRate = mapMetrics.hasEvaluatedAnswers ? mapMetrics.positivePercentage : 78;
-
-  // Find top area
-  let topAreaName = 'Maternidade';
-  let topAreaScore = 82;
+  let topAreaName = '';
+  let topAreaScore = 0;
   lifeAreas.forEach((area) => {
     const areaPerf = calculateAreaPerformance(area.id, responses, questions);
     if (areaPerf.hasEvaluatedAnswers && areaPerf.positivePercentage > topAreaScore) {
@@ -272,68 +253,46 @@ export function generateMonthlyReview(params: {
       topAreaScore = areaPerf.positivePercentage;
     }
   });
-
   const routineSummary = calculateRoutineProgress(routineTasks);
   const healthSummary = calculateHealthCompliance(healthItems);
   const goalsSummary = calculateGoalSummary(goals);
-
-  const completedGoalsList = goals
-    .filter((g) => g.status === 'concluida' || g.progressPercent >= 100)
-    .map((g) => g.title);
-
   const completedEvents = agendaItems.filter((e) => e.completed).length;
-
   return {
     period: periodLabel,
-    positiveRate,
+    positiveRate: mapMetrics.positivePercentage,
     mapSummary: {
-      evaluatedCount: mapMetrics.evaluatedCount || 28,
-      positiveCount: mapMetrics.positivoCount || 22,
-      negativeCount: mapMetrics.negativoCount || 6,
+      evaluatedCount: mapMetrics.evaluatedCount,
+      positiveCount: mapMetrics.positivoCount,
+      negativeCount: mapMetrics.negativoCount,
       topArea: topAreaName,
       topAreaScore
     },
     routineRegularity: {
-      totalTasks: routineTasks.length * 30 || 120,
-      completedTasks: Math.round((routineTasks.length * 30 || 120) * 0.88),
-      completionRate: 88,
-      bestPeriod: 'Manhã'
+      totalTasks: routineSummary.total,
+      completedTasks: routineSummary.completed,
+      completionRate: routineSummary.percent,
+      bestPeriod: ''
     },
     agendaSummary: {
-      totalEvents: Math.max(agendaItems.length, 14),
-      completedEvents: completedEvents > 0 ? completedEvents : 12,
-      complianceRate: 86
+      totalEvents: agendaItems.length,
+      completedEvents,
+      complianceRate: agendaItems.length ? Math.round((completedEvents / agendaItems.length) * 100) : 0
     },
     healthCompliance: {
-      totalDoses: 30,
-      confirmedDoses: 26,
-      complianceRate: 87
+      totalDoses: healthSummary.total,
+      confirmedDoses: healthSummary.confirmed,
+      complianceRate: healthSummary.percent
     },
     goalsSummary: {
       totalGoals: goals.length,
       completedGoals: goalsSummary.completed,
       activeGoals: goalsSummary.active,
-      completedNames: completedGoalsList.length > 0 ? completedGoalsList : ['Comprar roupas das crianças']
+      completedNames: goals.filter((g) => g.status === 'concluida' || g.progressPercent >= 100).map((g) => g.title)
     },
-    pendingTasks: [
-      'Calibrar pneu da moto (a cada 14 dias)',
-      'Organizar os armários dos quartos (prazo: 30/11)',
-      'Trocar roupa de cama semanal'
-    ],
-    patternsDetected: [
-      'Nos dias em que dormiu bem, sua paciência com as crianças aumentou 30%.',
-      'O cansaço físico esteve presente em 32% dos dias, concentrado principalmente nas quintas e sextas-feiras.',
-      'A rotina de skincare noturno e esfoliação no banho gerou picos consistentes de bem-estar emocional.',
-      'A preparação do almoço esteve no horário em 26 de 30 dias quando a rotina matinal começou antes das 08:30.'
-    ],
-    warmAnalysisText:
-      'Este mês foi marcado por grande dedicação e cuidado com sua família. Você manteve seus valores maternos em destaque mesmo diante de dias exaustivos. Lembre-se: este retrato não é uma nota para avaliar se você foi perfeita, mas um espelho acolhedor dos seus passos para que possa se acolher com carinho e planejar o próximo ciclo com leveza.',
-    suggestionsNextMonth: [
-      'Incluir uma pausa de 15 minutos de descanso à tarde nas quintas-feiras para amenizar o cansaço acumulado.',
-      'Manter a rotina de preparo do café com as crianças, que se mostrou o momento com maior conexão positiva.',
-      'Definir um alarme suave 30 minutos antes do horário de dormir para proteger a qualidade do sono.',
-      'Dividir tarefas de manutenção da casa com o parceiro para aliviar a sensação de sobrecarga.'
-    ]
+    pendingTasks: [],
+    patternsDetected: [],
+    warmAnalysisText: '',
+    suggestionsNextMonth: []
   };
 }
 

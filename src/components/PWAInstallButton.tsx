@@ -86,11 +86,12 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
       ) : (
         <button
           onClick={handleInstallClick}
-          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#8C7A6B] hover:bg-[#786657] text-white text-xs font-bold transition-all shadow-2xs active:scale-95 ${className}`}
+          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#8C7A6B] hover:bg-[#786657] text-white text-xs font-bold whitespace-nowrap shrink-0 transition-all shadow-2xs active:scale-95 ${className}`}
           title={android ? 'Baixar o app Android do Rotina.ai' : 'Instalar Rotina.ai como Aplicativo no Celular ou Computador'}
         >
           <Download className="w-3.5 h-3.5" />
-          <span>{android ? 'Baixar app Android' : 'Baixar / Instalar App'}</span>
+          <span className="sm:hidden">{android ? 'Baixar app' : 'Instalar app'}</span>
+          <span className="hidden sm:inline">{android ? 'Baixar app Android' : 'Baixar / Instalar App'}</span>
         </button>
       )}
 

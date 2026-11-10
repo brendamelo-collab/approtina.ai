@@ -24,8 +24,8 @@ export const RelatoriosModal: React.FC = () => {
   // General metrics for the current dataset
   const metrics = calculatePerformanceMetrics(questionResponses, questions);
 
-  const positivePercent = metrics.hasEvaluatedAnswers ? metrics.positivePercentage : 78;
-  const negativePercent = 100 - positivePercent;
+  const positivePercent = metrics.hasEvaluatedAnswers ? metrics.positivePercentage : 0;
+  const negativePercent = metrics.hasEvaluatedAnswers ? 100 - positivePercent : 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-150 select-none">
@@ -137,7 +137,7 @@ export const RelatoriosModal: React.FC = () => {
             <div className="space-y-3">
               {lifeAreas.map((area) => {
                 const areaPerf = calculateAreaPerformance(area.id, questionResponses, questions);
-                const score = areaPerf.hasEvaluatedAnswers ? areaPerf.positivePercentage : 80;
+                const score = areaPerf.hasEvaluatedAnswers ? areaPerf.positivePercentage : 0;
 
                 return (
                   <div key={area.id} className="space-y-1.5">
@@ -174,7 +174,7 @@ export const RelatoriosModal: React.FC = () => {
 
             <div>
               <div className="text-2xl font-extrabold text-[#2C2C2C]">
-                {metrics.positivoCount}/{metrics.evaluatedCount || 30}
+                {metrics.positivoCount}/{metrics.evaluatedCount}
               </div>
               <p className="text-xs text-[#6E5D4F]">Ocorrências positivas confirmadas</p>
             </div>
@@ -191,25 +191,25 @@ export const RelatoriosModal: React.FC = () => {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-center">
               <div className="bg-white border border-[#EFE8DE] p-2 rounded-xl">
                 <span className="text-base font-extrabold text-[#2C5230] block">
-                  {metrics.positivoCount || 26}
+                  {metrics.positivoCount}
                 </span>
                 <span className="text-[10px] text-[#6E5D4F]">Positivos</span>
               </div>
               <div className="bg-white border border-[#EFE8DE] p-2 rounded-xl">
                 <span className="text-base font-extrabold text-[#8C3A24] block">
-                  {metrics.negativoCount || 2}
+                  {metrics.negativoCount}
                 </span>
                 <span className="text-[10px] text-[#6E5D4F]">Negativos</span>
               </div>
               <div className="bg-white border border-[#EFE8DE] p-2 rounded-xl">
                 <span className="text-base font-extrabold text-[#5C4F44] block">
-                  {metrics.naoLembroCount || 1}
+                  {metrics.naoLembroCount}
                 </span>
                 <span className="text-[10px] text-[#8C7A6B]">Não confirmado</span>
               </div>
               <div className="bg-white border border-[#EFE8DE] p-2 rounded-xl">
                 <span className="text-base font-extrabold text-[#5C4F44] block">
-                  {metrics.naoSeAplicaCount || 1}
+                  {metrics.naoSeAplicaCount}
                 </span>
                 <span className="text-[10px] text-[#8C7A6B]">Não aplicável</span>
               </div>

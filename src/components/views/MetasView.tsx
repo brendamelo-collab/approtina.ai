@@ -251,20 +251,20 @@ export const MetasView: React.FC = () => {
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-[11px] text-[#8C7A6B] mt-0.5">
-                        <span className="font-semibold">{goal.category}</span>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[#8C7A6B] mt-0.5">
+                        <span className="font-semibold whitespace-nowrap">{goal.category}</span>
                         <span>•</span>
 
                         {/* Deadline Display: Data Específica vs Contagem de Dias */}
                         {goal.deadlineType === 'contagem_dias' ? (
-                          <span className="flex items-center gap-1 font-bold text-[#9E6C52] bg-[#FDF2EE] px-2 py-0.5 rounded-md border border-[#E8C2B8]">
+                          <span className="flex items-center gap-1 font-bold whitespace-nowrap text-[#9E6C52] bg-[#FDF2EE] px-2 py-0.5 rounded-md border border-[#E8C2B8]">
                             <Clock className="w-3 h-3" />
-                            Faltam {goal.targetDays ?? 30} dias
+                            {goal.targetDays != null ? `Faltam ${goal.targetDays} ${goal.targetDays === 1 ? 'dia' : 'dias'}` : 'Sem prazo definido'}
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1 font-semibold text-[#5C4F44]">
+                          <span className="flex items-center gap-1 font-semibold whitespace-nowrap text-[#5C4F44]">
                             <Calendar className="w-3 h-3 text-[#B78A58]" />
-                            Prazo: {goal.dueDate || '30/11'}
+                            {goal.dueDate ? `Prazo: ${/^\d{4}-\d{2}-\d{2}$/.test(goal.dueDate) ? goal.dueDate.split('-').reverse().join('/') : goal.dueDate}` : 'Sem prazo definido'}
                           </span>
                         )}
                       </div>

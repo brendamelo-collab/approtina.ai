@@ -111,8 +111,8 @@ export const AgendaCard: React.FC = () => {
               <CalendarCheck className="w-5 h-5 text-[#B78A58]" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-bold text-[#2C2C2C] tracking-tight leading-tight">
-                {isToday ? 'Sua programação de hoje' : `Programação de ${WEEKDAY_NAMES[weekday].toLowerCase()}`}
+              <h2 className="text-[15px] sm:text-lg font-bold text-[#2C2C2C] tracking-tight leading-tight">
+                {isToday ? 'Programação de hoje' : `Programação de ${WEEKDAY_NAMES[weekday].toLowerCase()}`}
               </h2>
               <p className="text-xs text-[#8C7A6B]">Compromissos e rotinas do dia</p>
             </div>
@@ -132,7 +132,7 @@ export const AgendaCard: React.FC = () => {
               className="text-xs font-bold text-[#8C7A6B] hover:text-[#5C4F44] flex items-center gap-0.5 transition-colors"
               aria-label="Ver tudo sobre a programação"
             >
-              <span>Ver tudo</span>
+              <span className="whitespace-nowrap">Ver tudo</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -172,7 +172,7 @@ export const AgendaCard: React.FC = () => {
                 <span className="text-xs font-bold text-[#5C4F44] bg-[#EFE8DE] px-2 py-0.5 rounded-md shrink-0 tabular-nums">
                   {item.time || '--:--'}
                 </span>
-                <span className={`text-xs font-semibold text-[#2C2C2C] flex-1 min-w-0 truncate ${item.done ? 'line-through' : ''}`}>
+                <span className={`text-xs font-semibold text-[#2C2C2C] flex-1 min-w-0 leading-snug line-clamp-2 break-words ${item.done ? 'line-through' : ''}`}>
                   {item.title}
                 </span>
                 <span className="text-[9px] font-bold text-[#8C7A6B] bg-[#FAF8F5] border border-[#E2D8CA] px-1.5 py-0.5 rounded-full shrink-0">

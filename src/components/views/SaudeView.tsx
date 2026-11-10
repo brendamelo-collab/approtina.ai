@@ -21,6 +21,8 @@ import {
   Sparkles
 } from 'lucide-react';
 import { calculateHealthCompliance } from '../../utils/routineCalculations';
+import { healthMetricSeries } from '../../utils/reportStats';
+import { EmptyState, LineSeries } from '../reports/ReportCharts';
 import { HealthDateItem, HealthMedication, HealthNoteItem } from '../../types';
 
 export const SaudeView: React.FC = () => {
@@ -187,7 +189,8 @@ export const SaudeView: React.FC = () => {
 
   // Filter notes for Evolution Report
   const memberForReport = profiles.find((p) => p.id === evolutionMemberId) || profiles[0];
-  const memberNotes = healthNoteItems.filter((n) => n.memberId === memberForReport.id && n.metrics && n.metrics.length > 0);
+  const memberNotes = healthNoteItems.filter((n) => n.memberId === memberForReport?.id && n.metrics && n.metrics.length > 0);
+  const metricSeries = healthMetricSeries(memberNotes);
 
   return (
     <div className="w-full max-w-xl mx-auto px-4 sm:px-6 pt-2 pb-32 select-none relative">
@@ -338,15 +341,15 @@ export const SaudeView: React.FC = () => {
                       : 'bg-[#FAF8F5] border-[#EFE8DE] hover:bg-[#F9F6F1]'
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3">
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
                       <div className="w-11 h-11 rounded-2xl bg-[#F7EEE3] border border-[#EAE0D2] flex items-center justify-center text-xl shrink-0">
                         {typeEmoji}
                       </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                           <h3
-                            className={`text-xs sm:text-sm font-bold truncate ${
+                            className={`text-xs sm:text-sm font-bold leading-snug break-words ${
                               isDone ? 'line-through text-[#8C7A6B]' : 'text-[#2C2C2C]'
                             }`}
                           >
@@ -356,17 +359,17 @@ export const SaudeView: React.FC = () => {
                             {item.memberName}
                           </span>
                         </div>
-                        <p className="text-[11px] text-[#8C7A6B] mt-0.5 truncate">
-                          Data: <strong>{item.date}</strong> {item.time ? `• ${item.time}` : ''}{' '}
+                        <p className="text-[11px] text-[#8C7A6B] mt-0.5 leading-snug break-words">
+                          Data: <strong>{/^\d{4}-\d{2}-\d{2}$/.test(item.date) ? item.date.split('-').reverse().join('/') : item.date}</strong> {item.time ? `• ${item.time}` : ''}{' '}
                           {item.professionalOrClinic ? `• ${item.professionalOrClinic}` : ''}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center justify-end gap-2 shrink-0">
                       <button
                         onClick={() => toggleHealthDateItem(item.id)}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-2xs ${
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1 shadow-2xs ${
                           isDone
                             ? 'bg-[#7D9D7F] text-white'
                             : 'bg-[#EAE0D2] hover:bg-[#DFD3C3] text-[#5C4F44]'
@@ -668,39 +671,36 @@ export const SaudeView: React.FC = () => {
               ))}
             </div>
 
-            {/* Visual SVG Evolution Line Chart */}
-            <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-2xl p-4 space-y-2">
-              <div className="flex justify-between items-center text-xs">
-                <span className="font-bold text-[#2C2C2C]">Evolução de Medição - {memberForReport.name}</span>
-                <span className="text-[10px] text-[#8C7A6B] bg-[#EAE0D2] px-2 py-0.5 rounded-full">Histórico Recente</span>
+            {/* Evolução real das medições registradas (sem pontos inventados) */}
+            <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-2xl p-4 space-y-3">
+              <div className="flex justify-between items-start gap-2 text-xs">
+                <span className="font-bold text-[#2C2C2C] min-w-0 break-words">Evolução das medições · {memberForReport?.name || ''}</span>
+                <span className="shrink-0 text-[10px] text-[#8C7A6B] bg-[#EAE0D2] px-2 py-0.5 rounded-full">{memberNotes.length} registro{memberNotes.length === 1 ? '' : 's'}</span>
               </div>
-
-              {/* Line chart container */}
-              <div className="h-36 w-full pt-4 relative flex items-end justify-between px-4">
-                <svg className="absolute inset-0 w-full h-full overflow-visible" viewBox="0 0 300 120">
-                  <path
-                    d="M 20 80 Q 80 40, 140 60 T 260 20"
-                    fill="none"
-                    stroke="#7D9D7F"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                  />
-                  <circle cx="20" cy="80" r="5" fill="#8C7A6B" />
-                  <circle cx="80" cy="50" r="5" fill="#8C7A6B" />
-                  <circle cx="140" cy="60" r="5" fill="#8C7A6B" />
-                  <circle cx="260" cy="20" r="6" fill="#7D9D7F" />
-                </svg>
-
-                <div className="text-[10px] font-bold text-[#8C7A6B] z-10">Out</div>
-                <div className="text-[10px] font-bold text-[#8C7A6B] z-10">Nov 01</div>
-                <div className="text-[10px] font-bold text-[#8C7A6B] z-10">Nov 10</div>
-                <div className="text-[10px] font-bold text-[#2C5230] z-10">Hoje (Em dia)</div>
-              </div>
+              {metricSeries.length === 0 ? (
+                <EmptyState text="Sem medições registradas" hint="Adicione uma anotação com medida (ex.: Peso: 62 kg) para ver a evolução." />
+              ) : (
+                metricSeries.map((m) => (
+                  <div key={m.label} className="space-y-1.5 pt-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[11px] font-bold text-[#4A3E34] min-w-0 break-words">{m.label}</span>
+                      {m.change !== null && (
+                        <span className="shrink-0 text-[10px] font-bold text-[#5C4F44] bg-[#F4EDE2] px-2 py-0.5 rounded-full">
+                          {m.change > 0 ? '+' : ''}
+                          {String(Math.round(m.change * 10) / 10).replace('.', ',')}
+                          {m.unit} desde a 1ª
+                        </span>
+                      )}
+                    </div>
+                    <LineSeries points={m.points} unit={m.unit} />
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Written Data Table */}
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-[#4A3E34]">Histórico de Registros de {memberForReport.name}:</h4>
+              <h4 className="text-xs font-bold text-[#4A3E34]">Histórico de registros de {memberForReport?.name || ''}:</h4>
               {memberNotes.length === 0 ? (
                 <p className="text-xs text-[#8C7A6B] bg-white p-4 rounded-xl text-center border border-[#EFE8DE]">
                   Nenhum registro de medição escrito para este membro ainda.

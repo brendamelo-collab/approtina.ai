@@ -8,7 +8,7 @@ export const MoodModal: React.FC = () => {
 
   const [selectedMood, setSelectedMood] = useState<MoodValue>((currentMood?.value || currentMood?.mood || 'bem') as MoodValue);
   const [selectedFactors, setSelectedFactors] = useState<string[]>(
-    currentMood?.factors || ['Família', 'Tempo de qualidade']
+    currentMood?.factors || []
   );
   const [notes, setNotes] = useState(currentMood?.notes || '');
 

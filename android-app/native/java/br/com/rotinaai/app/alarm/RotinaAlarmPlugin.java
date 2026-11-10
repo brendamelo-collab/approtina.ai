@@ -6,6 +6,14 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.AudioTrack;
+import android.media.Ringtone;
+import android.media.ToneGenerator;
+import android.media.AudioManager;
+import android.os.Handler;
+import android.os.Looper;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.Voice;
 import android.net.Uri;
 import android.os.Build;
 import android.os.PowerManager;
@@ -168,6 +176,10 @@ public class RotinaAlarmPlugin extends Plugin {
             a.put("heading", "Teste de alarme");
             a.put("title", call.getString("title", "Alarme de teste"));
             a.put("spoken", call.getString("spoken", "Este é um teste do alarme do Rotina ponto A I."));
+            a.put("sound", call.getString("sound", "padrao"));
+            a.put("voice", call.getString("voice", ""));
+            a.put("rate", (double) call.getFloat("rate", 0.95f));
+            a.put("pitch", (double) call.getFloat("pitch", 1.0f));
             java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
             long at = System.currentTimeMillis() + seconds * 1000L;
             a.put("timeLabel", fmt.format(new java.util.Date(at)));
@@ -176,5 +188,97 @@ public class RotinaAlarmPlugin extends Plugin {
         } catch (Exception ignored) {
         }
         call.resolve();
+    }
+
+    private static final Handler main = new Handler(Looper.getMainLooper());
+    private static AudioTrack previewTrack;
+    private static Ringtone previewRingtone;
+
+    /** Portuguese voices of this phone: [{name, locale, network, quality}] */
+    @PluginMethod
+    public void getVoices(PluginCall call) {
+        VoiceTools.withPreviewTts(getContext(), () -> {
+            JSArray list = new JSArray();
+            TextToSpeech t = VoiceTools.previewTts();
+            for (Voice v : VoiceTools.portugueseVoices(t)) {
+                try {
+                    JSObject o = new JSObject();
+                    o.put("name", v.getName());
+                    o.put("locale", v.getLocale().toLanguageTag());
+                    o.put("network", v.isNetworkConnectionRequired());
+                    o.put("quality", v.getQuality());
+                    list.put(o);
+                } catch (Exception ignored) {
+                }
+            }
+            JSObject ret = new JSObject();
+            ret.put("voices", list);
+            ret.put("available", t != null);
+            call.resolve(ret);
+        });
+    }
+
+    /** Speaks a sample with the chosen voice, speed and pitch. */
+    @PluginMethod
+    public void previewVoice(PluginCall call) {
+        final String text = call.getString("text", "Olá! Esta é a voz dos seus lembretes do Rotina ponto A I.");
+        final String voice = call.getString("voice", "");
+        final float rate = call.getFloat("rate", 0.95f);
+        final float pitch = call.getFloat("pitch", 1.0f);
+        VoiceTools.withPreviewTts(getContext(), () -> {
+            TextToSpeech t = VoiceTools.previewTts();
+            if (t == null) {
+                call.reject("Voz indisponível neste aparelho");
+                return;
+            }
+            VoiceTools.apply(t, voice, rate, pitch);
+            VoiceTools.speakOnAlarmVolume(t, text, "preview-" + System.currentTimeMillis());
+            call.resolve();
+        });
+    }
+
+    /** Plays one cycle of an alarm sound. */
+    @PluginMethod
+    public void previewSound(PluginCall call) {
+        final String sound = call.getString("sound", "padrao");
+        main.post(() -> {
+            stopPreview();
+            if ("celular".equals(sound)) {
+                previewRingtone = SoundSynth.phoneRingtone(getContext());
+                if (previewRingtone != null) {
+                    try {
+                        previewRingtone.play();
+                    } catch (Exception ignored) {
+                    }
+                    main.postDelayed(RotinaAlarmPlugin::stopPreview, 4000);
+                }
+            } else {
+                short[] pcm = SoundSynth.render(sound);
+                if (pcm != null) {
+                    previewTrack = SoundSynth.play(pcm);
+                    main.postDelayed(RotinaAlarmPlugin::stopPreview, SoundSynth.durationMs(pcm) + 200);
+                } else {
+                    try {
+                        final ToneGenerator tg = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
+                        for (int i = 0; i < 3; i++) {
+                            main.postDelayed(() -> tg.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 400), i * 650L);
+                        }
+                        main.postDelayed(tg::release, 2400);
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+            call.resolve();
+        });
+    }
+
+    private static void stopPreview() {
+        SoundSynth.release(previewTrack);
+        previewTrack = null;
+        try {
+            if (previewRingtone != null && previewRingtone.isPlaying()) previewRingtone.stop();
+        } catch (Exception ignored) {
+        }
+        previewRingtone = null;
     }
 }

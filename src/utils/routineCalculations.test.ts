@@ -45,7 +45,7 @@ test('calculateRoutineProgress calculates percentage and totals correctly', () =
 });
 
 test('calculateHealthCompliance handles empty and completed doses', () => {
-  assert.equal(calculateHealthCompliance([]).percent, 100);
+  assert.equal(calculateHealthCompliance([]).percent, 0);
 
   const meds: HealthMedication[] = [
     {
@@ -114,7 +114,7 @@ test('calculateGoalSummary computes averages and active goals', () => {
 });
 
 test('calculateMoodMetrics handles entries and empty fallback', () => {
-  assert.equal(calculateMoodMetrics([]).positivePercent, 78);
+  assert.equal(calculateMoodMetrics([]).positivePercent, 0);
 
   const entries: MoodEntry[] = [
     {
@@ -186,7 +186,7 @@ test('Meu Mapa: handles when all questions are nao_se_aplica or unrecorded witho
   assert.equal(metrics.evaluatedCount, 0);
   assert.equal(metrics.hasEvaluatedAnswers, false);
   // Absense of evaluated answers is not a penalty
-  assert.equal(metrics.positivePercentage, 100);
+  assert.equal(metrics.positivePercentage, 0); // sem respostas válidas = sem percentual;
 });
 
 test('calculateAreaPerformance filters questions by area correctly', () => {
@@ -326,9 +326,9 @@ test('generateMonthlyReview generates all 7 pillars with empathetic reflection',
   assert.equal(review.period, 'Novembro de 2026');
   assert.equal(review.positiveRate, 100);
   assert.equal(review.goalsSummary.completedGoals, 1);
-  assert.ok(review.warmAnalysisText.length > 0);
-  assert.ok(review.patternsDetected.length > 0);
-  assert.ok(review.suggestionsNextMonth.length > 0);
+  assert.equal(review.mapSummary.topArea, 'Maternidade');
+  // nada inventado: sem padrões ou textos fictícios
+  assert.equal(review.patternsDetected.length, 0);
 });
 
 test('filterAgendaByDate filters events matching date string', () => {
