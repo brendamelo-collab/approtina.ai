@@ -5,8 +5,11 @@ name: Verificar alterações
 
 on:
   push:
-    branches-ignore: [main]
+    branches-ignore: [main, verificacao-preview]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   web:
@@ -31,12 +34,18 @@ jobs:
       - name: Gerar pré-visualização para testes
         run: npx vite build --config tools/preview/vite.preview.config.ts
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: preview
-          path: |
-            tools/preview/dist
-            tsc.log
+      # Guarda a pré-visualização numa branch separada (verificacao-preview) para os testes automáticos.
+      - name: Publicar pré-visualização na branch verificacao-preview
+        env:
+          SRC_BRANCH: ${{ github.ref_name }}
+        run: |
+          mkdir -p /tmp/pv && cp -r tools/preview/dist/. /tmp/pv/ && cp tsc.log /tmp/pv/
+          cd /tmp/pv
+          git init -q -b verificacao-preview
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A && git commit -qm "Pré-visualização de $SRC_BRANCH ($GITHUB_SHA)"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" verificacao-preview
 
   android:
     runs-on: ubuntu-latest
