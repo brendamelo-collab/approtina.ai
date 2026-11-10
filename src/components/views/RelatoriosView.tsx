@@ -477,9 +477,9 @@ export const RelatoriosView: React.FC = () => {
                 <EmptyState hint="Sem respostas válidas para os hábitos positivos neste período." />
               ) : (
                 <div className="grid grid-cols-3 gap-2">
-                  <Stat label="Cumprido" value={mapGood.positivo} tone="ok" note={`de ${mapGood.validas}`} />
-                  <Stat label="Não cumprido" value={mapGood.negativo} tone="bad" />
-                  <Stat label="Cumprimento" value={mapGood.pctPositivo} suffix="%" tone="ok" />
+                  <Stat label="Cumpriu" value={mapGood.positivo} tone="ok" note={`de ${mapGood.validas}`} />
+                  <Stat label="Não cumpriu" value={mapGood.negativo} tone="bad" />
+                  <Stat label="Taxa" value={mapGood.pctPositivo} suffix="%" tone="ok" />
                 </div>
               )}
             </Card>
@@ -503,7 +503,7 @@ export const RelatoriosView: React.FC = () => {
                 <div className="grid grid-cols-3 gap-2">
                   <Stat label="Aconteceu" value={mapBad.negativo} tone="bad" note={`de ${mapBad.validas}`} />
                   <Stat label="Evitou" value={mapBad.positivo} tone="ok" />
-                  <Stat label="Evitado" value={mapBad.pctPositivo} suffix="%" tone="ok" />
+                  <Stat label="Taxa evitada" value={mapBad.pctPositivo} suffix="%" tone="ok" />
                 </div>
               )}
             </Card>
@@ -551,8 +551,8 @@ export const RelatoriosView: React.FC = () => {
                       r.counts.validas === 0
                         ? `Sem respostas válidas${r.counts.semResposta ? ` · ${r.counts.semResposta} sem resposta` : ''}`
                         : r.good
-                          ? `Cumpriu ${plural(r.counts.positivo, 'vez', 'vezes')} de ${r.counts.validas} · antes: ${r.previousOccurrences}`
-                          : `Aconteceu ${plural(r.counts.negativo, 'vez', 'vezes')} · evitou ${r.counts.positivo} · antes aconteceu ${r.previousOccurrences}`
+                          ? `Cumpriu ${plural(r.counts.positivo, 'vez', 'vezes')} de ${r.counts.validas} · período anterior: ${r.previousOccurrences}`
+                          : `Aconteceu ${plural(r.counts.negativo, 'vez', 'vezes')} · evitou ${r.counts.positivo} · período anterior: ${r.previousOccurrences}`
                     }
                   />
                 ))
@@ -618,7 +618,7 @@ export const RelatoriosView: React.FC = () => {
                 <div className="grid grid-cols-3 gap-2">
                   <Stat label="Previstas" value={routines.total.previstas} />
                   <Stat label="Feitas" value={routines.total.feitas} tone="ok" />
-                  <Stat label="Cumprimento" value={routines.total.pct} suffix="%" tone="ok" />
+                  <Stat label="Taxa" value={routines.total.pct} suffix="%" tone="ok" />
                 </div>
                 <DoneSplit c={routines.total} />
               </>
@@ -695,9 +695,9 @@ export const RelatoriosView: React.FC = () => {
             ) : (
               <>
                 <div className="grid grid-cols-3 gap-2">
-                  <Stat label="Doses previstas" value={meds.total.previstas} />
+                  <Stat label="Previstas" value={meds.total.previstas} />
                   <Stat label="Tomadas" value={meds.total.feitas} tone="ok" />
-                  <Stat label="Adesão" value={meds.total.pct} suffix="%" tone="ok" />
+                  <Stat label="Taxa" value={meds.total.pct} suffix="%" tone="ok" />
                 </div>
                 <DoneSplit c={meds.total} />
               </>
@@ -762,7 +762,7 @@ export const RelatoriosView: React.FC = () => {
                 <div className="grid grid-cols-3 gap-2">
                   <Stat label="Previstos" value={agenda.previstos} />
                   <Stat label="Feitos" value={agenda.realizados} tone="ok" />
-                  <Stat label="Cumprido" value={agenda.pct} suffix="%" tone="ok" />
+                  <Stat label="Taxa" value={agenda.pct} suffix="%" tone="ok" />
                 </div>
                 <p className="text-[10px] text-[#8C7A6B]">
                   {plural(agenda.semRegistro, 'compromisso sem marcação', 'compromissos sem marcação')} (não contam como faltas)
@@ -810,8 +810,8 @@ export const RelatoriosView: React.FC = () => {
               <>
                 <div className="grid grid-cols-3 gap-2">
                   <Stat label="Concluídas" value={goalsR.concluidas} tone="ok" />
-                  <Stat label="Em andamento" value={goalsR.emAndamento} />
-                  <Stat label="Progresso médio" value={goalsR.mediaProgresso} suffix="%" />
+                  <Stat label="Andamento" value={goalsR.emAndamento} />
+                  <Stat label="Média" value={goalsR.mediaProgresso} suffix="%" />
                 </div>
                 {goalsR.active.map((g) => (
                   <ProgressRow
