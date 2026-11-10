@@ -394,11 +394,11 @@ export const RelatoriosView: React.FC = () => {
           </Card>
 
           <Card title="Rotinas e remédios" subtitle="Feito, adiado, não feito ou sem confirmação">
-            {routines.total.previstas + meds.total.previstas === 0 ? (
-              <EmptyState hint={beforeLog ? 'Este período é anterior ao início do histórico diário.' : 'Marque rotinas e remédios como feitos para ver aqui.'} />
+            {routines.total.pct === null && meds.total.pct === null ? (
+              <EmptyState hint={beforeLog ? 'Este período é anterior ao início do histórico diário.' : 'Nenhuma rotina ou remédio marcado neste período. Itens sem marcação não contam como “não feito”.'} />
             ) : (
               <div className="space-y-3">
-                {routines.total.previstas > 0 && (
+                {routines.total.pct !== null && (
                   <div className="space-y-1.5">
                     <p className="text-xs font-bold text-[#4A3E34]">
                       Rotinas · {routines.total.feitas} de {routines.total.previstas}
@@ -406,7 +406,7 @@ export const RelatoriosView: React.FC = () => {
                     <DoneSplit c={routines.total} />
                   </div>
                 )}
-                {meds.total.previstas > 0 && (
+                {meds.total.pct !== null && (
                   <div className="space-y-1.5">
                     <p className="text-xs font-bold text-[#4A3E34]">
                       Remédios · {meds.total.feitas} de {meds.total.previstas}
@@ -611,8 +611,8 @@ export const RelatoriosView: React.FC = () => {
       {section === 'rotinas' && (
         <div className="space-y-3">
           <Card title="Cumprimento das rotinas" right={<DeltaBadge d={delta(routines.total.pct, routines.previousTotal.pct)} />}>
-            {routines.total.previstas === 0 ? (
-              <EmptyState hint={beforeLog ? 'Este período é anterior ao início do histórico diário.' : 'Sem rotinas previstas com histórico neste período.'} />
+            {routines.total.pct === null ? (
+              <EmptyState hint={beforeLog ? 'Este período é anterior ao início do histórico diário.' : 'Nenhuma rotina marcada neste período (sem marcação não conta como “não feito”).'} />
             ) : (
               <>
                 <div className="grid grid-cols-3 gap-2">
@@ -631,11 +631,11 @@ export const RelatoriosView: React.FC = () => {
           </Card>
 
           <Card title="Por período do dia">
-            {routines.byPeriod.every((p) => p.counts.previstas === 0) ? (
+            {routines.byPeriod.every((p) => p.counts.pct === null) ? (
               <EmptyState />
             ) : (
               routines.byPeriod
-                .filter((p) => p.counts.previstas > 0)
+                .filter((p) => p.counts.pct !== null)
                 .map((p) => (
                   <ProgressRow
                     key={p.period}
@@ -649,11 +649,11 @@ export const RelatoriosView: React.FC = () => {
           </Card>
 
           <Card title="Cada rotina">
-            {routines.routines.rows.filter((r) => r.counts.previstas > 0).length === 0 ? (
+            {routines.routines.rows.filter((r) => r.counts.pct !== null).length === 0 ? (
               <EmptyState />
             ) : (
               routines.routines.rows
-                .filter((r) => r.counts.previstas > 0)
+                .filter((r) => r.counts.pct !== null)
                 .sort((a, b) => (b.counts.pct ?? -1) - (a.counts.pct ?? -1))
                 .map((r) => (
                   <ProgressRow
@@ -668,9 +668,9 @@ export const RelatoriosView: React.FC = () => {
             )}
           </Card>
 
-          {routines.chrono.total.previstas > 0 && (
+          {routines.chrono.total.pct !== null && (
             <Card title="Rotina diária (horários)">
-              {routines.chrono.rows.map((r) => (
+              {routines.chrono.rows.filter((r) => r.counts.pct !== null).map((r) => (
                 <ProgressRow
                   key={r.item.id}
                   label={`${r.item.time ? `${r.item.time} · ` : ''}${r.item.title}`}
@@ -690,8 +690,8 @@ export const RelatoriosView: React.FC = () => {
           <Card title="Remédios e suplementos" right={<DeltaBadge d={delta(meds.total.pct, meds.previousTotal.pct)} />}>
             {healthItems.length === 0 ? (
               <EmptyState text="Nenhum remédio cadastrado" />
-            ) : meds.total.previstas === 0 ? (
-              <EmptyState hint={beforeLog ? 'Este período é anterior ao início do histórico diário.' : 'Sem doses com histórico neste período.'} />
+            ) : meds.total.pct === null ? (
+              <EmptyState hint={beforeLog ? 'Este período é anterior ao início do histórico diário.' : 'Nenhuma dose marcada neste período (sem marcação não conta como “não tomada”).'} />
             ) : (
               <>
                 <div className="grid grid-cols-3 gap-2">
@@ -717,10 +717,10 @@ export const RelatoriosView: React.FC = () => {
             </Card>
           )}
 
-          {meds.rows.some((r) => r.counts.previstas > 0) && (
+          {meds.rows.some((r) => r.counts.pct !== null) && (
             <Card title="Cada remédio">
               {meds.rows
-                .filter((r) => r.counts.previstas > 0)
+                .filter((r) => r.counts.pct !== null)
                 .map((r) => (
                   <ProgressRow
                     key={r.item.id}

@@ -66,3 +66,12 @@ test('Medições: só valores registrados, pressão vira duas séries', () => {
   assert.equal(peso.change, -1.5);
   assert.equal(s.filter((x) => x.label.startsWith('Pressão')).length, 2);
 });
+
+test('Nenhuma marcação no período = sem dados (null), não 0%', () => {
+  const tasks = [{ id: 't1', title: 'Banho', period: 'noite', completed: false }] as RoutineTask[];
+  const log = { since: '2026-10-01', days: {} } as ActivityLog;
+  const p = buildPeriod('personalizado', '2026-10-01', { from: '2026-10-01', to: '2026-10-05' });
+  const rep = routineReport(tasks, [], log, p, bucketsFor(p.from, p.to, p.granularity), '2026-11-09');
+  assert.equal(rep.routines.total.previstas, 5);
+  assert.equal(rep.routines.total.pct, null);
+});

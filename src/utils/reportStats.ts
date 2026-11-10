@@ -387,7 +387,8 @@ function countDone(
     else if (st === 'nao_fez') c.naoFeitas++;
     else c.semRegistro++;
   });
-  c.pct = pct(c.feitas, c.previstas);
+  // Sem nenhuma marcação no período = sem dados (não é 0% de cumprimento)
+  c.pct = c.previstas - c.semRegistro > 0 ? pct(c.feitas, c.previstas) : null;
   return c;
 }
 
@@ -408,7 +409,8 @@ const mergeDone = (list: DoneCounts[]): DoneCounts => {
     c.naoFeitas += x.naoFeitas;
     c.semRegistro += x.semRegistro;
   });
-  c.pct = pct(c.feitas, c.previstas);
+  // Sem nenhuma marcação no período = sem dados (não é 0% de cumprimento)
+  c.pct = c.previstas - c.semRegistro > 0 ? pct(c.feitas, c.previstas) : null;
   return c;
 };
 
