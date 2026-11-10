@@ -1,0 +1,82 @@
+# Confere as alterações feitas em outras branches antes de irem para a main:
+# checa os tipos, gera a versão final (sem publicar) e uma versão de pré-visualização para testes,
+# e compila o app Android (sem publicar o APK).
+name: Verificar alterações
+
+on:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Checar tipos (TypeScript)
+        run: npx tsc --noEmit 2>&1 | tee tsc.log; echo "exit=${PIPESTATUS[0]}" >> tsc.log
+        shell: bash
+
+      - name: Gerar versão final (não publica)
+        run: npm run build
+
+      - name: Gerar pré-visualização para testes
+        run: npx vite build --config tools/preview/vite.preview.config.ts
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preview
+          path: |
+            tools/preview/dist
+            tsc.log
+
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Instalar Capacitor
+        run: npm install
+
+      - name: Criar projeto Android
+        run: npx cap add android
+
+      - name: Chave temporária (só para compilar)
+        run: |
+          KS="$RUNNER_TEMP/verify.keystore"
+          PASS="$(openssl rand -hex 16)"
+          keytool -genkeypair -keystore "$KS" -storepass "$PASS" -keypass "$PASS" -alias rotinaai \
+            -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Rotina.ai, O=Rotina.ai, C=BR"
+          echo "::add-mask::$PASS"
+          echo "KEYSTORE_PATH=$KS" >> "$GITHUB_ENV"
+          echo "KEYSTORE_PASSWORD=$PASS" >> "$GITHUB_ENV"
+
+      - name: Adicionar alarme nativo
+        run: python3 patch_android.py
+
+      - name: Sincronizar
+        run: npx cap sync android
+
+      - name: Compilar APK (não publica)
+        working-directory: android-app/android
+        run: ./gradlew assembleRelease --no-daemon
