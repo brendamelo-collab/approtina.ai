@@ -356,9 +356,9 @@ export const ConfiguracoesPerfilView: React.FC = () => {
       </div>
 
       {/* Overview Card: Active Profile */}
-      <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 mb-4 shadow-[0_4px_20px_rgba(140,122,107,0.05)] flex items-center justify-between">
-        <div className="flex items-center gap-3.5">
-          <div className="relative group">
+      <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 mb-4 shadow-[0_4px_20px_rgba(140,122,107,0.05)] flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3.5 min-w-0 flex-1">
+          <div className="relative group shrink-0">
             <UserAvatar name={currentProfile.name} avatarUrl={currentProfile.avatarUrl} size="lg" />
             <button
               onClick={() => setEditingPhotoProfile(currentProfile)}
@@ -368,22 +368,22 @@ export const ConfiguracoesPerfilView: React.FC = () => {
               <Camera className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm sm:text-base font-bold text-[#2C2C2C]">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+              <h2 className="text-sm sm:text-base font-bold text-[#2C2C2C] break-words">
                 {currentProfile.name}
               </h2>
-              <span className="text-[10px] font-bold text-[#5C4F44] bg-[#EAE0D2] px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-bold text-[#5C4F44] bg-[#EAE0D2] px-2 py-0.5 rounded-full whitespace-nowrap">
                 Perfil Ativo
               </span>
             </div>
-            <p className="text-xs text-[#8C7A6B]">
+            <p className="text-xs text-[#8C7A6B] break-all leading-snug">
               {currentProfile.role} • {isLoggedIn ? userEmail : 'Armazenamento Local'}
             </p>
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5 items-end">
+        <div className="flex flex-col gap-1.5 items-end shrink-0">
           <button
             onClick={() => setEditingPhotoProfile(currentProfile)}
             className="text-[11px] font-bold text-[#8C7A6B] hover:text-[#5C4F44] flex items-center gap-1 bg-[#F4EDE2] hover:bg-[#EAE0D2] px-2.5 py-1 rounded-xl transition-colors"

@@ -341,15 +341,15 @@ export const SaudeView: React.FC = () => {
                       : 'bg-[#FAF8F5] border-[#EFE8DE] hover:bg-[#F9F6F1]'
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3">
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
                       <div className="w-11 h-11 rounded-2xl bg-[#F7EEE3] border border-[#EAE0D2] flex items-center justify-center text-xl shrink-0">
                         {typeEmoji}
                       </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                           <h3
-                            className={`text-xs sm:text-sm font-bold truncate ${
+                            className={`text-xs sm:text-sm font-bold leading-snug break-words ${
                               isDone ? 'line-through text-[#8C7A6B]' : 'text-[#2C2C2C]'
                             }`}
                           >
@@ -359,17 +359,17 @@ export const SaudeView: React.FC = () => {
                             {item.memberName}
                           </span>
                         </div>
-                        <p className="text-[11px] text-[#8C7A6B] mt-0.5 truncate">
-                          Data: <strong>{item.date}</strong> {item.time ? `• ${item.time}` : ''}{' '}
+                        <p className="text-[11px] text-[#8C7A6B] mt-0.5 leading-snug break-words">
+                          Data: <strong>{/^\d{4}-\d{2}-\d{2}$/.test(item.date) ? item.date.split('-').reverse().join('/') : item.date}</strong> {item.time ? `• ${item.time}` : ''}{' '}
                           {item.professionalOrClinic ? `• ${item.professionalOrClinic}` : ''}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center justify-end gap-2 shrink-0">
                       <button
                         onClick={() => toggleHealthDateItem(item.id)}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-2xs ${
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1 shadow-2xs ${
                           isDone
                             ? 'bg-[#7D9D7F] text-white'
                             : 'bg-[#EAE0D2] hover:bg-[#DFD3C3] text-[#5C4F44]'

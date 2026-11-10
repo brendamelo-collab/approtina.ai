@@ -297,8 +297,8 @@ export const AgendaView: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-[#8C7A6B] bg-[#F4EDE2] px-2.5 py-1 rounded-full">
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-xs font-semibold text-[#8C7A6B] bg-[#F4EDE2] px-2.5 py-1 rounded-full whitespace-nowrap">
                 Dia {activeDayNum}
               </span>
               <div className="w-7 h-7 rounded-full bg-[#F4EDE2] flex items-center justify-center text-[#8C7A6B]">
@@ -563,8 +563,8 @@ export const AgendaView: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-[#8C7A6B] bg-[#F4EDE2] px-2.5 py-1 rounded-full">
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-xs font-semibold text-[#8C7A6B] bg-[#F4EDE2] px-2.5 py-1 rounded-full whitespace-nowrap">
                 {weeklyFixedTopics.length} rituais
               </span>
               <div className="w-7 h-7 rounded-full bg-[#F4EDE2] flex items-center justify-center text-[#8C7A6B]">

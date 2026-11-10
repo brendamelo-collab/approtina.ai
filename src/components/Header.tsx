@@ -35,13 +35,13 @@ export const Header: React.FC = () => {
     <header className="pt-2 pb-1 px-4 sm:px-6 w-full max-w-xl mx-auto select-none">
       {/* Brand Tagline & PWA Install Banner */}
       <div className="flex items-center justify-between pb-3 pt-1 border-b border-[#EFE8DE]/60 mb-3 gap-2">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-[#EFE8DE] flex items-center justify-center text-[#8C7A6B]">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-6 h-6 rounded-lg bg-[#EFE8DE] flex items-center justify-center text-[#8C7A6B] shrink-0">
             <Heart className="w-3.5 h-3.5 fill-[#8C7A6B]" />
           </div>
-          <div>
+          <div className="min-w-0">
             <span className="font-bold text-sm tracking-tight text-[#2C2C2C]">Rotina.ai</span>
-            <span className="text-[11px] text-[#8C7A6B] block -mt-0.5 font-normal">
+            <span className="text-[11px] text-[#8C7A6B] block -mt-0.5 font-normal leading-snug">
               Sua vida, acompanhada com clareza.
             </span>
           </div>
@@ -53,14 +53,14 @@ export const Header: React.FC = () => {
       {/* Main Greeting & Avatar Row */}
       <div className="flex items-center justify-between gap-3">
         {/* Left: Avatar with Profile Switcher */}
-        <div className="relative">
+        <div className="relative min-w-0 flex-1">
           <button
             onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-            className="flex items-center gap-3 text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8C7A6B] rounded-2xl p-1 transition-transform active:scale-95"
+            className="flex items-center gap-3 text-left max-w-full group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8C7A6B] rounded-2xl p-1 transition-transform active:scale-95"
             aria-label="Alternar perfil familiar"
             title="Clique para alternar perfil da família"
           >
-            <div className="relative">
+            <div className="relative shrink-0">
               {currentProfile.avatarUrl ? (
                 <UserAvatar name={currentProfile.name} avatarUrl={currentProfile.avatarUrl} size="lg" />
               ) : (
@@ -71,14 +71,14 @@ export const Header: React.FC = () => {
               </div>
             </div>
 
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <h1 className="text-xl sm:text-2xl font-bold text-[#2C2C2C] tracking-tight">
+                <h1 className="text-lg sm:text-2xl font-bold text-[#2C2C2C] tracking-tight leading-tight truncate">
                   Olá, {currentProfile.name}!
                 </h1>
-                <Sparkles className="w-4 h-4 text-[#C58B68] fill-[#F6E9DC]" />
+                <Sparkles className="w-4 h-4 shrink-0 text-[#C58B68] fill-[#F6E9DC]" />
               </div>
-              <p className="text-xs sm:text-sm text-[#8C7A6B] font-medium">
+              <p className="text-xs sm:text-sm text-[#8C7A6B] font-medium leading-snug">
                 Que tal organizar seu dia?
               </p>
             </div>
@@ -134,7 +134,7 @@ export const Header: React.FC = () => {
         </div>
 
         {/* Right: Notifications Bell & Settings */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => setIsNotificationsOpen(true)}
             aria-label="Abrir notificações"

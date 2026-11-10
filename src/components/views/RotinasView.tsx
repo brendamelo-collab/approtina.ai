@@ -305,13 +305,13 @@ export const RotinasView: React.FC = () => {
                       {step.completed ? '✓' : step.icon}
                     </div>
 
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-[#5C4F44] bg-[#F4EDE2] px-1.5 py-0.5 rounded text-[10px] shrink-0 whitespace-nowrap tabular-nums">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start gap-2">
+                        <span className="mt-px font-extrabold text-[#5C4F44] bg-[#F4EDE2] px-1.5 py-0.5 rounded text-[10px] shrink-0 whitespace-nowrap tabular-nums">
                           {step.time}
                         </span>
                         <h4
-                          className={`font-bold truncate ${
+                          className={`font-bold leading-snug line-clamp-2 break-words ${
                             step.completed ? 'line-through text-[#8C7A6B]' : 'text-[#2C2C2C]'
                           }`}
                         >

@@ -129,7 +129,7 @@ export const MeuMapaView: React.FC = () => {
 
   // Resumo do mês (aba "Resumo & Análises") — só registros reais
   const monthPeriod = buildPeriod('mes', selectedDate);
-  const monthBuckets = bucketsFor(monthPeriod.from, monthPeriod.to, 'semana');
+  const monthBuckets = bucketsFor(monthPeriod.from, monthPeriod.to, 'semana').filter((b) => b.from <= todayISO());
   const monthAnswers = countAnswers(questions, questionResponses, monthPeriod.from, monthPeriod.to, todayISO());
   const monthMood = moodReport(moodRecords, moodOptions, monthPeriod, monthBuckets);
   const monthFactors = factorReport(dayFactors, availableFactors, monthPeriod);
@@ -236,7 +236,7 @@ export const MeuMapaView: React.FC = () => {
 
         <div className="text-center">
           <h1 className="text-lg font-bold text-[#2C2C2C] tracking-tight">Meu Mapa</h1>
-          <p className="text-[11px] text-[#8C7A6B]">Acompanhamento & Bem-estar</p>
+          <p className="text-[11px] text-[#8C7A6B] leading-tight">Acompanhamento & Bem-estar</p>
         </div>
 
         <button
@@ -312,16 +312,16 @@ export const MeuMapaView: React.FC = () => {
           <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(140,122,107,0.05)] transition-all">
             <button
               onClick={() => toggleSection('humor')}
-              className="w-full p-4 sm:p-5 flex items-center justify-between text-left focus:outline-none"
+              className="w-full p-4 sm:p-5 flex items-center justify-between gap-2 text-left focus:outline-none"
               aria-expanded={openSections.humor}
             >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-xl">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 shrink-0 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-xl">
                   😊
                 </div>
                 <div>
                   <h2 className="text-sm sm:text-base font-bold text-[#2C2C2C]">
-                    1. Registo de Humor
+                    1. Registro de Humor
                   </h2>
                   <p className="text-xs text-[#8C7A6B]">
                     Sentimento independente de metas comportamentais
@@ -329,9 +329,9 @@ export const MeuMapaView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-[#8C7A6B]">
-                  {moodListForDay.length} registos
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[11px] font-semibold text-[#8C7A6B] whitespace-nowrap">
+                  {moodListForDay.length} {moodListForDay.length === 1 ? 'registro' : 'registros'}
                 </span>
                 <div className="w-7 h-7 rounded-full bg-[#F4EDE2] flex items-center justify-center text-[#8C7A6B]">
                   {openSections.humor ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -345,7 +345,7 @@ export const MeuMapaView: React.FC = () => {
                 {moodListForDay.length > 0 && (
                   <div className="space-y-2">
                     <span className="text-[11px] font-bold text-[#5C4F44]">
-                      Registos salvos para este dia:
+                      Registros salvos para este dia:
                     </span>
                     <div className="space-y-1.5">
                       {moodListForDay.map((rec) => {
@@ -445,8 +445,8 @@ export const MeuMapaView: React.FC = () => {
                                 : 'bg-white border-[#EFE8DE] text-[#2C2C2C] hover:bg-[#FAF8F5]'
                             }`}
                           >
-                            <span className="text-lg">{opt.emoji}</span>
-                            <span className="truncate">{opt.label}</span>
+                            <span className="text-lg shrink-0">{opt.emoji}</span>
+                            <span className="min-w-0 text-left leading-tight break-words">{opt.label}</span>
                           </button>
                         );
                       })}
@@ -493,7 +493,7 @@ export const MeuMapaView: React.FC = () => {
                   <div className="bg-[#FAF5ED] p-2.5 rounded-xl border border-[#EAE0D2] flex items-center gap-2 text-[11px] text-[#6E5D4F]">
                     <Info className="w-3.5 h-3.5 text-[#8C7A6B] shrink-0" />
                     <span>
-                      O humor é um registo de acolhimento emocional e não altera suas métricas de desempenho.
+                      O humor é um registro de acolhimento emocional e não altera suas métricas de desempenho.
                     </span>
                   </div>
 
@@ -502,7 +502,7 @@ export const MeuMapaView: React.FC = () => {
                     className="w-full py-2.5 bg-[#8C7A6B] hover:bg-[#786657] text-white text-xs font-bold rounded-2xl shadow-sm transition-colors flex items-center justify-center gap-2"
                   >
                     <Check className="w-4 h-4" />
-                    <span>Gravar Registo deste Momento</span>
+                    <span>Gravar registro deste momento</span>
                   </button>
                 </form>
               </div>
@@ -515,11 +515,11 @@ export const MeuMapaView: React.FC = () => {
           <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(140,122,107,0.05)] transition-all">
             <button
               onClick={() => toggleSection('fatores')}
-              className="w-full p-4 sm:p-5 flex items-center justify-between text-left focus:outline-none"
+              className="w-full p-4 sm:p-5 flex items-center justify-between gap-2 text-left focus:outline-none"
               aria-expanded={openSections.fatores}
             >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-xl">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 shrink-0 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-xl">
                   🌱
                 </div>
                 <div>
@@ -532,8 +532,8 @@ export const MeuMapaView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-[#8C7A6B]">
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[11px] font-semibold text-[#8C7A6B] whitespace-nowrap">
                   {selectedFactorsForDay.length} ativos
                 </span>
                 <div className="w-7 h-7 rounded-full bg-[#F4EDE2] flex items-center justify-center text-[#8C7A6B]">
@@ -704,11 +704,11 @@ export const MeuMapaView: React.FC = () => {
           <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(140,122,107,0.05)] transition-all">
             <button
               onClick={() => toggleSection('perguntas')}
-              className="w-full p-4 sm:p-5 flex items-center justify-between text-left focus:outline-none"
+              className="w-full p-4 sm:p-5 flex items-center justify-between gap-2 text-left focus:outline-none"
               aria-expanded={openSections.perguntas}
             >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-xl">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 shrink-0 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-xl">
                   📝
                 </div>
                 <div>
@@ -721,8 +721,8 @@ export const MeuMapaView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-[#8C7A6B]">
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[11px] font-semibold text-[#8C7A6B] whitespace-nowrap">
                   {metrics.totalResponses}/{questions.length} respondidas
                 </span>
                 <div className="w-7 h-7 rounded-full bg-[#F4EDE2] flex items-center justify-center text-[#8C7A6B]">
@@ -802,11 +802,11 @@ export const MeuMapaView: React.FC = () => {
 
                           <div className="flex items-center gap-2.5">
                             {areaPerf.hasEvaluatedAnswers ? (
-                              <span className="text-xs font-extrabold text-[#5C4F44] bg-[#EFE8DE] px-2.5 py-0.5 rounded-full">
+                              <span className="text-xs font-extrabold text-[#5C4F44] bg-[#EFE8DE] px-2.5 py-0.5 rounded-full whitespace-nowrap">
                                 {areaPerf.positivePercentage}% positivo
                               </span>
                             ) : (
-                              <span className="text-[10px] text-[#8C7A6B] bg-[#F7F4EE] px-2 py-0.5 rounded-full">
+                              <span className="text-[10px] text-[#8C7A6B] bg-[#F7F4EE] px-2 py-0.5 rounded-full whitespace-nowrap">
                                 Sem avaliação
                               </span>
                             )}
@@ -843,10 +843,10 @@ export const MeuMapaView: React.FC = () => {
                                       <button
                                         type="button"
                                         onClick={() => setIsManageQuestionsModalOpen(true)}
-                                        className="text-[10px] font-semibold text-[#8C7A6B] hover:text-[#5C4F44] flex items-center gap-1 bg-[#F4EDE2] px-2 py-0.5 rounded-lg transition-colors"
+                                        className="shrink-0 text-[10px] font-semibold text-[#8C7A6B] hover:text-[#5C4F44] flex items-center gap-1 bg-[#F4EDE2] px-2 py-0.5 rounded-lg transition-colors"
                                       >
                                         <Plus className="w-3 h-3" />
-                                        <span>+ Pergunta</span>
+                                        <span className="whitespace-nowrap">Pergunta</span>
                                       </button>
                                     </div>
 
@@ -923,7 +923,7 @@ export const MeuMapaView: React.FC = () => {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="text-sm font-bold text-[#2C2C2C] leading-snug">Seu mês até agora</h2>
-                <p className="text-[11px] text-[#8C7A6B] capitalize">{monthPeriod.label}</p>
+                <p className="text-[11px] text-[#8C7A6B]">{monthPeriod.label.charAt(0).toUpperCase() + monthPeriod.label.slice(1)}</p>
               </div>
               <div
                 className={`shrink-0 w-20 rounded-2xl border flex flex-col items-center justify-center text-center py-2 ${
@@ -1270,7 +1270,7 @@ export const MeuMapaView: React.FC = () => {
             }`}
           >
             <span className="w-2 h-2 rounded-full bg-[#D4A017]" />
-            <span>? Não lembro</span>
+            <span className="whitespace-nowrap">? Não lembro</span>
           </button>
         </div>
       </div>

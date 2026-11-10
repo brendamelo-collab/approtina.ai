@@ -111,7 +111,8 @@ export const RelatoriosView: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
   const period = useMemo(() => buildPeriod(kind, anchor, custom), [kind, anchor, custom]);
-  const buckets = useMemo(() => bucketsFor(period.from, period.to, period.granularity), [period]);
+  // Pontos do gráfico só até hoje (dias futuros não viram "sem registro")
+  const buckets = useMemo(() => bucketsFor(period.from, period.to, period.granularity).filter((b) => b.from <= today), [period, today]);
 
   const move = (dir: -1 | 1) => {
     if (kind === 'dia') setAnchor(shiftISODate(anchor, dir));
@@ -243,7 +244,7 @@ export const RelatoriosView: React.FC = () => {
             <ChevronLeft className="w-4 h-4" />
           </button>
           <div className="flex-1 min-w-0 text-center">
-            <p className="text-sm font-bold text-[#2C2C2C] capitalize leading-tight truncate">{period.label}</p>
+            <p className="text-sm font-bold text-[#2C2C2C] leading-tight truncate">{period.label.charAt(0).toUpperCase() + period.label.slice(1)}</p>
             <p className="text-[10px] text-[#8C7A6B] leading-tight">comparado com {period.prevLabel}</p>
           </div>
           <button

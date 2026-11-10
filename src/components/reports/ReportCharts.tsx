@@ -150,7 +150,7 @@ export const BarSeries: React.FC<{
   const top = max ?? Math.max(100, ...values.map((v) => v || 0));
   const bar = tone === 'ok' ? 'bg-[#7D9D7F]' : tone === 'bad' ? 'bg-[#C06C54]' : tone === 'gold' ? 'bg-[#B78A58]' : 'bg-[#8C7A6B]';
   const many = values.length > 12;
-  const step = values.length > 20 ? Math.ceil(values.length / 8) : 1;
+  const step = values.length > 7 ? Math.ceil(values.length / 6) : 1;
   return (
     <div className="space-y-1">
       <div className="flex items-end gap-[3px] h-28">
@@ -167,8 +167,10 @@ export const BarSeries: React.FC<{
       </div>
       <div className="flex gap-[3px]">
         {labels.map((l, i) => (
-          <span key={i} className="flex-1 min-w-0 text-center text-[9px] text-[#8C7A6B] leading-tight overflow-hidden whitespace-nowrap">
-            {i % step === 0 ? l : ''}
+          <span key={i} className="flex-1 min-w-0 relative h-3">
+            {i % step === 0 && (
+              <span className="absolute left-1/2 -translate-x-1/2 top-0 text-[9px] text-[#8C7A6B] leading-tight whitespace-nowrap">{l}</span>
+            )}
           </span>
         ))}
       </div>
