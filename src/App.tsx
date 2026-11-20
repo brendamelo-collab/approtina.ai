@@ -23,6 +23,7 @@ import { RelatoriosModal } from './components/RelatoriosModal';
 import { AlarmBalloonModal } from './components/AlarmBalloonModal';
 import { AlarmScheduler } from './components/AlarmScheduler';
 import { AlarmMuteBanner } from './components/AlarmMuteBanner';
+import { AppUpdater } from './components/AppUpdater';
 import { NativeAlarmSync, NativeAlarmSetupCard } from './components/NativeAlarmSync';
 import { CustomizeBottomNavModal } from './components/CustomizeBottomNavModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
@@ -98,6 +99,7 @@ const MainContent: React.FC = () => {
       <RelatoriosModal />
       <AlarmBalloonModal />
       {/* Fires the balloon + voice at the time of each routine, appointment and medication */}
+      <AppUpdater />
       <AlarmScheduler />
       {/* Android app: native alarm with sound, voice and full screen even with the app closed */}
       <NativeAlarmSync />
