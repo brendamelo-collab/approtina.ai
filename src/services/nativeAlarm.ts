@@ -15,6 +15,8 @@ export interface NativeAlarm {
   voice?: string; // Android voice name ('' = phone default)
   rate?: number; // speech speed
   pitch?: number; // speech pitch
+  accent?: string; // palette colors for the alarm screen
+  accentDark?: string;
 }
 
 export interface NativeVoice {
@@ -75,5 +77,11 @@ export const nativeAlarm = {
     return res?.voices || [];
   },
   previewSound: (sound: string) => call('previewSound', { sound }),
+  /** Silenciar alarmes: até quando (ms); 0 = tocando normalmente. */
+  getMute: async (): Promise<number> => {
+    const res = await call<{ until?: number }>('getMute');
+    return Number(res?.until) || 0;
+  },
+  setMute: (until: number) => call('setMute', { until }),
   previewVoice: (options: { voice?: string; rate?: number; pitch?: number; text?: string }) => call('previewVoice', options)
 };

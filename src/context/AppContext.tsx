@@ -44,6 +44,7 @@ import {
 import { resolveResponseValue } from '../utils/routineCalculations';
 import { todayISO } from '../utils/dateUtils';
 import { playWebSound, speakText } from '../utils/alarmSounds';
+import { isMuted } from '../utils/alarmMute';
 import { auth, onAuthStateChanged, saveUserRealtimeData, loadUserRealtimeData, logoutFirebase } from '../firebase';
 
 // Maps each synced state field to its localStorage key suffix (must match the persist effect)
@@ -2250,7 +2251,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...payload,
       voice: payload.voice !== false && notificationPreferences.voiceAlerts !== false
     });
-    if (notificationPreferences.soundAlerts !== false) playWebSound(notificationPreferences.alarmSound || 'padrao');
+    // Alarmes silenciados: o aviso aparece, mas sem som
+    if (notificationPreferences.soundAlerts !== false && !isMuted(notificationPreferences.alarmsMutedUntil)) {
+      playWebSound(notificationPreferences.alarmSound || 'padrao');
+    }
   };
 
   const dismissAlarm = () => {

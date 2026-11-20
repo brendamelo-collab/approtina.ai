@@ -4,12 +4,22 @@ import { useApp } from '../context/AppContext';
 import { agendaOccursOn } from '../utils/routineCalculations';
 import { parseISODate, shiftISODate, todayISO } from '../utils/dateUtils';
 import { isNativeAlarmAvailable, nativeAlarm, NativeAlarm, NativeAlarmStatus } from '../services/nativeAlarm';
+import { isMuted } from '../utils/alarmMute';
 
 // Android app only: sends the upcoming alarms (next 7 days) to the native alarm and
 // applies the answers given on the alarm screen ("Já fiz" / "Adiar").
 
 const DAYS_AHEAD = 7;
 const MAX_ALARMS = 400;
+
+const cssVar = (name: string, fallback: string) => {
+  try {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return /^#[0-9a-f]{6}$/i.test(v) ? v : fallback;
+  } catch {
+    return fallback;
+  }
+};
 
 const stripEmoji = (s: string) => s.replace(/^[^\p{L}\p{N}]+/u, '').trim();
 
@@ -40,7 +50,8 @@ export const NativeAlarmSync: React.FC = () => {
     recurringTasks,
     healthMedications,
     currentProfile,
-    notificationPreferences
+    notificationPreferences,
+    colorPalette
   } = app;
 
   // 1) Keep the native alarm list up to date with the user's data
@@ -159,7 +170,10 @@ export const NativeAlarmSync: React.FC = () => {
         sound: prefs.alarmSound || 'padrao',
         voice: prefs.nativeVoiceName || '',
         rate: prefs.voiceRate ?? 0.95,
-        pitch: prefs.voicePitch ?? 1
+        pitch: prefs.voicePitch ?? 1,
+        // Cores da paleta escolhida, usadas na tela do alarme
+        accent: cssVar('--t-accent', '#A69280'),
+        accentDark: cssVar('--t-accent-dark', '#5E4D40')
       };
       const speak = prefs.voiceAlerts !== false;
       nativeAlarm
@@ -167,7 +181,7 @@ export const NativeAlarmSync: React.FC = () => {
         .catch(() => undefined);
     }, 1500);
     return () => clearTimeout(timer);
-  }, [native, isLoggedIn, routineTasks, dailyChronologicalSteps, agendaItems, recurringTasks, healthMedications, currentProfile, notificationPreferences]);
+  }, [native, isLoggedIn, routineTasks, dailyChronologicalSteps, agendaItems, recurringTasks, healthMedications, currentProfile, notificationPreferences, colorPalette]);
 
   // 2) Apply "Já fiz" / "Adiar" answered on the native alarm screen
   useEffect(() => {
@@ -212,6 +226,60 @@ export const NativeAlarmSync: React.FC = () => {
     const onVisible = () => document.visibilityState === 'visible' && apply();
     document.addEventListener('visibilitychange', onVisible);
     const timer = setInterval(apply, 30 * 1000);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      clearInterval(timer);
+    };
+  }, [native, isLoggedIn]);
+
+  // 3) "Silenciar alarmes": o mesmo estado no app e no alarme do celular.
+  //    Mudou no app (ou em outro aparelho) -> envia ao celular; mudou na tela do alarme -> traz para o app.
+  const mutedPref = notificationPreferences?.alarmsMutedUntil;
+  const lastMute = useRef<number | null>(null);
+  const norm = (v: number | undefined) => (isMuted(v) ? (v as number) : 0);
+  useEffect(() => {
+    if (!native || !isLoggedIn) return;
+    const want = norm(mutedPref);
+    if (lastMute.current === null) {
+      // Ao abrir: se foi silenciado na tela do alarme com o app fechado, vale o do celular
+      nativeAlarm
+        .getMute()
+        .then((n) => {
+          const phone = norm(n);
+          if (phone && !want) {
+            lastMute.current = phone;
+            appRef.current.updateNotificationPreferences({ alarmsMutedUntil: phone });
+          } else {
+            lastMute.current = want;
+            if (phone !== want) nativeAlarm.setMute(want).catch(() => undefined);
+          }
+        })
+        .catch(() => undefined);
+      return;
+    }
+    if (lastMute.current === want) return;
+    lastMute.current = want;
+    nativeAlarm.setMute(want).catch(() => undefined);
+  }, [native, isLoggedIn, mutedPref]);
+  useEffect(() => {
+    if (!native || !isLoggedIn) return;
+    const pull = async () => {
+      let n: number;
+      try {
+        n = norm(await nativeAlarm.getMute());
+      } catch {
+        return; // app Android antigo, sem esta função
+      }
+      if (lastMute.current === null || n === lastMute.current) return;
+      lastMute.current = n;
+      if (n !== norm(appRef.current.notificationPreferences?.alarmsMutedUntil)) {
+        appRef.current.updateNotificationPreferences({ alarmsMutedUntil: n });
+      }
+    };
+    pull();
+    const onVisible = () => document.visibilityState === 'visible' && pull();
+    document.addEventListener('visibilitychange', onVisible);
+    const timer = setInterval(pull, 15 * 1000);
     return () => {
       document.removeEventListener('visibilitychange', onVisible);
       clearInterval(timer);

@@ -12,6 +12,7 @@ import org.json.JSONObject;
 public class ActionReceiver extends BroadcastReceiver {
     public static final String ACTION_DONE = "br.com.rotinaai.app.ALARM_DONE";
     public static final String ACTION_SNOOZE = "br.com.rotinaai.app.ALARM_SNOOZE";
+    public static final String ACTION_UNMUTE = "br.com.rotinaai.app.ALARM_UNMUTE";
     private static final String EXTRA_MINUTES = "minutes";
 
     public static PendingIntent pending(Context c, JSONObject alarm, String action, int minutes, int requestCode) {
@@ -25,6 +26,10 @@ public class ActionReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        if (ACTION_UNMUTE.equals(intent.getAction())) {
+            MuteManager.setMute(context, 0); // "Reativar som"
+            return;
+        }
         try {
             JSONObject alarm = new JSONObject(intent.getStringExtra(AlarmReceiver.EXTRA_ALARM));
             if (ACTION_SNOOZE.equals(intent.getAction())) {

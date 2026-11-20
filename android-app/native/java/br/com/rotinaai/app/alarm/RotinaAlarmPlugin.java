@@ -70,6 +70,21 @@ public class RotinaAlarmPlugin extends Plugin {
         call.resolve();
     }
 
+    /** "Silenciar alarmes": until when (ms), 0 = ringing normally. */
+    @PluginMethod
+    public void getMute(PluginCall call) {
+        JSObject ret = new JSObject();
+        ret.put("until", AlarmStore.getMutedUntil(getContext()));
+        call.resolve(ret);
+    }
+
+    @PluginMethod
+    public void setMute(PluginCall call) {
+        Long until = call.getLong("until", 0L);
+        MuteManager.setMute(getContext(), until == null ? 0 : until);
+        call.resolve();
+    }
+
     /** Answers given on the alarm screen while the app was closed. */
     @PluginMethod
     public void takePendingActions(PluginCall call) {
