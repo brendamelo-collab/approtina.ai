@@ -66,6 +66,7 @@ permissions = [
     'android.permission.SYSTEM_ALERT_WINDOW',
     'android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS',
     'android.permission.ACCESS_NOTIFICATION_POLICY',
+    'android.permission.REQUEST_INSTALL_PACKAGES',
 ]
 perm_xml = ''.join(
     f'    <uses-permission android:name="{p}" />\n' for p in permissions if p not in manifest
@@ -99,6 +100,16 @@ components = '''
             android:turnScreenOn="true"
             android:taskAffinity="br.com.rotinaai.app.alarm"
             android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen" />
+        <!-- Rotina.ai in-app update: shares the downloaded APK with the installer -->
+        <provider
+            android:name=".alarm.UpdateFileProvider"
+            android:authorities="br.com.rotinaai.app.updates"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/rotina_update_paths" />
+        </provider>
 '''
 manifest = manifest.replace('</application>', components + '    </application>', 1)
 with open(manifest_path, 'w', encoding='utf-8') as fh:

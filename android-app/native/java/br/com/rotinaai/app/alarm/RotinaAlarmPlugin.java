@@ -70,6 +70,77 @@ public class RotinaAlarmPlugin extends Plugin {
         call.resolve();
     }
 
+    // ------------------------------------------------------------ App update
+
+    /** Installed version, signing certificate and whether the app may open the installer. */
+    @PluginMethod
+    public void getAppInfo(PluginCall call) {
+        JSObject ret = new JSObject();
+        ret.put("versionCode", AppUpdater.versionCode(getContext()));
+        ret.put("versionName", AppUpdater.versionName(getContext()));
+        ret.put("signature", AppUpdater.signatureSha256(getContext()));
+        ret.put("canInstall", AppUpdater.canInstall(getContext()));
+        ret.put("updater", 1);
+        call.resolve(ret);
+    }
+
+    /** Reads android-version.json published with each new APK. */
+    @PluginMethod
+    public void checkUpdate(PluginCall call) {
+        String url = call.getString("url", "");
+        new Thread(() -> {
+            try {
+                call.resolve(JSObject.fromJSONObject(AppUpdater.fetchLatest(url)));
+            } catch (Exception e) {
+                call.reject("Não foi possível verificar atualizações: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    /** Downloads the APK; progress goes to the "updateProgress" listener. */
+    @PluginMethod
+    public void downloadUpdate(PluginCall call) {
+        String url = call.getString("url", "");
+        new Thread(() -> {
+            try {
+                AppUpdater.download(getContext(), url, (received, total) -> {
+                    JSObject p = new JSObject();
+                    p.put("received", received);
+                    p.put("total", total);
+                    p.put("percent", total > 0 ? Math.min(100, Math.round(received * 100.0 / total)) : -1);
+                    notifyListeners("updateProgress", p);
+                });
+                call.resolve();
+            } catch (Exception e) {
+                call.reject("Falha ao baixar a atualização: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    /** Opens the Android installer ("Atualizar"). If the permission is missing, says so. */
+    @PluginMethod
+    public void installUpdate(PluginCall call) {
+        JSObject ret = new JSObject();
+        if (!AppUpdater.canInstall(getContext())) {
+            ret.put("needsPermission", true);
+            call.resolve(ret);
+            return;
+        }
+        try {
+            AppUpdater.install(getContext());
+            ret.put("started", true);
+            call.resolve(ret);
+        } catch (Exception e) {
+            call.reject(e.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void openInstallPermission(PluginCall call) {
+        AppUpdater.openInstallPermission(getContext());
+        call.resolve();
+    }
+
     /** "Silenciar alarmes": until when (ms), 0 = ringing normally. */
     @PluginMethod
     public void getMute(PluginCall call) {

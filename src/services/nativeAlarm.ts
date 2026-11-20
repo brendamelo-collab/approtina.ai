@@ -83,5 +83,46 @@ export const nativeAlarm = {
     return Number(res?.until) || 0;
   },
   setMute: (until: number) => call('setMute', { until }),
-  previewVoice: (options: { voice?: string; rate?: number; pitch?: number; text?: string }) => call('previewVoice', options)
+  previewVoice: (options: { voice?: string; rate?: number; pitch?: number; text?: string }) => call('previewVoice', options),
+
+  // ---- Atualização do app (APKs com o atualizador)
+  getAppInfo: () => call<NativeAppInfo>('getAppInfo'),
+  checkUpdate: (url: string) => call<PublishedVersion>('checkUpdate', { url }),
+  downloadUpdate: (url: string) => call('downloadUpdate', { url }),
+  installUpdate: () => call<{ started?: boolean; needsPermission?: boolean }>('installUpdate'),
+  openInstallPermission: () => call('openInstallPermission'),
+  onUpdateProgress: async (cb: (p: { percent: number; received: number; total: number }) => void): Promise<() => void> => {
+    const c = cap();
+    const plugin = c?.Plugins?.RotinaAlarm || c?.registerPlugin?.('RotinaAlarm');
+    if (!plugin?.addListener) return () => undefined;
+    const handle = await plugin.addListener('updateProgress', cb);
+    return () => {
+      try {
+        handle?.remove?.();
+      } catch {
+        // já removido
+      }
+    };
+  }
 };
+
+export interface NativeAppInfo {
+  versionCode: number;
+  versionName: string;
+  signature: string; // SHA-256 do certificado (AA:BB:...)
+  canInstall: boolean;
+  updater: number;
+}
+
+/** android-version.json publicado junto com cada APK novo. */
+export interface PublishedVersion {
+  versionCode: number;
+  versionName: string;
+  apkUrl: string;
+  signature: string;
+  size?: number;
+  publishedAt?: string;
+}
+
+export const APK_URL = 'https://github.com/brendamelo-collab/approtina.ai/releases/download/android-latest/rotina-ai.apk';
+export const VERSION_URL = 'https://github.com/brendamelo-collab/approtina.ai/releases/download/android-latest/android-version.json';
