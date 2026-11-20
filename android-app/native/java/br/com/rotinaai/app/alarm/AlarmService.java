@@ -41,6 +41,10 @@ import java.util.Locale;
 public class AlarmService extends Service {
     public static final String ACTION_START = "br.com.rotinaai.app.ALARM_START";
     public static final String ACTION_ANSWERED = "br.com.rotinaai.app.ALARM_ANSWERED";
+    /** "Silenciar": stop ringing; current and queued alarms become quiet notifications. */
+    public static final String ACTION_MUTE = "br.com.rotinaai.app.ALARM_MUTE";
+    /** "Só este aviso": stop the sound of the current alarm only. */
+    public static final String ACTION_SILENCE_CURRENT = "br.com.rotinaai.app.ALARM_SILENCE_CURRENT";
     public static final String EXTRA_KEY = "key";
     public static final String CHANNEL_ID = "rotina_alarmes_v1";
     public static final int NOTIFICATION_ID = 4200;
@@ -110,12 +114,36 @@ public class AlarmService extends Service {
                 queue.add(alarm);
             } catch (Exception ignored) {
             }
-            if (current == null && !queue.isEmpty()) {
+            if (current == null && !queue.isEmpty() && AlarmStore.isMuted(this)) {
+                // silenced in the meantime: must still enter foreground before stopping
+                startInForeground(queue.get(0));
+                for (JSONObject a : queue) MuteManager.showQuietReminder(this, a);
+                queue.clear();
+                stopForegroundCompat();
+                stopSelf();
+            } else if (current == null && !queue.isEmpty()) {
                 ringNext();
             } else if (current != null) {
                 // keep foreground notification of the current alarm
                 startInForeground(current);
             } else {
+                stopSelf();
+            }
+        } else if (ACTION_MUTE.equals(action) || ACTION_SILENCE_CURRENT.equals(action)) {
+            boolean all = ACTION_MUTE.equals(action);
+            if (current != null) {
+                stopRinging();
+                MuteManager.showQuietReminder(this, current);
+                current = null;
+            }
+            if (all) {
+                for (JSONObject a : queue) MuteManager.showQuietReminder(this, a);
+                queue.clear();
+            }
+            AlarmActivity.closeIfOpen(this);
+            if (!queue.isEmpty()) ringNext();
+            else {
+                stopForegroundCompat();
                 stopSelf();
             }
         } else if (ACTION_ANSWERED.equals(action)) {

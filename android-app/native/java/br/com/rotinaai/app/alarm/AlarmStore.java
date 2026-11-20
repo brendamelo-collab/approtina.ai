@@ -22,6 +22,7 @@ public class AlarmStore {
     private static final String KEY_SNOOZES = "snoozes";
     private static final String KEY_FIRED = "fired";
     private static final String KEY_ACTIONS = "pending_actions";
+    private static final String KEY_MUTED_UNTIL = "muted_until";
     private static final long FIRED_TTL_MS = 3L * 24 * 60 * 60 * 1000;
     private static final int ALARM_REQUEST_CODE = 4100;
 
@@ -43,6 +44,20 @@ public class AlarmStore {
         } catch (JSONException e) {
             return new JSONObject();
         }
+    }
+
+    /** "Silenciar alarmes": até quando (ms). Retorna 0 se não estiver silenciado agora. */
+    public static synchronized long getMutedUntil(Context c) {
+        long until = prefs(c).getLong(KEY_MUTED_UNTIL, 0);
+        return until > System.currentTimeMillis() ? until : 0;
+    }
+
+    public static synchronized void setMutedUntil(Context c, long until) {
+        prefs(c).edit().putLong(KEY_MUTED_UNTIL, Math.max(0, until)).apply();
+    }
+
+    public static boolean isMuted(Context c) {
+        return getMutedUntil(c) > 0;
     }
 
     public static synchronized void saveSchedule(Context c, JSONArray alarms) {

@@ -340,6 +340,8 @@ export interface NotificationPreferences {
   nativeVoiceName?: string; // voz do app Android ('' = padrão do celular)
   voiceRate?: number; // velocidade da fala
   voicePitch?: number; // tom da fala
+  // Silenciar alarmes: até quando (ms). 0/ausente = tocando normalmente; MUTE_FOREVER = até reativar
+  alarmsMutedUntil?: number;
 }
 
 export type NavTab =

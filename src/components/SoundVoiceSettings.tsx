@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Check, Play, Volume2, Mic } from 'lucide-react';
+import { Check, Play, Volume2, Mic, BellOff } from 'lucide-react';
+import { MUTE_OPTIONS, isMuted, muteLabel, muteUntilFor } from '../utils/alarmMute';
 import { useApp } from '../context/AppContext';
 import {
   ALARM_SOUNDS,
@@ -86,10 +87,54 @@ export const SoundVoiceSettings: React.FC<{ onSaved?: (msg: string) => void }> =
 
   const voiceRows: VoiceOption[] = [{ id: '', label: native ? 'Padrão do celular' : 'Padrão do aparelho' }, ...(voices || [])];
 
+  const mutedUntil = prefs.alarmsMutedUntil;
+  const muted = isMuted(mutedUntil);
+
   return (
     <div className="space-y-4">
-      {/* Som do alarme */}
+      {/* Silenciar alarmes */}
       <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <BellOff className="w-4 h-4 text-[#8C7A6B] shrink-0" />
+          <h3 className="text-xs font-bold text-[#4A3E34]">Silenciar alarmes</h3>
+        </div>
+        <p className="text-[11px] text-[#8C7A6B] leading-snug">
+          {muted
+            ? `Silenciados ${muteLabel(mutedUntil)}. Os lembretes aparecem sem som, sem voz e sem vibração.`
+            : 'Por um tempo, os lembretes aparecem sem som, sem voz e sem vibração. Depois volta sozinho.'}
+        </p>
+        {muted ? (
+          <button
+            type="button"
+            onClick={() => {
+              updateNotificationPreferences({ alarmsMutedUntil: 0 });
+              onSaved?.('✓ Som dos alarmes reativado');
+            }}
+            className="w-full py-2.5 rounded-xl bg-[#8C7A6B] text-white text-xs font-bold"
+          >
+            Reativar o som agora
+          </button>
+        ) : (
+          <div className="grid grid-cols-2 gap-1.5">
+            {MUTE_OPTIONS.map((o) => (
+              <button
+                key={o.id}
+                type="button"
+                onClick={() => {
+                  updateNotificationPreferences({ alarmsMutedUntil: muteUntilFor(o.minutes) });
+                  onSaved?.(`✓ Alarmes silenciados ${muteLabel(muteUntilFor(o.minutes))}`);
+                }}
+                className={`py-2 rounded-xl text-xs font-bold border bg-white border-[#EFE8DE] text-[#4A3E34] hover:bg-[#F4EDE2] ${o.minutes === null ? 'col-span-2' : ''}`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Som do alarme */}
+      <div className="space-y-2 pt-3 border-t border-[#EFE8DE]/60">
         <div className="flex items-center gap-2">
           <Volume2 className="w-4 h-4 text-[#8C7A6B] shrink-0" />
           <h3 className="text-xs font-bold text-[#4A3E34]">Som do alarme</h3>

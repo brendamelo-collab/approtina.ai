@@ -14,6 +14,7 @@ public class AlarmActions {
         if (alarm == null) return;
         String key = alarm.optString("key");
         long now = System.currentTimeMillis();
+        MuteManager.cancelQuiet(c, key); // answered from the quiet notification
 
         if (SNOOZE.equals(action)) {
             AlarmStore.addSnooze(c, alarm, now + snoozeMinutes * 60L * 1000L);

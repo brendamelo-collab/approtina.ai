@@ -24,6 +24,13 @@ public class AlarmReceiver extends BroadcastReceiver {
                     if (alarm.optBoolean("snoozed")) AlarmStore.removeSnooze(context, key);
                     AlarmStore.markFired(context, key);
 
+                    if (AlarmStore.isMuted(context)) {
+                        // Silenced: the reminder shows in the notification bar, without sound or voice
+                        MuteManager.showQuietReminder(context, alarm);
+                        AlarmStore.scheduleNext(context);
+                        return;
+                    }
+
                     Intent svc = new Intent(context, AlarmService.class);
                     svc.setAction(AlarmService.ACTION_START);
                     svc.putExtra(EXTRA_ALARM, alarm.toString());
