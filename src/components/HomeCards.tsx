@@ -76,7 +76,7 @@ export const MoodTodayCard: React.FC = () => {
             className={`min-w-0 inline-flex items-center gap-2.5 pl-2 pr-5 py-2 rounded-full bg-[#FAF8F5] ${SHADOW_SOFT}`}
           >
             <span className="text-[34px] leading-none">{emoji}</span>
-            <span className="text-lg font-semibold text-[#2C2C2C] truncate">{currentMood ? currentMood.label : 'Como você está?'}</span>
+            <span className="text-lg font-semibold text-[#2C2C2C] truncate">{currentMood ? currentMood.label : 'Como está?'}</span>
           </button>
           <span className="flex-1" />
           <button
