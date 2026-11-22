@@ -69,7 +69,7 @@ export const PersonalRoutineEditor: React.FC<{ routine?: PersonalRoutine; defaul
 
   return (
     <Sheet title={routine ? 'Editar rotina pessoal' : 'Nova rotina pessoal'} onClose={() => onClose()}>
-      <Field label="De quem é">
+      <Field label="De quem é" group>
         <div className="flex flex-wrap gap-1.5">
           {profiles.map((p) => (
             <button
@@ -109,7 +109,7 @@ export const PersonalRoutineEditor: React.FC<{ routine?: PersonalRoutine; defaul
         <input value={context} onChange={(e) => setContext(e.target.value)} placeholder="Ex.: durante o banho" className={inputCls} />
       </Field>
 
-      <Field label="Dias">
+      <Field label="Dias" group>
         <DayPicker value={days} onChange={setDays} />
       </Field>
 
@@ -129,10 +129,10 @@ export const PersonalRoutineEditor: React.FC<{ routine?: PersonalRoutine; defaul
 
       {inDaily && (
         <>
-          <Field label="O que a voz fala">
+          <Field label="O que a voz fala" group>
             <SpokenField value={spoken} onChange={setSpoken} automatic={automatic} />
           </Field>
-          <Field label="Som de alerta">
+          <Field label="Som de alerta" group>
             <SoundSelect value={sound} onChange={setSound} />
           </Field>
         </>

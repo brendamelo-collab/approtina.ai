@@ -68,7 +68,7 @@ export const StepEditorModal: React.FC<{ step?: DailyChronologicalStep; onClose:
         </Field>
       </div>
 
-      <Field label="Dias da semana">
+      <Field label="Dias da semana" group>
         <DayPicker value={days} onChange={setDays} />
       </Field>
 
@@ -76,10 +76,10 @@ export const StepEditorModal: React.FC<{ step?: DailyChronologicalStep; onClose:
 
       {voice && (
         <>
-          <Field label="O que a voz fala">
+          <Field label="O que a voz fala" group>
             <SpokenField value={spoken} onChange={setSpoken} automatic={automatic} />
           </Field>
-          <Field label="Som de alerta">
+          <Field label="Som de alerta" group>
             <SoundSelect value={sound} onChange={setSound} />
           </Field>
         </>

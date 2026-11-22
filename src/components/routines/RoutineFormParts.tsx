@@ -5,13 +5,23 @@ import { useApp } from '../../context/AppContext';
 import { ALARM_SOUNDS, previewAlarmSound, speakText, AlarmSoundId } from '../../utils/alarmSounds';
 import { WEEKDAY_ORDER, WEEKDAY_SHORT } from '../../utils/routineSchedule';
 
-export const Field: React.FC<{ label: string; hint?: string; children: React.ReactNode }> = ({ label, hint, children }) => (
-  <label className="block space-y-1 min-w-0">
-    <span className="text-xs font-bold text-[#4A3E34]">{label}</span>
-    {children}
-    {hint && <span className="block text-[10px] text-[#8C7A6B] leading-snug">{hint}</span>}
-  </label>
-);
+/** Campo com título. `group` = vários botões (não usa <label>, que ativaria o primeiro botão ao tocar no título). */
+export const Field: React.FC<{ label: string; hint?: string; group?: boolean; children: React.ReactNode }> = ({ label, hint, group, children }) => {
+  const inner = (
+    <>
+      <span className="block text-xs font-bold text-[#4A3E34]">{label}</span>
+      {children}
+      {hint && <span className="block text-[10px] text-[#8C7A6B] leading-snug">{hint}</span>}
+    </>
+  );
+  return group ? (
+    <div role="group" aria-label={label} className="space-y-1 min-w-0">
+      {inner}
+    </div>
+  ) : (
+    <label className="block space-y-1 min-w-0">{inner}</label>
+  );
+};
 
 export const inputCls = 'w-full bg-white border border-[#EFE8DE] rounded-2xl px-3 py-2.5 text-sm text-[#2C2C2C] focus:outline-none focus:border-[#8C7A6B]';
 
