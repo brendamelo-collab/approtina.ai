@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BellOff, Check, Clock, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { todayISO } from '../utils/dateUtils';
-import { MUTE_FOREVER, MUTE_HOURS, endOfToday, isMuted, muteLabel, untilClock, untilDateTime } from '../utils/alarmMute';
+import { MUTE_FOREVER, MUTE_HOURS, endOfToday, muteLabel, untilClock, untilDateTime, useMuted } from '../utils/alarmMute';
 
 /**
  * SILENCIAR ROTINAS: pausa só os avisos (som, voz, vibração e tela de alarme).
@@ -12,7 +12,7 @@ import { MUTE_FOREVER, MUTE_HOURS, endOfToday, isMuted, muteLabel, untilClock, u
 export const SilenceRoutinesSheet: React.FC<{ onClose: (msg?: string) => void }> = ({ onClose }) => {
   const { notificationPreferences, updateNotificationPreferences } = useApp();
   const until = notificationPreferences.alarmsMutedUntil;
-  const muted = isMuted(until);
+  const muted = useMuted(until);
   const [mode, setMode] = useState<'menu' | 'horario' | 'personalizado'>('menu');
   const [clock, setClock] = useState(() => {
     const d = new Date(Date.now() + 2 * 3600 * 1000);

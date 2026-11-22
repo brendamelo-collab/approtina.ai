@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Check, Play, Volume2, Mic, BellOff } from 'lucide-react';
-import { MUTE_OPTIONS, isMuted, muteLabel, muteUntilFor } from '../utils/alarmMute';
+import { MUTE_OPTIONS, muteLabel, muteUntilFor, useMuted } from '../utils/alarmMute';
 import { useApp } from '../context/AppContext';
 import {
   ALARM_SOUNDS,
@@ -89,7 +89,7 @@ export const SoundVoiceSettings: React.FC<{ onSaved?: (msg: string) => void }> =
   const voiceRows: VoiceOption[] = [{ id: '', label: native ? 'Padrão do celular' : 'Padrão do aparelho' }, ...(voices || [])];
 
   const mutedUntil = prefs.alarmsMutedUntil;
-  const muted = isMuted(mutedUntil);
+  const muted = useMuted(mutedUntil);
 
   return (
     <div className="space-y-4">

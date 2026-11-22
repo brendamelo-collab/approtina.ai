@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 // Silenciar alarmes: enquanto estiver silenciado, os lembretes continuam aparecendo,
 // mas sem som, sem voz e sem vibração. Vale para o app aberto e para o alarme do Android.
 
@@ -55,4 +57,19 @@ export function muteLabel(until: number | undefined, now = Date.now()): string {
   if (d.toDateString() === today.toDateString()) return `até ${hhmm}`;
   if (d.toDateString() === tomorrow.toDateString()) return `até amanhã às ${hhmm}`;
   return `até ${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às ${hhmm}`;
+}
+
+// ---- Atualiza a tela sozinha quando o silêncio termina
+
+/** true enquanto silenciado; volta a false no instante em que o tempo acaba (sem precisar recarregar). */
+export function useMuted(until: number | undefined): boolean {
+  const [, setTick] = useState(0);
+  const active = isMuted(until);
+  useEffect(() => {
+    if (!active || !until || until >= MUTE_FOREVER) return;
+    const ms = Math.min(until - Date.now() + 250, 2147483000);
+    const t = setTimeout(() => setTick((n) => n + 1), Math.max(250, ms));
+    return () => clearTimeout(t);
+  }, [active, until]);
+  return active;
 }

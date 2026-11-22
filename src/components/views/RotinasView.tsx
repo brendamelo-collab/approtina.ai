@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { DailyChronologicalStep, PersonalRoutine } from '../../types';
 import { BellOff, Calendar, Check, ChevronLeft, Pencil, Plus, Repeat, Volume2, X } from 'lucide-react';
-import { isMuted, muteLabel } from '../../utils/alarmMute';
+import { muteLabel, useMuted } from '../../utils/alarmMute';
 import { daysLabel, personalOccursOn, profileName, spokenForPersonal, spokenForStep, stepOccursOn } from '../../utils/routineSchedule';
 import { SilenceRoutinesSheet } from '../SilenceRoutinesSheet';
 import { StepEditorModal } from '../routines/StepEditorModal';
@@ -64,7 +64,7 @@ export const RotinasView: React.FC = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const muted = isMuted(notificationPreferences.alarmsMutedUntil);
+  const muted = useMuted(notificationPreferences.alarmsMutedUntil);
   const today = new Date().getDay();
 
   /** Tudo o que acontece num dia da semana: etapas + tarefas recorrentes + rotinas pessoais integradas. */

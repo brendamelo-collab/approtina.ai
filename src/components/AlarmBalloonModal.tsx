@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { playWebSoundTimes } from '../utils/alarmSounds';
-import { MUTE_OPTIONS, isMuted, muteLabel, muteUntilFor } from '../utils/alarmMute';
+import { MUTE_OPTIONS, muteLabel, muteUntilFor, useMuted } from '../utils/alarmMute';
 import { BellOff, Check, ChevronLeft, Eye, X } from 'lucide-react';
 
 const SNOOZE_MINUTES = [5, 10, 15, 30, 60];
@@ -13,7 +13,7 @@ export const AlarmBalloonModal: React.FC = () => {
   const [showMute, setShowMute] = useState(false);
 
   const alarmKey = activeAlarm ? activeAlarm.key || `${activeAlarm.id}@${activeAlarm.time}` : '';
-  const globallyMuted = isMuted(notificationPreferences.alarmsMutedUntil);
+  const globallyMuted = useMuted(notificationPreferences.alarmsMutedUntil);
   const silent = globallyMuted || stoppedKey === alarmKey;
 
   useEffect(() => {
