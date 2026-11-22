@@ -46,8 +46,8 @@ export const CustomizeBottomNavModal: React.FC = () => {
       }
       setSelectedSlots((prev) => prev.filter((s) => s.tab !== opt.tab));
     } else {
-      if (selectedSlots.length >= 5) {
-        alert('A barra suporta no máximo 5 atalhos para manter a visualização limpa e acolhedora.');
+      if (selectedSlots.length >= 4) {
+        alert('A barra tem 4 atalhos e o botão Mais (com todo o menu).');
         return;
       }
       setSelectedSlots((prev) => [...prev, { tab: opt.tab, label: opt.label, icon: opt.icon }]);
@@ -82,7 +82,7 @@ export const CustomizeBottomNavModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200 select-none">
-      <div className="w-full max-w-md bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 sm:p-6 shadow-2xl relative max-h-[90vh] flex flex-col">
+      <div className="w-full max-w-md bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-5 sm:p-6 shadow-2xl relative max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
           <div className="flex items-center gap-2">
@@ -94,7 +94,7 @@ export const CustomizeBottomNavModal: React.FC = () => {
                 Personalizar Menu Inferior
               </h2>
               <p className="text-[11px] text-[#8C7A6B]">
-                Escolha e ordene de 3 a 5 atalhos rápidos
+                Escolha e ordene até 4 atalhos; o Mais fica sempre no fim
               </p>
             </div>
           </div>
@@ -111,7 +111,7 @@ export const CustomizeBottomNavModal: React.FC = () => {
           {/* Active Slots Ordering */}
           <div>
             <h3 className="text-xs font-bold text-[#5C4F44] mb-2">
-              Atalhos Ativos na Barra ({selectedSlots.length}/5):
+              Atalhos na barra ({selectedSlots.length}/4):
             </h3>
             <div className="space-y-1.5">
               {selectedSlots.map((slot, index) => {

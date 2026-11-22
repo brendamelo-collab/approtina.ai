@@ -352,7 +352,7 @@ export const NativeAlarmSetupCard: React.FC = () => {
 
   return (
     <section className="w-full max-w-xl mx-auto px-4 sm:px-6 my-3.5">
-      <div className="bg-[#FAF8F5] border-2 border-[#B78A58]/40 rounded-3xl p-4 space-y-3">
+      <div className="bg-[#FAF8F5] border-2 border-[#B78A58]/40 rounded-[26px] p-4 space-y-3">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-[#F7EEE3] text-[#B78A58] flex items-center justify-center shrink-0">
             <BellRing className="w-5 h-5" />

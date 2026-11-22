@@ -3,6 +3,8 @@ import { useApp } from '../../context/AppContext';
 import { todayISO } from '../../utils/dateUtils';
 import {
   ChevronLeft,
+  TrendingUp,
+  Bell,
   ChevronDown,
   ChevronUp,
   Smile,
@@ -31,6 +33,7 @@ import { DayPeriod, QuestionResponseValue, QuestionItem, MoodOption } from '../.
 import { buildPeriod, bucketsFor, countAnswers, factorReport, moodReport } from '../../utils/reportStats';
 import { BarSeries, EmptyState, ProgressRow } from '../reports/ReportCharts';
 import { QuestionEditorModal } from '../QuestionEditorModal';
+import { PageHeader, PeachButton, PillTabs, RoundButton } from '../ui/Kit';
 
 const FACTOR_EMOJIS = ['😴', '🔋', '👶', '💸', '⏳', '⚡', '🤕', '🌿', '☀️', '🤝', '🥗', '😰', '🎉', '🏠', '🚗', '💼', '🌧️', '❤️', '📚', '🙏'];
 
@@ -62,11 +65,13 @@ export const MeuMapaView: React.FC = () => {
     addMoodOption,
     deleteMoodOption,
     setIsManageQuestionsModalOpen,
-    setIsRelatoriosModalOpen
+    setIsRelatoriosModalOpen,
+    setIsNotificationsOpen
   } = useApp();
 
   // Subtab switcher: 'diario' (Registro Diário) vs 'resumo' (Resumo & Análises)
   const [subTab, setSubTab] = useState<'diario' | 'resumo'>('diario');
+  const [summaryKind, setSummaryKind] = useState<'semana' | 'mes'>('semana');
   const [saveToast, setSaveToast] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<QuestionItem | null>(null);
 
@@ -130,8 +135,8 @@ export const MeuMapaView: React.FC = () => {
   );
 
   // Resumo do mês (aba "Resumo & Análises") — só registros reais
-  const monthPeriod = buildPeriod('mes', selectedDate);
-  const monthBuckets = bucketsFor(monthPeriod.from, monthPeriod.to, 'semana').filter((b) => b.from <= todayISO());
+  const monthPeriod = buildPeriod(summaryKind, selectedDate);
+  const monthBuckets = bucketsFor(monthPeriod.from, monthPeriod.to, summaryKind === 'semana' ? 'dia' : 'semana').filter((b) => b.from <= todayISO());
   const monthAnswers = countAnswers(questions, questionResponses, monthPeriod.from, monthPeriod.to, todayISO());
   const monthMood = moodReport(moodRecords, moodOptions, monthPeriod, monthBuckets);
   const monthFactors = factorReport(dayFactors, availableFactors, monthPeriod);
@@ -226,57 +231,36 @@ export const MeuMapaView: React.FC = () => {
         </div>
       )}
 
-      {/* Top Header */}
-      <div className="flex items-center justify-between py-2 mb-3">
-        <button
-          onClick={() => setActiveTab('inicio')}
-          className="flex items-center gap-1.5 text-xs font-bold text-[#8C7A6B] hover:text-[#5C4F44] bg-[#F4EDE2] hover:bg-[#EAE0D2] px-3.5 py-1.5 rounded-full transition-colors"
-          aria-label="Voltar ao início"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Início</span>
-        </button>
-
-        <div className="text-center">
-          <h1 className="text-lg font-bold text-[#2C2C2C] tracking-tight">Meu Mapa</h1>
-          <p className="text-[11px] text-[#8C7A6B] leading-tight">Acompanhamento & Bem-estar</p>
-        </div>
-
-        <button
-          onClick={() => setIsManageQuestionsModalOpen(true)}
-          className="flex items-center gap-1 text-xs font-bold text-[#5C4F44] bg-[#F4EDE2] hover:bg-[#EAE0D2] px-3 py-1.5 rounded-full transition-colors shadow-2xs"
-          title="Gerenciar estrutura de perguntas"
-        >
-          <Sliders className="w-3.5 h-3.5 text-[#8C7A6B]" />
-          <span>Estrutura</span>
-        </button>
-      </div>
-
-      {/* Subtab Switcher: Screen 2 vs Screen 3 */}
-      <div className="bg-[#FAF8F5] border border-[#EFE8DE] p-1 rounded-2xl flex items-center mb-4 shadow-2xs">
-        <button
-          type="button"
-          onClick={() => setSubTab('diario')}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
-            subTab === 'diario'
-              ? 'bg-[#8C7A6B] text-white shadow-2xs'
-              : 'text-[#8C7A6B] hover:text-[#2C2C2C]'
-          }`}
-        >
-          Registro Diário
-        </button>
-        <button
-          type="button"
-          onClick={() => setSubTab('resumo')}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
-            subTab === 'resumo'
-              ? 'bg-[#8C7A6B] text-white shadow-2xs'
-              : 'text-[#8C7A6B] hover:text-[#2C2C2C]'
-          }`}
-        >
-          Resumo & Análises
-        </button>
-      </div>
+      <PageHeader
+        icon={TrendingUp}
+        title="Meu Mapa"
+        right={
+          <>
+            <RoundButton label="Gerenciar perguntas e áreas" onClick={() => setIsManageQuestionsModalOpen(true)}>
+              <Sliders className="w-5 h-5" />
+            </RoundButton>
+            <RoundButton label="Abrir notificações" onClick={() => setIsNotificationsOpen(true)}>
+              <Bell className="w-[22px] h-[22px]" strokeWidth={1.9} />
+            </RoundButton>
+          </>
+        }
+      />
+      <PillTabs
+        className="mt-3 mb-5"
+        options={[
+          { id: 'hoje', label: 'Hoje' },
+          { id: 'semana', label: 'Semana' },
+          { id: 'mes', label: 'Mês' }
+        ]}
+        value={subTab === 'diario' ? 'hoje' : summaryKind}
+        onChange={(v) => {
+          if (v === 'hoje') setSubTab('diario');
+          else {
+            setSummaryKind(v as 'semana' | 'mes');
+            setSubTab('resumo');
+          }
+        }}
+      />
 
       {/* =========================================================================
           SUBTAB 1: REGISTRO DIÁRIO (Humor, Fatores por dia e Hábitos Bons/Ruins)
@@ -312,19 +296,19 @@ export const MeuMapaView: React.FC = () => {
           {/* ========================================================
               SEÇÃO 1: REGISTRO DE HUMOR (COM GESTÃO TOTAL DE HUMORES)
              ======================================================== */}
-          <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(140,122,107,0.05)] transition-all">
+          <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] overflow-hidden shadow-[0_6px_22px_rgba(150,100,60,0.09)] transition-all">
             <button
               onClick={() => toggleSection('humor')}
               className="w-full p-4 sm:p-5 flex items-center justify-between gap-2 text-left focus:outline-none"
               aria-expanded={openSections.humor}
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 shrink-0 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-xl">
+                <div className="w-12 h-12 shrink-0 rounded-full bg-white shadow-[0_3px_12px_rgba(150,100,60,0.08)] flex items-center justify-center text-2xl">
                   😊
                 </div>
                 <div>
-                  <h2 className="text-sm sm:text-base font-bold text-[#2C2C2C]">
-                    1. Registro de Humor
+                  <h2 className="text-[17px] font-bold text-[#2C2C2C] leading-tight">
+                    Como você se sentiu?
                   </h2>
                   <p className="text-xs text-[#8C7A6B]">
                     Sentimento independente de metas comportamentais
@@ -434,7 +418,7 @@ export const MeuMapaView: React.FC = () => {
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-5 gap-1.5">
                       {moodOptions.map((opt) => {
                         const isSelected = selectedMoodId === opt.id;
                         return (
@@ -442,14 +426,13 @@ export const MeuMapaView: React.FC = () => {
                             key={opt.id}
                             type="button"
                             onClick={() => setSelectedMoodId(opt.id)}
-                            className={`p-2.5 rounded-2xl border flex items-center gap-2 text-xs transition-all ${
-                              isSelected
-                                ? 'bg-[#8C7A6B] text-white border-[#8C7A6B] font-bold shadow-2xs'
-                                : 'bg-white border-[#EFE8DE] text-[#2C2C2C] hover:bg-[#FAF8F5]'
+                            className={`py-2 px-0.5 rounded-2xl flex flex-col items-center gap-1 text-[11px] transition-all ${
+                              isSelected ? 'bg-[#F4EDE2] ring-2 ring-[#B78A58] font-bold text-[#2C2C2C]' : 'text-[#4A3E34] hover:bg-[#F4EDE2]/60'
                             }`}
+                            aria-pressed={isSelected}
                           >
-                            <span className="text-lg shrink-0">{opt.emoji}</span>
-                            <span className="min-w-0 text-left leading-tight break-words">{opt.label}</span>
+                            <span className="text-[34px] leading-none">{opt.emoji}</span>
+                            <span className="leading-tight text-center break-words">{opt.label}</span>
                           </button>
                         );
                       })}
@@ -515,19 +498,19 @@ export const MeuMapaView: React.FC = () => {
           {/* ========================================================
               SEÇÃO 2: FATORES QUE INFLUENCIARAM O DIA (RESET DIÁRIO)
              ======================================================== */}
-          <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(140,122,107,0.05)] transition-all">
+          <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] overflow-hidden shadow-[0_6px_22px_rgba(150,100,60,0.09)] transition-all">
             <button
               onClick={() => toggleSection('fatores')}
               className="w-full p-4 sm:p-5 flex items-center justify-between gap-2 text-left focus:outline-none"
               aria-expanded={openSections.fatores}
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 shrink-0 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-xl">
+                <div className="w-12 h-12 shrink-0 rounded-full bg-white shadow-[0_3px_12px_rgba(150,100,60,0.08)] flex items-center justify-center text-2xl">
                   🌱
                 </div>
                 <div>
-                  <h2 className="text-sm sm:text-base font-bold text-[#2C2C2C]">
-                    2. Fatores do Dia
+                  <h2 className="text-[17px] font-bold text-[#2C2C2C] leading-tight">
+                    Fatores do dia
                   </h2>
                   <p className="text-xs text-[#8C7A6B]">
                     Contextos que impactaram seu dia e sua rotina (seleção reinicia por dia)
@@ -704,19 +687,19 @@ export const MeuMapaView: React.FC = () => {
           {/* =========================================================================
               SEÇÃO 3: HÁBITOS BONS E RUINS SEPARADOS VISUALMENTE DENTRO DE CADA GRUPO
              ========================================================================= */}
-          <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(140,122,107,0.05)] transition-all">
+          <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] overflow-hidden shadow-[0_6px_22px_rgba(150,100,60,0.09)] transition-all">
             <button
               onClick={() => toggleSection('perguntas')}
               className="w-full p-4 sm:p-5 flex items-center justify-between gap-2 text-left focus:outline-none"
               aria-expanded={openSections.perguntas}
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 shrink-0 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-xl">
+                <div className="w-12 h-12 shrink-0 rounded-full bg-white shadow-[0_3px_12px_rgba(150,100,60,0.08)] flex items-center justify-center text-2xl">
                   📝
                 </div>
                 <div>
-                  <h2 className="text-sm sm:text-base font-bold text-[#2C2C2C]">
-                    3. Hábitos e Perguntas Diárias
+                  <h2 className="text-[17px] font-bold text-[#2C2C2C] leading-tight">
+                    Perguntas do dia
                   </h2>
                   <p className="text-xs text-[#8C7A6B]">
                     Hábitos bons e comportamentos a evitar separados por grupo
@@ -792,9 +775,9 @@ export const MeuMapaView: React.FC = () => {
                           className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#F9F6F0] transition-colors"
                         >
                           <div className="flex items-center gap-2.5">
-                            <span className="text-xl">{area.icon || '📌'}</span>
+                            <span className="text-2xl">{area.icon || '📌'}</span>
                             <div>
-                              <h3 className="text-xs sm:text-sm font-bold text-[#2C2C2C]">
+                              <h3 className="text-[15px] font-bold text-[#2C2C2C]">
                                 {area.name}
                               </h3>
                               <span className="text-[10px] text-[#8C7A6B]">
@@ -913,6 +896,9 @@ export const MeuMapaView: React.FC = () => {
               <span>Salvar registro</span>
             </button>
           </div>
+          <PeachButton onClick={() => setIsManageQuestionsModalOpen(true)}>
+            <Plus className="w-4 h-4" /> Adicionar outra pergunta
+          </PeachButton>
         </div>
       )}
 
@@ -922,10 +908,10 @@ export const MeuMapaView: React.FC = () => {
       {subTab === 'resumo' && (
         <div className="space-y-4">
           {/* Mês do dia selecionado, calculado só com registros reais */}
-          <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 shadow-[0_4px_20px_rgba(140,122,107,0.05)] space-y-3">
+          <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-5 shadow-[0_6px_22px_rgba(150,100,60,0.09)] space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <h2 className="text-sm font-bold text-[#2C2C2C] leading-snug">Seu mês até agora</h2>
+                <h2 className="text-sm font-bold text-[#2C2C2C] leading-snug">{summaryKind === 'semana' ? 'Sua semana até agora' : 'Seu mês até agora'}</h2>
                 <p className="text-[11px] text-[#8C7A6B]">{monthPeriod.label.charAt(0).toUpperCase() + monthPeriod.label.slice(1)}</p>
               </div>
               <div
@@ -945,7 +931,7 @@ export const MeuMapaView: React.FC = () => {
                 : 'Ainda sem respostas válidas neste mês.'}
             </p>
             <div className="space-y-1.5">
-              <p className="text-xs font-bold text-[#4A3E34]">Humor por semana (média de 1 a 5)</p>
+              <p className="text-xs font-bold text-[#4A3E34]">Humor por {summaryKind === 'semana' ? 'dia' : 'semana'} (média de 1 a 5)</p>
               <BarSeries
                 values={monthMood.series}
                 labels={monthBuckets.map((b) => b.label)}
@@ -958,8 +944,8 @@ export const MeuMapaView: React.FC = () => {
           </div>
 
           {/* Fatores mais marcados no mês */}
-          <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 shadow-[0_4px_20px_rgba(140,122,107,0.05)] space-y-2.5">
-            <h2 className="text-sm font-bold text-[#2C2C2C]">Principais fatores do mês</h2>
+          <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-5 shadow-[0_6px_22px_rgba(150,100,60,0.09)] space-y-2.5">
+            <h2 className="text-sm font-bold text-[#2C2C2C]">Principais fatores {summaryKind === 'semana' ? 'da semana' : 'do mês'}</h2>
             {monthFactors.rows.filter((r) => r.days > 0).length === 0 ? (
               <EmptyState hint="Marque os fatores do dia para ver quais mais aparecem." />
             ) : (
@@ -979,7 +965,7 @@ export const MeuMapaView: React.FC = () => {
           </div>
 
           {/* Resumo do dia selecionado */}
-          <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 shadow-[0_4px_20px_rgba(140,122,107,0.05)] space-y-3">
+          <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-5 shadow-[0_6px_22px_rgba(150,100,60,0.09)] space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="text-sm font-bold text-[#2C2C2C] leading-snug">Resumo do dia</h2>
@@ -1044,7 +1030,7 @@ export const MeuMapaView: React.FC = () => {
          ========================================================================= */}
       {isMoodManagerOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 sm:p-6 shadow-2xl relative max-h-[85vh] flex flex-col">
+          <div className="w-full max-w-md bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-5 sm:p-6 shadow-2xl relative max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
               <div className="flex items-center gap-2">
                 <Smile className="w-5 h-5 text-[#8C7A6B]" />
@@ -1214,14 +1200,14 @@ export const MeuMapaView: React.FC = () => {
           <button
             type="button"
             onClick={() => recordChoiceResponse(q.id, selectedDate, 'sim')}
-            className={`py-2 px-2 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center gap-1.5 ${
+            className={`h-10 px-2 rounded-full text-[13px] font-semibold border transition-all flex items-center justify-center gap-1.5 ${
               isSimPositive
                 ? isSimActive
                   ? 'bg-[#EEF5EF] text-[#1E3B21] border-[#7D9D7F] ring-2 ring-[#7D9D7F]/40 shadow-xs font-bold'
-                  : 'bg-[#FAF8F5] text-[#2C5230] border-[#D3E4D5] hover:bg-[#EEF5EF]'
+                  : 'bg-[#FAF8F5] text-[#4A3E34] border-transparent shadow-[0_3px_12px_rgba(150,100,60,0.08)] hover:bg-[#EEF5EF]'
                 : isSimActive
                   ? 'bg-[#FDF2EE] text-[#6E2A18] border-[#C06C54] ring-2 ring-[#C06C54]/40 shadow-xs font-bold'
-                  : 'bg-[#FAF8F5] text-[#8C3A24] border-[#F0D5CD] hover:bg-[#FDF2EE]'
+                  : 'bg-[#FAF8F5] text-[#4A3E34] border-transparent shadow-[0_3px_12px_rgba(150,100,60,0.08)] hover:bg-[#FDF2EE]'
             }`}
           >
             <span
@@ -1229,21 +1215,21 @@ export const MeuMapaView: React.FC = () => {
                 isSimPositive ? 'bg-[#3B7A42]' : 'bg-[#B8472E]'
               }`}
             />
-            <span>{isSimPositive ? '✓ Sim' : '✕ Sim'}</span>
+            <span>Sim</span>
           </button>
 
           {/* Button 2: Não */}
           <button
             type="button"
             onClick={() => recordChoiceResponse(q.id, selectedDate, 'nao')}
-            className={`py-2 px-2 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center gap-1.5 ${
+            className={`h-10 px-2 rounded-full text-[13px] font-semibold border transition-all flex items-center justify-center gap-1.5 ${
               !isSimPositive
                 ? isNaoActive
                   ? 'bg-[#EEF5EF] text-[#1E3B21] border-[#7D9D7F] ring-2 ring-[#7D9D7F]/40 shadow-xs font-bold'
-                  : 'bg-[#FAF8F5] text-[#2C5230] border-[#D3E4D5] hover:bg-[#EEF5EF]'
+                  : 'bg-[#FAF8F5] text-[#4A3E34] border-transparent shadow-[0_3px_12px_rgba(150,100,60,0.08)] hover:bg-[#EEF5EF]'
                 : isNaoActive
                   ? 'bg-[#FDF2EE] text-[#6E2A18] border-[#C06C54] ring-2 ring-[#C06C54]/40 shadow-xs font-bold'
-                  : 'bg-[#FAF8F5] text-[#8C3A24] border-[#F0D5CD] hover:bg-[#FDF2EE]'
+                  : 'bg-[#FAF8F5] text-[#4A3E34] border-transparent shadow-[0_3px_12px_rgba(150,100,60,0.08)] hover:bg-[#FDF2EE]'
             }`}
           >
             <span
@@ -1251,35 +1237,35 @@ export const MeuMapaView: React.FC = () => {
                 !isSimPositive ? 'bg-[#3B7A42]' : 'bg-[#B8472E]'
               }`}
             />
-            <span>{!isSimPositive ? '✓ Não' : '✕ Não'}</span>
+            <span>Não</span>
           </button>
 
           {/* Button 3: Não se aplica (CINZA) */}
           <button
             type="button"
             onClick={() => recordChoiceResponse(q.id, selectedDate, 'nao_se_aplica')}
-            className={`py-2 px-2 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center gap-1.5 ${
+            className={`h-10 px-2 rounded-full text-[13px] font-semibold border transition-all flex items-center justify-center gap-1.5 ${
               isNaActive
                 ? 'bg-[#EAE4D9] text-[#2C2C2C] border-[#B8AEA0] ring-2 ring-[#B8AEA0]/40 shadow-xs font-bold'
-                : 'bg-[#FAF8F5] text-[#5C4F44] border-[#E8E2D5] hover:bg-[#F0ECE4]'
+                : 'bg-[#FAF8F5] text-[#4A3E34] border-transparent shadow-[0_3px_12px_rgba(150,100,60,0.08)] hover:bg-[#F0ECE4]'
             }`}
           >
             <span className="w-2 h-2 rounded-full bg-[#9E9488]" />
-            <span>— N/A</span>
+            <span className="whitespace-nowrap">Não se aplica</span>
           </button>
 
           {/* Button 4: Não lembro (AMARELO) */}
           <button
             type="button"
             onClick={() => recordChoiceResponse(q.id, selectedDate, 'nao_lembro')}
-            className={`py-2 px-2 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center gap-1.5 ${
+            className={`h-10 px-2 rounded-full text-[13px] font-semibold border transition-all flex items-center justify-center gap-1.5 ${
               isNaoLembroActive
                 ? 'bg-[#FEF9E7] text-[#5A4510] border-[#D4A017] ring-2 ring-[#D4A017]/40 shadow-xs font-bold'
-                : 'bg-[#FAF8F5] text-[#8C6D1F] border-[#EADB9B] hover:bg-[#FEF9E7]'
+                : 'bg-[#FAF8F5] text-[#4A3E34] border-transparent shadow-[0_3px_12px_rgba(150,100,60,0.08)] hover:bg-[#FEF9E7]'
             }`}
           >
             <span className="w-2 h-2 rounded-full bg-[#D4A017]" />
-            <span className="whitespace-nowrap">? Não lembro</span>
+            <span className="whitespace-nowrap">Não lembro</span>
           </button>
         </div>
       </div>

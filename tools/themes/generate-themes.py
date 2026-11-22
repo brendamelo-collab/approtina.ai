@@ -17,14 +17,14 @@ OUT = os.path.join(SRC, 'themes.css')
 # Papel de cada cor da paleta Bege
 ROLES = {
     'page': ['FDFBF7', 'FCFAF6'],
-    'card': ['FAF8F5', 'F9F6F1', 'F9F6F0', 'FAF6F0', 'FAF5EE', 'FAF5ED'],
+    'card': ['FAF8F5', 'F9F6F1', 'F9F6F0', 'FAF6F0', 'FAF5EE', 'FAF5ED', 'FEFCFA'],
     'soft': ['F7F4EE', 'F7F2EA', 'F7F1E6', 'F6EFE6', 'F5ECE2', 'F5ECE0', 'F3ECE0', 'F2ECE2', 'F2ECE0', 'F0ECE4',
              'F7EEE3', 'F4EDE2', 'F7EDE4', 'F1E8DA', 'F9F4EB', 'FAF2EB', 'F6E9DC'],
     'line': ['EFE8DE', 'EAE3D6', 'ECE3D5', 'E2DDD3', 'E2D8CA', 'E8E2D5', 'EAE4D9', 'ECE4D4', 'EFE5D5', 'EFE4D2',
              'E8DFC8', 'EAE1D1', 'EADFCF', 'EADFCB'],
     'high': ['EAE0D2', 'E4DACD', 'DFD3C3', 'DDD3C5', 'DCD4C8', 'DCD3C5'],
     'strong': ['D8C7B4', 'C8B8A6', 'C4B6A6', 'B8AEA0'],
-    'ink1': ['2C2C2C', '3C3C3C', '4A4A4A', '4A3E34'],
+    'ink1': ['2C2C2C', '3C3C3C', '4A4A4A', '4A3E34', '3A2619'],
     'ink2': ['5C4F44', '6E5D4F', '7A6B5D'],
     'ink3': ['8C7A6B', '9E9488'],
     'muted': ['A39385', 'B4A597', 'A8988B', 'B2A396', 'A39284'],
@@ -55,6 +55,15 @@ SEMANTIC_LIGHT = {
 }
 
 PALETTES = {
+    # Pêssego: o visual das fotos de referência (padrão a partir de nov/2026)
+    'pessego': {
+        'page': '#FCF1E8', 'card': '#FEF8F3', 'soft': '#F9EADD', 'line': '#F2E2D4', 'high': '#EED8C5', 'strong': '#DEC2A8',
+        'ink1': '#3A2619', 'ink2': '#5E4130', 'ink3': '#946A4C', 'muted': '#B39079',
+        'accent': '#C38B5A', 'accent-dark': '#A26D42', 'accent2': '#B46F3D', 'accent2-soft': '#F7D6B6',
+        'ok-ink': '#3F6B3B', 'ok-bg': '#E3EFDA', 'ok-line': '#BCD6B0', 'ok-mid': '#6E9A62',
+        'bad-ink': '#AE4A31', 'bad-bg': '#FCE7DE', 'bad-line': '#F2C2B1', 'bad-mid': '#E8775A',
+        'warn-bg': '#FCE5CE', 'warn-ink': '#9A5B2E', 'warn-line': '#F3CBA2', 'warn-mid': '#E0A060',
+    },
     # Rosé suave: rosa antigo com terracota clara
     'nude': {
         'page': '#FCF8F7', 'card': '#FFFBFA', 'soft': '#F7EDEA', 'line': '#EEDFDB', 'high': '#EBD7D1', 'strong': '#D9C0B9',
@@ -88,6 +97,7 @@ PALETTES = {
 }
 
 PALETTE_META = {
+    'pessego': ('#FCF1E8', '#FEF8F3', '#C38B5A'),
     'nude': ('#FCF8F7', '#FFFBFA', '#9A6260'),
     'verde': ('#F8FAF6', '#FCFDFB', '#557658'),
     'azul': ('#F7F9FC', '#FCFDFF', '#4C6890'),

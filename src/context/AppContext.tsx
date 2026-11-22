@@ -383,13 +383,20 @@ const defaultProfiles: UserProfile[] = [
 ];
 
 // Default Customizable Bottom Nav Slots (User can edit anytime!)
+// Barra inferior como nas fotos: 4 atalhos + "Mais" (fixo, abre o menu completo)
 const defaultBottomNavSlots: BottomNavSlot[] = [
   { tab: 'inicio', label: 'Início', icon: 'Home' },
-  { tab: 'mapa', label: 'Meu Mapa', icon: 'Compass' },
-  { tab: 'rotinas', label: 'Rotinas', icon: 'CalendarDays' },
-  { tab: 'relatorios', label: 'Relatórios', icon: 'BarChart2' },
-  { tab: 'ia', label: 'Assistente', icon: 'Bot' }
+  { tab: 'mapa', label: 'Mapa', icon: 'Compass' },
+  { tab: 'agenda', label: 'Agenda', icon: 'Calendar' },
+  { tab: 'rotinas', label: 'Rotinas', icon: 'CalendarDays' }
 ];
+// Quem nunca personalizou a barra (barra padrão antiga) recebe a nova
+const OLD_DEFAULT_NAV = 'inicio,mapa,rotinas,relatorios,ia';
+const normalizeNavSlots = (slots: BottomNavSlot[] | undefined): BottomNavSlot[] => {
+  if (!Array.isArray(slots) || !slots.length) return defaultBottomNavSlots;
+  if (slots.map((s) => s.tab).join(',') === OLD_DEFAULT_NAV) return defaultBottomNavSlots;
+  return slots.slice(0, 4);
+};
 
 // Default Mood Options
 const defaultMoodOptions: MoodOption[] = [
@@ -1217,7 +1224,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [bottomNavSlots, setBottomNavSlotsState] = useState<BottomNavSlot[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_bottom_nav_slots`);
-      return saved ? JSON.parse(saved) : defaultBottomNavSlots;
+      return normalizeNavSlots(saved ? JSON.parse(saved) : undefined);
     } catch {
       return defaultBottomNavSlots;
     }
@@ -1234,12 +1241,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Color Palette & Typography Font Size State
+  // Visual das fotos de referência (Pêssego) é o padrão. Quem estava na Bege padrão passa
+  // uma única vez para o novo visual; a Bege continua disponível em Configurações, sem mudanças.
   const [colorPalette, setColorPaletteState] = useState<ColorPalette>(() => {
     try {
-      const saved = localStorage.getItem(`${STORAGE_KEY}_color_palette`);
-      return (saved as ColorPalette) || 'original';
+      const saved = localStorage.getItem(`${STORAGE_KEY}_color_palette`) as ColorPalette | null;
+      if (!localStorage.getItem(`${STORAGE_KEY}_design_v2`)) {
+        localStorage.setItem(`${STORAGE_KEY}_design_v2`, '1');
+        if (!saved || saved === 'original') {
+          localStorage.setItem(`${STORAGE_KEY}_color_palette`, 'pessego');
+          return 'pessego';
+        }
+      }
+      return saved || 'pessego';
     } catch {
-      return 'original';
+      return 'pessego';
     }
   });
 
@@ -2830,7 +2846,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const data = JSON.parse(jsonString);
       if (data.profiles) setProfiles(data.profiles);
-      if (data.bottomNavSlots) setBottomNavSlotsState(data.bottomNavSlots);
+      if (data.bottomNavSlots) setBottomNavSlotsState(normalizeNavSlots(data.bottomNavSlots));
       if (data.moodOptions) setMoodOptions(data.moodOptions);
       if (data.moodRecords) setMoodRecords(data.moodRecords);
       if (data.availableFactors) setAvailableFactors(data.availableFactors);

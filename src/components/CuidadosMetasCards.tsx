@@ -28,7 +28,7 @@ export const CuidadosMetasCards: React.FC = () => {
         {/* Card 1: Cuidados e Saúde */}
         <div
           onClick={() => setActiveTab('cuidados')}
-          className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-4 shadow-[0_4px_20px_rgba(140,122,107,0.05)] hover:shadow-[0_6px_24px_rgba(140,122,107,0.08)] cursor-pointer transition-all flex flex-col justify-between group"
+          className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-4 shadow-[0_6px_22px_rgba(150,100,60,0.09)] hover:shadow-[0_8px_26px_rgba(150,100,60,0.12)] cursor-pointer transition-all flex flex-col justify-between group"
         >
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -87,7 +87,7 @@ export const CuidadosMetasCards: React.FC = () => {
         {/* Card 2: Minhas Metas */}
         <div
           onClick={() => setActiveTab('metas')}
-          className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-4 shadow-[0_4px_20px_rgba(140,122,107,0.05)] hover:shadow-[0_6px_24px_rgba(140,122,107,0.08)] cursor-pointer transition-all flex flex-col justify-between group"
+          className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-4 shadow-[0_6px_22px_rgba(150,100,60,0.09)] hover:shadow-[0_8px_26px_rgba(150,100,60,0.12)] cursor-pointer transition-all flex flex-col justify-between group"
         >
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -140,7 +140,7 @@ export const CuidadosMetasCards: React.FC = () => {
       </div>
 
       {/* Screen 1: Tarefas Pendentes & Dica do Dia */}
-      <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-4 shadow-[0_4px_20px_rgba(140,122,107,0.05)] space-y-3">
+      <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-4 shadow-[0_6px_22px_rgba(150,100,60,0.09)] space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xs sm:text-sm font-bold text-[#2C2C2C]">Tarefas pendentes</h3>
           <button

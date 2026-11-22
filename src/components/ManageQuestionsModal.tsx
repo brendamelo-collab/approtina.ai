@@ -113,7 +113,7 @@ export const ManageQuestionsModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-150">
       {fullEdit && <QuestionEditorModal question={fullEdit} onClose={() => setFullEdit(null)} />}
-      <div className="w-full max-w-xl bg-[#FDFBF7] rounded-3xl p-5 shadow-2xl border border-[#EFE8DE] max-h-[92vh] flex flex-col justify-between overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-xl bg-[#FDFBF7] rounded-[26px] p-5 shadow-2xl border border-[#EFE8DE] max-h-[92vh] flex flex-col justify-between overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
           <div className="flex items-center gap-2.5">
@@ -243,7 +243,7 @@ export const ManageQuestionsModal: React.FC = () => {
 
           {/* 2. Groups inside the Selected Area */}
           {currentArea && (
-            <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-4 shadow-xs">
+            <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-4 shadow-xs">
               <div className="flex items-center justify-between pb-2.5 border-b border-[#EFE8DE]">
                 <div className="flex items-center gap-2">
                   <span className="text-xl">{currentArea.icon}</span>

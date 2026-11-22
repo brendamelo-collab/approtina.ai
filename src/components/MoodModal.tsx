@@ -50,7 +50,7 @@ export const MoodModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-md bg-[#FDFBF7] rounded-3xl p-5 shadow-2xl border border-[#EFE8DE] max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-md bg-[#FDFBF7] rounded-[26px] p-5 shadow-2xl border border-[#EFE8DE] max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
           <div>
             <h2 className="text-base font-bold text-[#2C2C2C]">Registro Diário do Mapa</h2>

@@ -10,7 +10,7 @@ export const loginWithGoogle = async () => ({ user: fakeUser, error: null });
 export const loginWithEmail = async () => ({ user: fakeUser, error: null });
 export const registerWithEmail = async () => ({ user: fakeUser, error: null });
 export const logoutFirebase = async () => true;
-export const onAuthStateChanged = (_a: any, cb: (u: any) => void) => { setTimeout(() => cb(fakeUser), 0); return () => undefined; };
+export const onAuthStateChanged = (_a: any, cb: (u: any) => void) => { setTimeout(() => cb((globalThis as any).__LOGGED_OUT__ ? null : fakeUser), 0); return () => undefined; };
 export type FirebaseUser = any;
 export const saveUserRealtimeData = async (_uid: string, payload: any) => { (window as any).__SAVED__ = JSON.parse(JSON.stringify(payload)); return true; };
 export const loadUserRealtimeData = async () => (window as any).__FIXTURE__ ?? null;

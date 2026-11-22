@@ -18,11 +18,11 @@ export const Card: React.FC<{ title?: React.ReactNode; subtitle?: React.ReactNod
   children,
   className = ''
 }) => (
-  <section className={`bg-white border border-[#EFE8DE] rounded-3xl p-4 shadow-[0_4px_20px_rgba(140,122,107,0.05)] space-y-3 ${className}`}>
+  <section className={`bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-4 shadow-[0_6px_22px_rgba(150,100,60,0.09)] space-y-3 ${className}`}>
     {(title || right) && (
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          {title && <h3 className="text-sm font-bold text-[#2C2C2C] leading-snug break-words">{title}</h3>}
+          {title && <h3 className="text-[16px] font-bold text-[#2C2C2C] leading-snug break-words">{title}</h3>}
           {subtitle && <p className="text-[11px] text-[#8C7A6B] leading-snug mt-0.5">{subtitle}</p>}
         </div>
         {right && <div className="shrink-0">{right}</div>}
@@ -213,6 +213,113 @@ export const LineSeries: React.FC<{ points: { label: string; value: number }[]; 
       <div className="flex justify-between text-[10px] text-[#8C7A6B]">
         <span>{points[0].label}</span>
         <span>{points[points.length - 1].label}</span>
+      </div>
+    </div>
+  );
+};
+
+/** Rosca (donut) com % no centro e legenda ao lado. Só dados reais; sem dados mostra aviso. */
+export const Donut: React.FC<{
+  parts: { value: number; color: string; label: string }[];
+  center: number | null;
+  centerLabel?: string;
+  note?: React.ReactNode;
+}> = ({ parts, center, centerLabel, note }) => {
+  const total = parts.reduce((n, p) => n + p.value, 0);
+  const R = 42;
+  const C = 2 * Math.PI * R;
+  let acc = 0;
+  return (
+    <div className="flex items-center gap-5">
+      <div className="relative w-32 h-32 shrink-0">
+        <svg viewBox="0 0 110 110" className="w-full h-full -rotate-90">
+          <circle cx="55" cy="55" r={R} fill="none" stroke="#F4EDE2" strokeWidth="16" />
+          {total > 0 &&
+            parts.map((p, i) => {
+              const len = (p.value / total) * C;
+              const el = (
+                <circle
+                  key={i}
+                  cx="55"
+                  cy="55"
+                  r={R}
+                  fill="none"
+                  stroke={p.color}
+                  strokeWidth="16"
+                  strokeDasharray={`${len} ${C - len}`}
+                  strokeDashoffset={-acc}
+                />
+              );
+              acc += len;
+              return el;
+            })}
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-[26px] font-bold text-[#2C2C2C] leading-none tabular-nums">{center === null ? '—' : `${center}%`}</span>
+          {centerLabel && <span className="text-[11px] text-[#8C7A6B] mt-1">{centerLabel}</span>}
+        </div>
+      </div>
+      <ul className="min-w-0 flex-1 space-y-2.5">
+        {parts.map((p) => (
+          <li key={p.label} className="flex items-center gap-2 text-sm text-[#2C2C2C]">
+            <svg viewBox="0 0 10 10" className="w-3 h-3 shrink-0" aria-hidden="true">
+              <circle cx="5" cy="5" r="5" fill={p.color} />
+            </svg>
+            <span className="flex-1 min-w-0 truncate">{p.label}</span>
+            <span className="font-semibold tabular-nums">{total ? `${Math.round((p.value / total) * 100)}%` : '—'}</span>
+          </li>
+        ))}
+        {note && <li className="text-[11px] text-[#8C7A6B] leading-snug">{note}</li>}
+      </ul>
+    </div>
+  );
+};
+
+/** Linha do humor (1 a 5) com emojis no eixo; pontos sem registro ficam de fora (não inventa valores). */
+export const MoodLine: React.FC<{ values: (number | null)[]; labels: string[]; emojis?: string[] }> = ({ values, labels, emojis = ['😣', '😕', '😐', '🙂', '😀'] }) => {
+  const pts = values.map((v, i) => ({ v, i })).filter((p): p is { v: number; i: number } => p.v !== null);
+  if (pts.length === 0) return <EmptyState hint="Registre seu humor para ver a evolução." />;
+  const W = 300;
+  const H = 130;
+  const left = 26;
+  const pad = 10;
+  const n = Math.max(values.length - 1, 1);
+  const x = (i: number) => left + (i * (W - left - pad)) / n;
+  const y = (v: number) => pad + ((5 - v) / 4) * (H - pad * 2);
+  const step = Math.ceil(labels.length / 7);
+  return (
+    <div className="space-y-1">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-36 overflow-visible">
+        {[1, 2, 3, 4, 5].map((v) => (
+          <g key={v}>
+            <line x1={left} x2={W - pad} y1={y(v)} y2={y(v)} stroke="#EFE8DE" strokeWidth="1" />
+            <text x="0" y={y(v) + 5} fontSize="13">
+              {emojis[v - 1]}
+            </text>
+          </g>
+        ))}
+        {pts.length > 1 && (
+          <polyline
+            points={pts.map((p) => `${x(p.i)},${y(p.v)}`).join(' ')}
+            fill="none"
+            stroke="#B78A58"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        )}
+        {pts.map((p) => (
+          <circle key={p.i} cx={x(p.i)} cy={y(p.v)} r="4" fill="#FAF8F5" stroke="#B78A58" strokeWidth="2.5" />
+        ))}
+      </svg>
+      <div className="relative h-4 text-[10px] text-[#8C7A6B]" style={{ marginLeft: `${(left / W) * 100}%`, width: `${((W - left - pad) / W) * 100}%` }}>
+        {labels.map((l, i) =>
+          i % step === 0 || i === labels.length - 1 ? (
+            <span key={i} className="absolute -translate-x-1/2 whitespace-nowrap" style={{ left: `${(i / n) * 100}%` }}>
+              {l}
+            </span>
+          ) : null
+        )}
       </div>
     </div>
   );

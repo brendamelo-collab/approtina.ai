@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { loginWithEmail, registerWithEmail } from '../firebase';
-import { X, Lock, Mail, Shield, Check, UserPlus, LogIn, User } from 'lucide-react';
+import { X, Lock, Mail, Shield, Check, UserPlus, LogIn, User, ChevronLeft } from 'lucide-react';
+import { BrandMark, BrandName, FamilyIllustration } from './ui/Brand';
 
 // variant="page": full-screen login shown before the app when nobody is signed in
 export const AuthModal: React.FC<{ variant?: 'modal' | 'page' }> = ({ variant = 'modal' }) => {
@@ -15,6 +16,8 @@ export const AuthModal: React.FC<{ variant?: 'modal' | 'page' }> = ({ variant = 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Na tela inicial (sem login), primeiro a abertura com "Começar", como na foto
+  const [showWelcome, setShowWelcome] = useState(isPage);
 
   if (!isPage && !isAuthModalOpen) return null;
 
@@ -47,6 +50,29 @@ export const AuthModal: React.FC<{ variant?: 'modal' | 'page' }> = ({ variant = 
     }
   };
 
+  if (isPage && showWelcome) {
+    return (
+      <div className="min-h-[100dvh] bg-[#FDFBF7] flex flex-col items-center justify-between px-6 pt-14 pb-10 text-center select-none" style={{ backgroundImage: 'linear-gradient(180deg, #FEF8F3 0%, transparent 60%)' }}>
+        <div className="flex flex-col items-center">
+          <BrandMark className="w-20 h-20" />
+          <BrandName className="mt-3 text-[38px]" />
+          <p className="mt-1 text-[15px] text-[#8C7A6B] tracking-wide">Organize • Cuide • Evolua</p>
+        </div>
+        <FamilyIllustration className="w-full max-w-[320px] my-6" />
+        <div className="w-full max-w-sm space-y-6">
+          <p className="text-[17px] leading-snug text-[#4A3E34] px-4">Sua vida mais leve, com organização e bem-estar.</p>
+          <button
+            type="button"
+            onClick={() => setShowWelcome(false)}
+            className="w-full h-14 rounded-full bg-[#B78A58] hover:brightness-95 text-white text-[17px] font-bold shadow-[0_8px_22px_rgba(150,100,60,0.25)] active:scale-[0.99] transition"
+          >
+            Começar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={
@@ -55,12 +81,22 @@ export const AuthModal: React.FC<{ variant?: 'modal' | 'page' }> = ({ variant = 
           : 'fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4 animate-in fade-in duration-150'
       }
     >
-      <div className="w-full max-w-md bg-[#FDFBF7] rounded-3xl p-5 shadow-2xl border border-[#EFE8DE] animate-in zoom-in-95 duration-200">
+      <div className={`w-full max-w-md bg-[#FEFCFA] rounded-[26px] p-5 border border-[#EFE8DE]/70 animate-in zoom-in-95 duration-200 ${isPage ? 'shadow-[0_6px_22px_rgba(150,100,60,0.09)]' : 'shadow-2xl'}`}>
+        {isPage && (
+          <div className="flex flex-col items-center pb-4">
+            <BrandMark className="w-12 h-12" />
+            <BrandName className="mt-1 text-[26px]" />
+          </div>
+        )}
         <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#F4EDE2] flex items-center justify-center text-[#B78A58]">
-              <Lock className="w-5 h-5 text-[#8C7A6B]" />
-            </div>
+            {isPage ? (
+              <button type="button" onClick={() => setShowWelcome(true)} className="w-9 h-9 rounded-full bg-[#F4EDE2] flex items-center justify-center text-[#5C4F44]" aria-label="Voltar">
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+            ) : (
+              <BrandMark className="w-9 h-9" />
+            )}
             <div>
               <h2 className="text-base font-bold text-[#2C2C2C]">
                 {isRegisterMode ? 'Criar conta no Rotina.ai' : 'Entrar no Rotina.ai'}
@@ -100,14 +136,14 @@ export const AuthModal: React.FC<{ variant?: 'modal' | 'page' }> = ({ variant = 
                   Seu nome
                 </label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-[#8C7A6B] absolute left-3 top-3.5" />
+                  <User className="w-4 h-4 text-[#8C7A6B] absolute left-4 top-4" />
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Como você quer ser chamado(a)"
-                    className="w-full pl-9 pr-3 py-2.5 bg-[#FAF8F5] border border-[#EFE8DE] rounded-2xl text-xs text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
+                    className="w-full pl-11 pr-4 bg-[#FAF8F5] border border-[#EFE8DE] rounded-full h-12 text-sm text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-[#B78A58]"
                   />
                 </div>
               </div>
@@ -117,14 +153,14 @@ export const AuthModal: React.FC<{ variant?: 'modal' | 'page' }> = ({ variant = 
                 E-mail
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-[#8C7A6B] absolute left-3 top-3.5" />
+                <Mail className="w-4 h-4 text-[#8C7A6B] absolute left-4 top-4" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu@email.com"
-                  className="w-full pl-9 pr-3 py-2.5 bg-[#FAF8F5] border border-[#EFE8DE] rounded-2xl text-xs text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
+                  className="w-full pl-11 pr-4 bg-[#FAF8F5] border border-[#EFE8DE] rounded-full h-12 text-sm text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-[#B78A58]"
                 />
               </div>
             </div>
@@ -134,14 +170,14 @@ export const AuthModal: React.FC<{ variant?: 'modal' | 'page' }> = ({ variant = 
                 Senha
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-[#8C7A6B] absolute left-3 top-3.5" />
+                <Lock className="w-4 h-4 text-[#8C7A6B] absolute left-4 top-4" />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-9 pr-3 py-2.5 bg-[#FAF8F5] border border-[#EFE8DE] rounded-2xl text-xs text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
+                  className="w-full pl-11 pr-4 bg-[#FAF8F5] border border-[#EFE8DE] rounded-full h-12 text-sm text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-[#B78A58]"
                 />
               </div>
             </div>
@@ -156,7 +192,7 @@ export const AuthModal: React.FC<{ variant?: 'modal' | 'page' }> = ({ variant = 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-2xl bg-[#8C7A6B] hover:bg-[#786657] text-white text-xs font-bold transition-all shadow-sm active:scale-98 flex items-center justify-center gap-2"
+              className="w-full h-12 rounded-full bg-[#B78A58] hover:brightness-95 text-white text-[15px] font-bold transition-all shadow-sm active:scale-98 flex items-center justify-center gap-2"
             >
               {isRegisterMode ? <UserPlus className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
               <span>{isRegisterMode ? 'Criar conta' : 'Entrar com e-mail'}</span>

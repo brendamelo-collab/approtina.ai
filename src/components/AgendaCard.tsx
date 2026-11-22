@@ -4,6 +4,14 @@ import { CalendarCheck, ChevronRight, Plus } from 'lucide-react';
 import { agendaOccursOn, formatBrazilianDate } from '../utils/routineCalculations';
 import { todayISO, shiftISODate, parseISODate, nowHHMM, WEEKDAY_NAMES } from '../utils/dateUtils';
 import { personalOccursOn, stepOccursOn } from '../utils/routineSchedule';
+import { IconBubble, SectionTitle, SoftCard, StatusChip } from './ui/Kit';
+
+const DAY_LONG = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+const longDays = (days?: number[]) => {
+  if (!days || days.length === 0 || days.length === 7) return 'Todos os dias';
+  const n = [1, 2, 3, 4, 5, 6, 0].filter((d) => days.includes(d)).map((d) => DAY_LONG[d]);
+  return n.length === 1 ? n[0] : `${n.slice(0, -1).join(', ')} e ${n[n.length - 1]}`;
+};
 
 type ScheduleEntry = {
   key: string;
@@ -12,9 +20,16 @@ type ScheduleEntry = {
   icon: string;
   kind: 'Agenda' | 'Rotina' | 'Recorrente';
   done: boolean;
+  sub?: string; // "Segunda, Quarta e Sexta", "Em jejum"...
 };
 
-const MAX_ITEMS = 5;
+const hourLabel = (t: string) => {
+  if (!t) return '';
+  const [h, m] = t.split(':');
+  return m === '00' ? `${Number(h)}h` : `${Number(h)}h${m}`;
+};
+
+const MAX_ITEMS = 4;
 
 export const AgendaCard: React.FC = () => {
   const {
@@ -43,7 +58,8 @@ export const AgendaCard: React.FC = () => {
         title: a.title,
         icon: a.icon || '📅',
         kind: 'Agenda' as const,
-        done: !!a.completed
+        done: !!a.completed,
+        sub: 'Compromisso'
       })),
     ...dailyChronologicalSteps.filter((s) => stepOccursOn(s, weekday)).map((s) => ({
       key: `st-${s.id}`,
@@ -51,7 +67,8 @@ export const AgendaCard: React.FC = () => {
       title: s.title,
       icon: s.icon || '⏰',
       kind: 'Rotina' as const,
-      done: isToday && !!s.completed
+      done: isToday && !!s.completed,
+      sub: s.description || (s.daysOfWeek?.length ? longDays(s.daysOfWeek) : 'Todos os dias')
     })),
     // Rotinas Pessoais na rotina diária ou no calendário (cadastro original, sem cópia)
     ...personalRoutines
@@ -62,7 +79,8 @@ export const AgendaCard: React.FC = () => {
         title: `${p.title}${p.context ? ` ${p.context}` : ''}`,
         icon: p.icon || '✨',
         kind: 'Rotina' as const,
-        done: isToday && !!p.completedOn
+        done: isToday && !!p.completedOn,
+        sub: longDays(p.daysOfWeek)
       })),
     ...routineTasks
       .filter((t) => t.time && appliesToday(t.daysOfWeek))
@@ -82,7 +100,8 @@ export const AgendaCard: React.FC = () => {
         title: t.title,
         icon: t.icon || '🔁',
         kind: 'Recorrente' as const,
-        done: isToday && t.status === 'concluido'
+        done: isToday && t.status === 'concluido',
+        sub: t.recurrence
       }))
   ].sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
 
@@ -116,115 +135,73 @@ export const AgendaCard: React.FC = () => {
   }
 
   return (
-    <section className="w-full max-w-xl mx-auto px-4 sm:px-6 my-3.5 select-none">
-      <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 shadow-[0_4px_20px_rgba(140,122,107,0.05)] transition-all hover:shadow-[0_6px_24px_rgba(140,122,107,0.08)]">
-        <div className="flex items-center justify-between gap-2 mb-3.5">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-[#F4EDE2] flex items-center justify-center text-[#B78A58] shrink-0">
-              <CalendarCheck className="w-5 h-5 text-[#B78A58]" />
-            </div>
-            <div className="min-w-0">
-              <h2 className="text-[15px] sm:text-lg font-bold text-[#2C2C2C] tracking-tight leading-tight">
-                {isToday ? 'Programação de hoje' : `Programação de ${WEEKDAY_NAMES[weekday].toLowerCase()}`}
-              </h2>
-              <p className="text-xs text-[#8C7A6B]">Compromissos e rotinas do dia</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => setIsAgendaModalOpen(true)}
-              className="w-7 h-7 rounded-full bg-[#EFE8DE] hover:bg-[#E4DACD] flex items-center justify-center text-[#5C4F44] transition-colors"
-              aria-label="Adicionar compromisso"
-              title="Adicionar compromisso"
-            >
-              <Plus className="w-3.5 h-3.5 text-[#5C4F44]" />
-            </button>
-            <button
-              onClick={() => setActiveTab('agenda')}
-              className="text-xs font-bold text-[#8C7A6B] hover:text-[#5C4F44] flex items-center gap-0.5 transition-colors"
-              aria-label="Ver tudo sobre a programação"
-            >
-              <span className="whitespace-nowrap">Ver tudo</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
+    <section className="w-full max-w-xl mx-auto px-4 sm:px-6 my-4 select-none">
+      <SoftCard className="p-4">
+        <div className="px-1">
+          <SectionTitle
+            title={isToday ? 'Sua rotina de hoje' : `Rotina de ${WEEKDAY_NAMES[weekday].toLowerCase()}`}
+            action={{ label: 'Ver tudo', onClick: () => setActiveTab('rotinas') }}
+          />
         </div>
 
         {visible.length === 0 ? (
-          <div className="text-center py-5 px-3 bg-white border border-[#EFE8DE] rounded-2xl mb-3 space-y-2">
-            <p className="text-xs text-[#8C7A6B]">
-              Nada programado para {isToday ? 'hoje' : 'este dia'}.
-            </p>
+          <div className="text-center py-6 px-3 space-y-3">
+            <p className="text-sm text-[#8C7A6B]">Nada programado para {isToday ? 'hoje' : 'este dia'}.</p>
             <div className="flex items-center justify-center gap-2 flex-wrap">
-              <button
-                onClick={() => setIsAgendaModalOpen(true)}
-                className="text-[11px] font-bold text-white bg-[#8C7A6B] hover:bg-[#786657] px-3 py-1.5 rounded-xl"
-              >
+              <button onClick={() => setIsAgendaModalOpen(true)} className="text-xs font-semibold text-white bg-[#8C7A6B] px-4 py-2 rounded-full">
                 + Compromisso
               </button>
-              <button
-                onClick={() => setActiveTab('rotinas')}
-                className="text-[11px] font-bold text-[#5C4F44] bg-[#EFE8DE] hover:bg-[#E4DACD] px-3 py-1.5 rounded-xl"
-              >
+              <button onClick={() => setActiveTab('rotinas')} className="text-xs font-semibold text-[#4A3E34] bg-[#E6C8A8] px-4 py-2 rounded-full">
                 + Rotina
               </button>
             </div>
           </div>
         ) : (
-          <div className="space-y-2 mb-3">
+          <div className="mt-2 divide-y divide-[#EFE8DE]/70">
             {visible.map((item) => (
-              <div
-                key={item.key}
-                onClick={() => setActiveTab(item.kind === 'Agenda' ? 'agenda' : 'rotinas')}
-                className={`flex items-center gap-3 p-2.5 bg-[#F7F4EE] hover:bg-[#F2ECE0] border border-[#EAE3D6] rounded-2xl cursor-pointer transition-colors ${
-                  item.done ? 'opacity-55' : ''
-                }`}
-              >
-                <span className="text-base shrink-0 w-6 text-center">{item.icon}</span>
-                <span className="text-xs font-bold text-[#5C4F44] bg-[#EFE8DE] px-2 py-0.5 rounded-md shrink-0 tabular-nums">
-                  {item.time || '--:--'}
-                </span>
-                <span className={`text-xs font-semibold text-[#2C2C2C] flex-1 min-w-0 leading-snug line-clamp-2 break-words ${item.done ? 'line-through' : ''}`}>
-                  {item.title}
-                </span>
-                <span className="text-[9px] font-bold text-[#8C7A6B] bg-[#FAF8F5] border border-[#E2D8CA] px-1.5 py-0.5 rounded-full shrink-0">
-                  {item.done ? 'Feito' : item.kind}
-                </span>
-              </div>
-            ))}
-            {hiddenCount > 0 && (
               <button
-                onClick={() => setActiveTab('agenda')}
-                className="w-full text-[11px] font-bold text-[#8C7A6B] hover:text-[#5C4F44] py-1"
+                key={item.key}
+                type="button"
+                onClick={() => setActiveTab(item.kind === 'Agenda' ? 'agenda' : item.kind === 'Recorrente' ? 'recorrentes' : 'rotinas')}
+                className={`w-full flex items-center gap-3.5 px-1 py-3 text-left ${item.done ? 'opacity-55' : ''}`}
               >
-                + {hiddenCount} {hiddenCount === 1 ? 'item' : 'itens'} no dia
+                <IconBubble>{item.icon}</IconBubble>
+                <span className="min-w-0 flex-1">
+                  <span className={`block text-[15px] font-semibold text-[#2C2C2C] leading-snug break-words line-clamp-2 ${item.done ? 'line-through' : ''}`}>{item.title}</span>
+                  <span className="block text-[13px] text-[#6E5D4F] leading-snug mt-0.5 truncate">
+                    {[hourLabel(item.time), item.sub].filter(Boolean).join(' · ')}
+                  </span>
+                </span>
+                {item.done && <StatusChip tone="done" icon>Feito</StatusChip>}
               </button>
-            )}
+            ))}
           </div>
         )}
+        {hiddenCount > 0 && (
+          <button onClick={() => setActiveTab('rotinas')} className="w-full text-xs font-semibold text-[#B78A58] pt-1">
+            + {hiddenCount} {hiddenCount === 1 ? 'item' : 'itens'} hoje
+          </button>
+        )}
+      </SoftCard>
 
-        {nextUpcoming && (
-          <div
-            onClick={() => setActiveTab('agenda')}
-            className="flex items-center gap-2.5 p-3 bg-[#F2ECE0]/70 hover:bg-[#ECE4D4] border border-[#E4DACD] rounded-2xl cursor-pointer transition-colors"
-          >
-            <div className="w-8 h-8 rounded-full bg-[#FAF8F5] border border-[#E2D8CA] flex items-center justify-center text-sm shadow-2xs shrink-0">
-              {nextUpcoming.icon}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wide">Próximo compromisso</p>
-              <h3 className="text-xs font-bold text-[#2C2C2C] leading-tight truncate">{nextUpcoming.title}</h3>
-              <p className="text-[11px] text-[#8C7A6B] mt-0.5 font-medium truncate">
-                {nextUpcoming.dateLabel}
-                {nextUpcoming.time ? ` • ${nextUpcoming.time}` : ''}
-                {nextUpcoming.recurring ? ' • Recorrente' : ''}
-              </p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-[#8C7A6B] shrink-0" />
-          </div>
-        )}
-      </div>
+      {nextUpcoming && (
+        <button
+          type="button"
+          onClick={() => setActiveTab('agenda')}
+          className="mt-3 w-full flex items-center gap-3 px-4 py-3 bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[22px] shadow-[0_3px_12px_rgba(150,100,60,0.08)] text-left"
+        >
+          <IconBubble size="sm">{nextUpcoming.icon}</IconBubble>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[11px] font-semibold text-[#B78A58] uppercase tracking-wide">Próximo compromisso</span>
+            <span className="block text-sm font-semibold text-[#2C2C2C] truncate">{nextUpcoming.title}</span>
+            <span className="block text-xs text-[#8C7A6B] truncate">
+              {nextUpcoming.dateLabel}
+              {nextUpcoming.time ? ` · ${hourLabel(nextUpcoming.time)}` : ''}
+            </span>
+          </span>
+          <ChevronRight className="w-4 h-4 text-[#B78A58] shrink-0" />
+        </button>
+      )}
     </section>
   );
 };

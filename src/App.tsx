@@ -12,12 +12,14 @@ import { RotinasCard } from './components/RotinasCard';
 import { CuidadosMetasCards } from './components/CuidadosMetasCards';
 import { BottomNav } from './components/BottomNav';
 import { MaisDrawer } from './components/MaisDrawer';
+import { HomeShortcuts, MoodTodayCard, PendingTasksCard } from './components/HomeCards';
 import { AiAssistantModal } from './components/AiAssistantModal';
 import { MoodModal } from './components/MoodModal';
 import { RoutineModal } from './components/RoutineModal';
 import { AgendaModal } from './components/AgendaModal';
 import { NotificationsModal } from './components/NotificationsModal';
 import { AuthModal } from './components/AuthModal';
+import { BrandMark, BrandName } from './components/ui/Brand';
 import { ManageQuestionsModal } from './components/ManageQuestionsModal';
 import { RelatoriosModal } from './components/RelatoriosModal';
 import { AlarmBalloonModal } from './components/AlarmBalloonModal';
@@ -45,7 +47,8 @@ const MainContent: React.FC = () => {
   if (!authReady) {
     return (
       <div className="min-h-screen bg-[#FDFBF7] flex flex-col items-center justify-center gap-3">
-        <div className="w-10 h-10 rounded-full border-4 border-[#EFE8DE] border-t-[#8C7A6B] animate-spin" />
+        <BrandMark className="w-16 h-16 animate-pulse" />
+        <BrandName className="text-[28px]" />
         <p className="text-xs font-semibold text-[#8C7A6B]">Carregando...</p>
       </div>
     );
@@ -57,7 +60,7 @@ const MainContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#2C2C2C] flex flex-col justify-between selection:bg-[#EAE0D2]">
+    <div className="min-h-screen bg-[#FDFBF7] text-[#2C2C2C] flex flex-col justify-between selection:bg-[#EAE0D2]" style={{ backgroundImage: 'linear-gradient(180deg, color-mix(in srgb, var(--t-card, #FDFBF7) 55%, transparent), transparent 260px)' }}>
 
       {/* Dynamic Screen Routing based on active bottom navigation tab */}
       <main className="flex-1 w-full max-w-xl mx-auto pb-32 sm:pb-36">
@@ -66,10 +69,10 @@ const MainContent: React.FC = () => {
           <div className="animate-in fade-in duration-200">
             <Header />
             <NativeAlarmSetupCard />
-            <MeuMapaCard />
             <AgendaCard />
-            <RotinasCard />
-            <CuidadosMetasCards />
+            <PendingTasksCard />
+            <MoodTodayCard />
+            <HomeShortcuts />
           </div>
         )}
 
