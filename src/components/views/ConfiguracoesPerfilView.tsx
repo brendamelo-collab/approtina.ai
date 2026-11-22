@@ -34,8 +34,10 @@ import {
   Image as ImageIcon,
   GitPullRequest,
   RefreshCw,
-  Smile
+  Smile,
+  Settings
 } from 'lucide-react';
+import { PageHeader } from '../ui/Kit';
 
 export const ConfiguracoesPerfilView: React.FC = () => {
   const {
@@ -330,7 +332,7 @@ export const ConfiguracoesPerfilView: React.FC = () => {
   ];
 
   return (
-    <div className="w-full max-w-xl mx-auto px-4 sm:px-6 pt-2 pb-32 select-none relative">
+    <div className="w-full max-w-xl mx-auto px-4 sm:px-6 pb-32 select-none relative">
       {/* Toast Notification Banner */}
       {toastNotification && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-md bg-[#2C2C2C] text-white px-4 py-3 rounded-2xl shadow-xl flex items-center justify-between text-xs animate-in fade-in slide-in-from-top-4 duration-200">
@@ -344,23 +346,8 @@ export const ConfiguracoesPerfilView: React.FC = () => {
         </div>
       )}
 
-      {/* Top Header */}
-      <div className="flex items-center justify-between py-2 mb-3">
-        <button
-          onClick={() => setActiveTab('inicio')}
-          className="flex items-center gap-1.5 text-xs font-bold text-[#8C7A6B] hover:text-[#5C4F44] bg-[#F4EDE2] hover:bg-[#EAE0D2] px-3.5 py-1.5 rounded-full transition-colors"
-          aria-label="Voltar ao início"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Início</span>
-        </button>
-
-        <div className="text-center">
-          <h1 className="text-lg font-bold text-[#2C2C2C] tracking-tight">Configurações & Perfil</h1>
-          <p className="text-[11px] text-[#8C7A6B]">Perfis, foto, paletas de cores e texto</p>
-        </div>
-
-        <div className="w-9 h-9" />
+      <div className="mb-3">
+        <PageHeader icon={Settings} title="Configurações" subtitle="Perfis, foto, cores e texto" />
       </div>
 
       {/* Overview Card: Active Profile */}

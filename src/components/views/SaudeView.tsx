@@ -277,8 +277,8 @@ export const SaudeView: React.FC = () => {
       {activeMainTab === 'datas' && (
         <div className="space-y-3">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-sm font-bold text-[#2C2C2C]">
-              Consultas, Exames & Prazos Recorrentes
+            <h2 className="text-[17px] font-bold text-[#2C2C2C]">
+              Consultas e exames
             </h2>
             <button
               onClick={() => setIsAddDateModalOpen(true)}
@@ -403,13 +403,6 @@ export const SaudeView: React.FC = () => {
             <h2 className="text-[17px] font-bold text-[#2C2C2C]">
               Suplementos e Medicamentos
             </h2>
-            <button
-              onClick={() => setIsAddMedicationModalOpen(true)}
-              className="text-xs font-semibold text-[#8C7A6B] hover:text-[#5C4F44] flex items-center gap-1 bg-[#F4EDE2] px-2.5 py-1 rounded-xl transition-colors"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Novo Remédio</span>
-            </button>
           </div>
 
           {filteredMeds.length === 0 ? (
