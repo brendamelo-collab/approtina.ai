@@ -255,6 +255,7 @@
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FAF5ED\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FAF5EE\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FAF8F5\],
+:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FEFCFA\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F9F6F0\]:hover,
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F9F6F1\]:hover,
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#FAF8F5\]:hover { background-color: var(--t-card) !important; }
@@ -355,6 +356,7 @@
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:text-\[\#2C2C2C\]:hover,
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:text-\[\#4A3E34\]:hover,
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#2C2C2C\],
+:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#3A2619\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#3C3C3C\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#4A3E34\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .text-\[\#4A4A4A\] { color: var(--t-ink1) !important; }
@@ -379,6 +381,7 @@
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#1E3B21" i] { stroke: var(--t-ok-ink); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#2C2C2C" i] { stroke: var(--t-ink1); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#2C5230" i] { stroke: var(--t-ok-ink); }
+:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#3A2619" i] { stroke: var(--t-ink1); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#3B663F" i] { stroke: var(--t-ok-ink); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#3B7A42" i] { stroke: var(--t-ok-mid); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#3C3C3C" i] { stroke: var(--t-ink1); }
@@ -476,9 +479,11 @@
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#FDF2EE" i] { stroke: var(--t-bad-bg); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#FDFBF7" i] { stroke: var(--t-page); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#FEF9E7" i] { stroke: var(--t-warn-bg); }
+:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stroke="#FEFCFA" i] { stroke: var(--t-card); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#1E3B21" i] { fill: var(--t-ok-ink); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#2C2C2C" i] { fill: var(--t-ink1); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#2C5230" i] { fill: var(--t-ok-ink); }
+:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#3A2619" i] { fill: var(--t-ink1); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#3B663F" i] { fill: var(--t-ok-ink); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#3B7A42" i] { fill: var(--t-ok-mid); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#3C3C3C" i] { fill: var(--t-ink1); }
@@ -576,9 +581,11 @@
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#FDF2EE" i] { fill: var(--t-bad-bg); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#FDFBF7" i] { fill: var(--t-page); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#FEF9E7" i] { fill: var(--t-warn-bg); }
+:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [fill="#FEFCFA" i] { fill: var(--t-card); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#1E3B21" i] { stop-color: var(--t-ok-ink); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#2C2C2C" i] { stop-color: var(--t-ink1); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#2C5230" i] { stop-color: var(--t-ok-ink); }
+:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#3A2619" i] { stop-color: var(--t-ink1); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#3B663F" i] { stop-color: var(--t-ok-ink); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#3B7A42" i] { stop-color: var(--t-ok-mid); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#3C3C3C" i] { stop-color: var(--t-ink1); }
@@ -676,6 +683,7 @@
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#FDF2EE" i] { stop-color: var(--t-bad-bg); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#FDFBF7" i] { stop-color: var(--t-page); }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#FEF9E7" i] { stop-color: var(--t-warn-bg); }
+:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) [stop-color="#FEFCFA" i] { stop-color: var(--t-card); }
 
 [data-theme="escuro"] .bg-white { background-color: var(--t-card) !important; }
 [data-theme="escuro"] .bg-white\/70, [data-theme="escuro"] .bg-white\/80, [data-theme="escuro"] .bg-white\/60, [data-theme="escuro"] .bg-white\/90 { background-color: color-mix(in srgb, var(--t-card) 85%, transparent) !important; }
