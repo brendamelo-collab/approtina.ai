@@ -2,6 +2,10 @@ import React from 'react';
 import { useApp } from '../context/AppContext';
 import {
   Home,
+  HeartHandshake,
+  ClipboardCheck,
+  CalendarDays,
+  Menu,
   Compass,
   Smile,
   CheckSquare,
@@ -11,96 +15,93 @@ import {
   HeartPulse,
   Target,
   Repeat,
-  Settings,
-  Sliders
+  Settings
 } from 'lucide-react';
 import { NavTab } from '../types';
+
+const SHORT_LABEL: Partial<Record<NavTab, string>> = {
+  inicio: 'Início',
+  mapa: 'Mapa',
+  agenda: 'Agenda',
+  rotinas: 'Rotinas',
+  saude: 'Saúde',
+  cuidados: 'Saúde',
+  metas: 'Metas',
+  recorrentes: 'Tarefas',
+  relatorios: 'Relatórios',
+  ia: 'IA',
+  configuracoes: 'Ajustes'
+};
 
 export const BottomNav: React.FC = () => {
   const {
     activeTab,
     setActiveTab,
     bottomNavSlots,
-    setIsCustomizingNavOpen
+    isMaisDrawerOpen,
+    setIsMaisDrawerOpen
   } = useApp();
 
   const getSlotIcon = (tab: NavTab) => {
     switch (tab) {
       case 'inicio':
-        return <Home className="w-5 h-5" />;
+        return <Home className="w-[22px] h-[22px]" strokeWidth={1.8} />;
       case 'mapa':
-        return <Compass className="w-5 h-5" />;
+        return <HeartHandshake className="w-[22px] h-[22px]" strokeWidth={1.8} />;
       case 'rotinas':
-        return <CheckSquare className="w-5 h-5" />;
+        return <ClipboardCheck className="w-[22px] h-[22px]" strokeWidth={1.8} />;
       case 'agenda':
-        return <Calendar className="w-5 h-5" />;
+        return <CalendarDays className="w-[22px] h-[22px]" strokeWidth={1.8} />;
       case 'saude':
       case 'cuidados':
-        return <HeartPulse className="w-5 h-5" />;
+        return <HeartPulse className="w-[22px] h-[22px]" />;
       case 'metas':
-        return <Target className="w-5 h-5" />;
+        return <Target className="w-[22px] h-[22px]" />;
       case 'recorrentes':
-        return <Repeat className="w-5 h-5" />;
+        return <Repeat className="w-[22px] h-[22px]" />;
       case 'relatorios':
-        return <BarChart2 className="w-5 h-5" />;
+        return <BarChart2 className="w-[22px] h-[22px]" />;
       case 'ia':
-        return <Bot className="w-5 h-5" />;
+        return <Bot className="w-[22px] h-[22px]" />;
       case 'configuracoes':
-        return <Settings className="w-5 h-5" />;
+        return <Settings className="w-[22px] h-[22px]" />;
       default:
-        return <Home className="w-5 h-5" />;
+        return <Home className="w-[22px] h-[22px]" />;
     }
   };
 
-  return (
-    <nav
-      aria-label="Navegação Principal"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-[#FAF8F5]/98 backdrop-blur-md border-t border-[#EFE8DE] shadow-[0_-2px_12px_rgba(140,122,107,0.06)] select-none"
+  const item = (key: string, label: string, icon: React.ReactNode, isActive: boolean, onClick: () => void) => (
+    <button
+      key={key}
+      onClick={onClick}
+      className="flex-1 min-w-0 flex flex-col items-center justify-center focus:outline-none"
+      aria-label={label}
+      aria-current={isActive ? 'page' : undefined}
     >
-      <div className="max-w-xl mx-auto px-2 py-1.5 flex items-center justify-around relative">
-        {bottomNavSlots.map((item) => {
-          const isActive =
-            activeTab === item.tab ||
-            (item.tab === 'saude' && activeTab === 'cuidados');
-          return (
-            <button
-              key={item.tab}
-              onClick={() => setActiveTab(item.tab)}
-              className={`flex-1 py-1 px-1 flex flex-col items-center justify-center relative transition-colors focus:outline-none ${
-                isActive ? 'text-[#2C2C2C]' : 'text-[#8C7A6B] hover:text-[#5C4F44]'
-              }`}
-              aria-label={item.label}
-            >
-              <div className="relative p-0.5">
-                {getSlotIcon(item.tab)}
-              </div>
-              <span
-                className={`text-[10px] sm:text-[11px] tracking-tight mt-0.5 truncate max-w-[68px] ${
-                  isActive ? 'font-extrabold text-[#2C2C2C]' : 'font-medium text-[#8C7A6B]'
-                }`}
-              >
-                {item.label}
-              </span>
+      <span
+        className={`flex flex-col items-center justify-center gap-0.5 w-[62px] max-w-full py-1.5 rounded-2xl transition-colors ${
+          isActive ? 'bg-[#F4EDE2] text-[#4A3E34]' : 'text-[#9E6C52] hover:text-[#4A3E34]'
+        }`}
+      >
+        {icon}
+        <span className={`text-[11px] leading-tight truncate max-w-full ${isActive ? 'font-bold' : 'font-medium'}`}>{label}</span>
+      </span>
+    </button>
+  );
 
-              {/* Indicator dot or line for active tab */}
-              {isActive ? (
-                <span className="w-4 h-0.5 bg-[#8C7A6B] rounded-full mt-0.5 animate-in fade-in duration-200" />
-              ) : (
-                <span className="w-4 h-0.5 bg-transparent mt-0.5" />
-              )}
-            </button>
-          );
-        })}
-
-        {/* Small subtle button on the far right or top to customize menu */}
-        <button
-          onClick={() => setIsCustomizingNavOpen(true)}
-          className="absolute -top-3 right-3 w-6 h-6 rounded-full bg-[#FAF8F5] border border-[#EFE8DE] text-[#A39385] hover:text-[#5C4F44] flex items-center justify-center shadow-xs transition-colors hover:scale-105"
-          title="Personalizar atalhos da barra inferior"
-          aria-label="Personalizar menu"
-        >
-          <Sliders className="w-3 h-3" />
-        </button>
+  return (
+    <nav aria-label="Navegação Principal" className="fixed bottom-0 left-0 right-0 z-40 select-none px-3 pb-[max(0.6rem,env(safe-area-inset-bottom))] pointer-events-none">
+      <div className="pointer-events-auto max-w-xl mx-auto bg-[#FAF8F5]/95 backdrop-blur-md border border-[#EFE8DE]/80 rounded-[26px] shadow-[0_8px_28px_rgba(150,100,60,0.16)] px-1.5 py-1.5 flex items-center">
+        {bottomNavSlots.slice(0, 4).map((slot) =>
+          item(
+            slot.tab,
+            SHORT_LABEL[slot.tab] || slot.label,
+            getSlotIcon(slot.tab),
+            activeTab === slot.tab || (slot.tab === 'saude' && activeTab === 'cuidados'),
+            () => setActiveTab(slot.tab)
+          )
+        )}
+        {item('mais', 'Mais', <Menu className="w-[22px] h-[22px]" strokeWidth={1.8} />, isMaisDrawerOpen, () => setIsMaisDrawerOpen(true))}
       </div>
     </nav>
   );

@@ -2,7 +2,7 @@ export type PeriodKey = 'manha' | 'tarde' | 'noite' | 'especiais';
 
 export type MemberType = 'real' | 'fantasma';
 
-export type ColorPalette = 'original' | 'nude' | 'verde' | 'azul' | 'escuro';
+export type ColorPalette = 'pessego' | 'original' | 'nude' | 'verde' | 'azul' | 'escuro';
 export type FontSizeScale = 'pequeno' | 'normal' | 'grande' | 'extragrande';
 
 export interface UserProfile {

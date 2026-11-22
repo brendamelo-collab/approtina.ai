@@ -12,6 +12,7 @@ import { RotinasCard } from './components/RotinasCard';
 import { CuidadosMetasCards } from './components/CuidadosMetasCards';
 import { BottomNav } from './components/BottomNav';
 import { MaisDrawer } from './components/MaisDrawer';
+import { HomeShortcuts, MoodTodayCard, PendingTasksCard } from './components/HomeCards';
 import { AiAssistantModal } from './components/AiAssistantModal';
 import { MoodModal } from './components/MoodModal';
 import { RoutineModal } from './components/RoutineModal';
@@ -57,7 +58,7 @@ const MainContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#2C2C2C] flex flex-col justify-between selection:bg-[#EAE0D2]">
+    <div className="min-h-screen bg-[#FDFBF7] text-[#2C2C2C] flex flex-col justify-between selection:bg-[#EAE0D2]" style={{ backgroundImage: 'linear-gradient(180deg, color-mix(in srgb, var(--t-card, #FDFBF7) 55%, transparent), transparent 260px)' }}>
 
       {/* Dynamic Screen Routing based on active bottom navigation tab */}
       <main className="flex-1 w-full max-w-xl mx-auto pb-32 sm:pb-36">
@@ -66,10 +67,10 @@ const MainContent: React.FC = () => {
           <div className="animate-in fade-in duration-200">
             <Header />
             <NativeAlarmSetupCard />
-            <MeuMapaCard />
             <AgendaCard />
-            <RotinasCard />
-            <CuidadosMetasCards />
+            <PendingTasksCard />
+            <MoodTodayCard />
+            <HomeShortcuts />
           </div>
         )}
 

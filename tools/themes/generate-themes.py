@@ -55,6 +55,15 @@ SEMANTIC_LIGHT = {
 }
 
 PALETTES = {
+    # Pêssego: o visual das fotos de referência (padrão a partir de nov/2026)
+    'pessego': {
+        'page': '#FCF1E8', 'card': '#FEF8F3', 'soft': '#F9EADD', 'line': '#F2E2D4', 'high': '#EED8C5', 'strong': '#DEC2A8',
+        'ink1': '#3A2619', 'ink2': '#5E4130', 'ink3': '#946A4C', 'muted': '#B39079',
+        'accent': '#C38B5A', 'accent-dark': '#A26D42', 'accent2': '#B46F3D', 'accent2-soft': '#F7D6B6',
+        'ok-ink': '#3F6B3B', 'ok-bg': '#E3EFDA', 'ok-line': '#BCD6B0', 'ok-mid': '#6E9A62',
+        'bad-ink': '#AE4A31', 'bad-bg': '#FCE7DE', 'bad-line': '#F2C2B1', 'bad-mid': '#E8775A',
+        'warn-bg': '#FCE5CE', 'warn-ink': '#9A5B2E', 'warn-line': '#F3CBA2', 'warn-mid': '#E0A060',
+    },
     # Rosé suave: rosa antigo com terracota clara
     'nude': {
         'page': '#FCF8F7', 'card': '#FFFBFA', 'soft': '#F7EDEA', 'line': '#EEDFDB', 'high': '#EBD7D1', 'strong': '#D9C0B9',
@@ -88,6 +97,7 @@ PALETTES = {
 }
 
 PALETTE_META = {
+    'pessego': ('#FCF1E8', '#FEF8F3', '#C38B5A'),
     'nude': ('#FCF8F7', '#FFFBFA', '#9A6260'),
     'verde': ('#F8FAF6', '#FCFDFB', '#557658'),
     'azul': ('#F7F9FC', '#FCFDFF', '#4C6890'),
