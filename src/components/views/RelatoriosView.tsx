@@ -33,6 +33,7 @@ import {
   DoneCounts
 } from '../../utils/reportStats';
 import { BarSeries, Card, DeltaBadge, EmptyState, ProgressRow, SplitBar, Stat } from '../reports/ReportCharts';
+import { AreaReport } from '../reports/AreaReport';
 
 type Section = 'geral' | 'mapa' | 'humor' | 'rotinas' | 'saude' | 'agenda' | 'metas' | 'revisao';
 
@@ -461,6 +462,12 @@ export const RelatoriosView: React.FC = () => {
 
           {habitView === 'todos' && mapGeneralCard}
 
+          {areaFilter === 'todas' && habitView === 'todos' && (
+            <Card title="Áreas da vida" subtitle="Verde = positivo, vermelho = negativo. Toque numa área para ver a evolução e as perguntas.">
+              <AreaReport lifeAreas={lifeAreas} questions={questions} responses={questionResponses} period={mapPeriod} buckets={buckets} today={today} />
+            </Card>
+          )}
+
           {(habitView === 'todos' || habitView === 'bons') && (
             <Card
               title={
@@ -512,26 +519,6 @@ export const RelatoriosView: React.FC = () => {
           <Card title="Evolução" subtitle={`% positivo · ${habitView === 'bons' ? 'hábitos positivos' : habitView === 'ruins' ? 'comportamentos evitados' : 'todas as perguntas'}`}>
             <BarSeries values={mapSeries.map((c) => c.pctPositivo)} labels={buckets.map((b) => b.label)} tone={habitView === 'ruins' ? 'gold' : 'ok'} />
           </Card>
-
-          {areaFilter === 'todas' && habitView === 'todos' && lifeAreas.length > 0 && (
-            <Card title="Por área da vida">
-              {lifeAreas.map((a) => {
-                const qs = questions.filter((q) => q.areaId === a.id);
-                const c = countAnswers(qs, questionResponses, mapPeriod.from, mapPeriod.to, today);
-                const p = countAnswers(qs, questionResponses, mapPeriod.prevFrom, mapPeriod.prevTo, today);
-                return (
-                  <ProgressRow
-                    key={a.id}
-                    label={`${a.icon ? `${a.icon} ` : ''}${a.name}`}
-                    value={c.pctPositivo}
-                    tone="ok"
-                    right={c.validas ? <DeltaBadge d={delta(c.pctPositivo, p.pctPositivo)} /> : undefined}
-                    detail={qs.length === 0 ? 'Sem perguntas nesta área' : c.validas ? `${c.positivo} positivas de ${c.validas} válidas` : 'Sem respostas válidas'}
-                  />
-                );
-              })}
-            </Card>
-          )}
 
           <Card title="Pergunta por pergunta" subtitle="Ordenado do maior para o menor cumprimento">
             {qReports.filter((r) => (habitView === 'bons' ? r.good : habitView === 'ruins' ? !r.good : true)).length === 0 ? (
