@@ -15,7 +15,8 @@ import {
   LogOut,
   ChevronRight,
   CheckCircle2,
-  Calendar
+  Calendar,
+  LayoutGrid
 } from 'lucide-react';
 
 export const MaisDrawer: React.FC = () => {
@@ -33,7 +34,8 @@ export const MaisDrawer: React.FC = () => {
     switchProfile,
     userEmail,
     isLoggedIn,
-    logout
+    logout,
+    setIsCustomizingNavOpen
   } = useApp();
 
   const [activeSubView, setActiveSubView] = useState<
@@ -47,7 +49,7 @@ export const MaisDrawer: React.FC = () => {
       id: 'configuracoes',
       label: 'Configurações & Perfil',
       desc: 'Gestão familiar, lembretes, backup e limpeza de dados',
-      icon: <Settings className="w-5 h-5 text-[#8C7A6B]" />,
+      icon: <Settings className="w-5 h-5 text-[#9E6C52]" />,
       action: () => {
         setIsMaisDrawerOpen(false);
         setActiveTab('configuracoes');
@@ -57,7 +59,7 @@ export const MaisDrawer: React.FC = () => {
       id: 'relatorios',
       label: 'Relatórios do Mapa',
       desc: 'Desempenho geral, gráfico de evolução e acompanhamento',
-      icon: <LineChart className="w-5 h-5 text-[#8C7A6B]" />,
+      icon: <LineChart className="w-5 h-5 text-[#9E6C52]" />,
       action: () => {
         setIsMaisDrawerOpen(false);
         setActiveTab('relatorios');
@@ -67,7 +69,7 @@ export const MaisDrawer: React.FC = () => {
       id: 'cuidados',
       label: 'Cuidados e Saúde',
       desc: 'Medicamentos, suplementos e cuidados diários',
-      icon: <Pill className="w-5 h-5 text-[#8C7A6B]" />,
+      icon: <Pill className="w-5 h-5 text-[#9E6C52]" />,
       action: () => {
         setIsMaisDrawerOpen(false);
         setActiveTab('cuidados');
@@ -77,7 +79,7 @@ export const MaisDrawer: React.FC = () => {
       id: 'metas',
       label: 'Minhas Metas',
       desc: 'Objetivos da casa e família divididos em passos',
-      icon: <Target className="w-5 h-5 text-[#8C7A6B]" />,
+      icon: <Target className="w-5 h-5 text-[#9E6C52]" />,
       action: () => {
         setIsMaisDrawerOpen(false);
         setActiveTab('metas');
@@ -87,7 +89,7 @@ export const MaisDrawer: React.FC = () => {
       id: 'recorrentes',
       label: 'Tarefas Recorrentes',
       desc: 'Calibrar pneu, lavar sapatos, troca de roupa de cama',
-      icon: <Repeat className="w-5 h-5 text-[#8C7A6B]" />,
+      icon: <Repeat className="w-5 h-5 text-[#9E6C52]" />,
       action: () => {
         setIsMaisDrawerOpen(false);
         setActiveTab('recorrentes');
@@ -97,24 +99,34 @@ export const MaisDrawer: React.FC = () => {
       id: 'ia',
       label: 'Assistente IA',
       desc: 'Aba dedicada para conversar e criar rotinas',
-      icon: <Bot className="w-5 h-5 text-[#8C7A6B]" />,
+      icon: <Bot className="w-5 h-5 text-[#9E6C52]" />,
       action: () => {
         setIsMaisDrawerOpen(false);
         setActiveTab('ia');
       }
     },
     {
+      id: 'barra',
+      label: 'Personalizar barra',
+      desc: 'Escolha os 4 atalhos da barra de baixo',
+      icon: <LayoutGrid className="w-5 h-5 text-[#9E6C52]" />,
+      action: () => {
+        setIsMaisDrawerOpen(false);
+        setIsCustomizingNavOpen(true);
+      }
+    },
+    {
       id: 'familia',
       label: 'Membros da Família',
       desc: 'Gerenciar e alternar entre os membros da família',
-      icon: <Users className="w-5 h-5 text-[#8C7A6B]" />,
+      icon: <Users className="w-5 h-5 text-[#9E6C52]" />,
       action: () => setActiveSubView('familia')
     },
     {
       id: 'seguranca',
       label: 'Conta & Segurança',
       desc: 'Autenticação, backup de dados e privacidade',
-      icon: <ShieldCheck className="w-5 h-5 text-[#8C7A6B]" />,
+      icon: <ShieldCheck className="w-5 h-5 text-[#9E6C52]" />,
       action: () => setActiveSubView('seguranca')
     }
   ];
@@ -165,7 +177,7 @@ export const MaisDrawer: React.FC = () => {
           {activeSubView === 'menu' && (
             <div className="p-5 space-y-3">
               {/* Profile Bar */}
-              <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-2xl p-3.5 flex items-center justify-between mb-3 shadow-xs">
+              <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[22px] p-3.5 flex items-center justify-between mb-3 shadow-[0_3px_12px_rgba(150,100,60,0.08)]">
                 <div className="flex items-center gap-3">
                   <UserAvatar name={currentProfile.name} avatarUrl={currentProfile.avatarUrl} size="md" />
                   <div>
@@ -195,10 +207,10 @@ export const MaisDrawer: React.FC = () => {
                   <button
                     key={sec.id}
                     onClick={sec.action}
-                    className="w-full text-left p-3.5 bg-[#FAF8F5] hover:bg-[#F4EDE2] border border-[#EFE8DE] rounded-2xl flex items-center justify-between transition-colors shadow-2xs"
+                    className="w-full text-left p-3.5 bg-[#FAF8F5] hover:bg-[#F4EDE2] border border-[#EFE8DE]/70 rounded-[22px] flex items-center justify-between transition-colors shadow-[0_3px_12px_rgba(150,100,60,0.08)]"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#F4EDE2] flex items-center justify-center">
+                      <div className="w-11 h-11 rounded-full bg-white flex items-center justify-center shadow-[0_3px_12px_rgba(150,100,60,0.08)]">
                         {sec.icon}
                       </div>
                       <div>

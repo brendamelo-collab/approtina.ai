@@ -221,7 +221,6 @@
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .from-\[\#8C7A6B\] { --tw-gradient-from: var(--t-accent) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .to-\[\#786657\] { --tw-gradient-to: var(--t-accent-dark) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#8C7A6B\]\/30 { --tw-ring-color: color-mix(in srgb, var(--t-accent) 30%, transparent) !important; }
-:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#8C7A6B\]\/50 { --tw-ring-color: color-mix(in srgb, var(--t-accent) 50%, transparent) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#C06C54\]\/30 { --tw-ring-color: color-mix(in srgb, var(--t-bad-mid) 30%, transparent) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#C06C54\]\/40 { --tw-ring-color: color-mix(in srgb, var(--t-bad-mid) 40%, transparent) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#7D9D7F\]\/30 { --tw-ring-color: color-mix(in srgb, var(--t-ok-mid) 30%, transparent) !important; }
@@ -231,12 +230,15 @@
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .focus-visible\:ring-\[\#8C7A6B\]:focus-visible,
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .focus\:ring-\[\#8C7A6B\]:focus,
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#8C7A6B\] { --tw-ring-color: var(--t-accent) !important; }
+:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .focus\:ring-\[\#B78A58\]:focus,
+:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#B78A58\] { --tw-ring-color: var(--t-accent2) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#FAF8F5\] { --tw-ring-color: var(--t-card) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#EFE8DE\] { --tw-ring-color: var(--t-line) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .ring-\[\#7D9D7F\] { --tw-ring-color: var(--t-ok-mid) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FAF8F5\]\/95 { background-color: color-mix(in srgb, var(--t-card) 95%, transparent) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FDFBF7\]\/95 { background-color: color-mix(in srgb, var(--t-page) 95%, transparent) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#F7EEE3\]\/50 { background-color: color-mix(in srgb, var(--t-soft) 50%, transparent) !important; }
+:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F4EDE2\]\/60:hover { background-color: color-mix(in srgb, var(--t-soft) 60%, transparent) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#8C7A6B\] { background-color: var(--t-accent) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#786657\]:hover { background-color: var(--t-accent-dark) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#B78A58\] { background-color: var(--t-accent2) !important; }
@@ -252,7 +254,6 @@
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#C06C54\] { background-color: var(--t-bad-mid) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FAF5ED\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FAF5EE\],
-:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FAF6F0\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .bg-\[\#FAF8F5\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F9F6F0\]:hover,
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .hover\:bg-\[\#F9F6F1\]:hover,
@@ -315,9 +316,9 @@
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#8C7A6B\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .focus\:border-\[\#8C7A6B\]:focus { border-color: var(--t-accent) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#B78A58\] { border-color: var(--t-accent2) !important; }
+:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#E6C8A8\] { border-color: var(--t-accent2-soft) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#E8C2B8\],
-:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EAA598\],
-:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#F0D5CD\] { border-color: var(--t-bad-line) !important; }
+:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EAA598\] { border-color: var(--t-bad-line) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#C06C54\] { border-color: var(--t-bad-mid) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#DCD3C5\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#DDD3C5\],
@@ -326,14 +327,11 @@
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#4A3E34\] { border-color: var(--t-ink1) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#E2DDD3\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#E8DFC8\],
-:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#E8E2D5\],
-:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EADFCB\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EADFCF\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EAE1D1\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EAE3D6\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#ECE3D5\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#EFE8DE\] { border-color: var(--t-line) !important; }
-:is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#D3E4D5\] { border-color: var(--t-ok-bg) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#97C29B\],
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#B7D2B9\] { border-color: var(--t-ok-line) !important; }
 :is([data-theme="pessego"], [data-theme="nude"], [data-theme="verde"], [data-theme="azul"], [data-theme="escuro"]) .border-\[\#7D9D7F\] { border-color: var(--t-ok-mid) !important; }

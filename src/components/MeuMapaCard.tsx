@@ -30,7 +30,7 @@ export const MeuMapaCard: React.FC = () => {
 
   return (
     <section className="w-full max-w-xl mx-auto px-4 sm:px-6 my-3.5 select-none">
-      <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 shadow-[0_4px_20px_rgba(140,122,107,0.05)] transition-all hover:shadow-[0_6px_24px_rgba(140,122,107,0.08)]">
+      <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-5 shadow-[0_6px_22px_rgba(150,100,60,0.09)] transition-all hover:shadow-[0_8px_26px_rgba(150,100,60,0.12)]">
         {/* Card Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2.5">

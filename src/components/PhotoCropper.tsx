@@ -84,7 +84,7 @@ export const PhotoCropper: React.FC<Props> = ({ src, onCancel, onSave }) => {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/55 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-sm bg-[#FDFBF7] rounded-3xl p-5 shadow-2xl border border-[#EFE8DE] space-y-4">
+      <div className="w-full max-w-sm bg-[#FDFBF7] rounded-[26px] p-5 shadow-2xl border border-[#EFE8DE] space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold text-[#2C2C2C]">Ajustar foto</h3>

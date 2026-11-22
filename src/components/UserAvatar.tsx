@@ -26,13 +26,13 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
 
   return (
     <div
-      className={`${sizeClasses[size]} rounded-2xl bg-[#EAE0D2] text-[#5C4F44] border border-[#D8C7B4] flex items-center justify-center font-bold shrink-0 overflow-hidden shadow-2xs ${className}`}
+      className={`${sizeClasses[size]} rounded-full bg-[#F4EDE2] text-[#5C4F44] border border-[#EFE8DE] flex items-center justify-center font-bold shrink-0 overflow-hidden shadow-2xs ${className}`}
     >
       {isImage ? (
         <img
           src={avatarUrl}
           alt={name}
-          className="w-full h-full object-cover rounded-2xl"
+          className="w-full h-full object-cover rounded-full"
           onError={(e) => {
             // Fallback on image load error
             (e.target as HTMLElement).style.display = 'none';

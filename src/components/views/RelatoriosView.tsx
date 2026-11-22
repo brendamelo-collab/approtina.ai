@@ -32,7 +32,8 @@ import {
   answerSeries,
   DoneCounts
 } from '../../utils/reportStats';
-import { BarSeries, Card, DeltaBadge, EmptyState, ProgressRow, SplitBar, Stat } from '../reports/ReportCharts';
+import { BarSeries, Card, DeltaBadge, Donut, EmptyState, MoodLine, ProgressRow, SplitBar, Stat } from '../reports/ReportCharts';
+import { PageHeader, SegmentTrack } from '../ui/Kit';
 import { AreaReport } from '../reports/AreaReport';
 
 type Section = 'geral' | 'mapa' | 'humor' | 'rotinas' | 'saude' | 'agenda' | 'metas' | 'revisao';
@@ -53,7 +54,7 @@ const PERIODS: { id: PeriodKind; label: string }[] = [
   { id: 'semana', label: 'Semana' },
   { id: 'mes', label: 'Mês' },
   { id: 'ano', label: 'Ano' },
-  { id: 'personalizado', label: 'Período' }
+  { id: 'personalizado', label: 'Outro' }
 ];
 
 const PERIOD_NAMES: Record<string, string> = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite', especiais: 'Especiais' };
@@ -152,6 +153,8 @@ export const RelatoriosView: React.FC = () => {
   // ---------------- OUTROS MÓDULOS ----------------
   const mood = useMemo(() => moodReport(moodRecords, moodOptions, period, buckets), [moodRecords, moodOptions, period, buckets]);
   const factors = useMemo(() => factorReport(dayFactors, availableFactors, period), [dayFactors, availableFactors, period]);
+  // Emojis do eixo do gráfico de humor: os do próprio app, por intensidade (1 a 5)
+  const moodEmojiScale = [1, 2, 3, 4, 5].map((lvl, i) => moodOptions.find((o) => o.intensity === lvl)?.emoji || ['😣', '😕', '😐', '🙂', '😀'][i]);
   const routines = useMemo(
     () => routineReport(routineTasks, dailyChronologicalSteps, activityLog, period, buckets, today),
     [routineTasks, dailyChronologicalSteps, activityLog, period, buckets, today]
@@ -201,21 +204,9 @@ export const RelatoriosView: React.FC = () => {
 
   // ---------------- PEÇAS ----------------
   const periodPicker = (
-    <div className="bg-white border border-[#EFE8DE] rounded-3xl p-3 space-y-2.5">
-      <div className="grid grid-cols-5 gap-1 bg-[#F4EDE2] p-1 rounded-2xl">
-        {PERIODS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => setKind(p.id)}
-            className={`py-1.5 rounded-xl text-[11px] font-bold transition-colors ${
-              kind === p.id ? 'bg-[#FAF8F5] text-[#2C2C2C] shadow-xs' : 'text-[#8C7A6B] hover:text-[#2C2C2C]'
-            }`}
-          >
-            {p.label}
-          </button>
-        ))}
-      </div>
+    <div className="space-y-3">
+      <SegmentTrack options={PERIODS} value={kind} onChange={setKind} />
+    <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-3 space-y-2.5 shadow-[0_3px_12px_rgba(150,100,60,0.08)]">
       {kind === 'personalizado' ? (
         <div className="grid grid-cols-2 gap-2">
           <label className="text-[11px] font-bold text-[#5C4F44] space-y-1">
@@ -261,6 +252,7 @@ export const RelatoriosView: React.FC = () => {
       )}
       {kind === 'personalizado' && <p className="text-[10px] text-[#8C7A6B] text-center">{period.label} · comparado com os {period.prevLabel}</p>}
     </div>
+    </div>
   );
 
   const sectionTabs = (
@@ -271,8 +263,8 @@ export const RelatoriosView: React.FC = () => {
             key={s.id}
             type="button"
             onClick={() => setSection(s.id)}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border transition-colors ${
-              section === s.id ? 'bg-[#8C7A6B] border-[#8C7A6B] text-white' : 'bg-white border-[#EFE8DE] text-[#5C4F44]'
+            className={`px-4 h-9 rounded-full text-[13px] font-semibold whitespace-nowrap border transition-colors ${
+              section === s.id ? 'bg-[#E6C8A8] border-[#E6C8A8] text-[#3A2619]' : 'bg-[#FAF8F5] border-[#EFE8DE] text-[#4A3E34]'
             }`}
           >
             {s.label}
@@ -313,23 +305,8 @@ export const RelatoriosView: React.FC = () => {
 
   // ---------------- RENDER ----------------
   return (
-    <div className="w-full max-w-xl mx-auto px-4 sm:px-6 pt-2 pb-32 select-none space-y-3.5">
-      {/* Cabeçalho */}
-      <div className="flex items-center gap-3 py-2">
-        <button
-          onClick={() => setActiveTab('inicio')}
-          className="w-9 h-9 shrink-0 rounded-full bg-[#F4EDE2] hover:bg-[#EAE0D2] flex items-center justify-center text-[#5C4F44]"
-          aria-label="Voltar ao início"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-        <div className="min-w-0 flex-1">
-          <h1 className="text-lg font-bold text-[#2C2C2C] leading-tight flex items-center gap-2">
-            <BarChart2 className="w-5 h-5 text-[#8C7A6B] shrink-0" /> Relatórios
-          </h1>
-          <p className="text-[11px] text-[#8C7A6B] leading-snug">Calculados só com o que você registrou</p>
-        </div>
-      </div>
+    <div className="w-full max-w-xl mx-auto px-4 sm:px-6 pb-32 select-none space-y-3.5">
+      <PageHeader icon={BarChart2} title="Relatórios" subtitle="Calculados só com o que você registrou" />
 
       {demoCandidates.length > 0 && (
         <button
@@ -347,6 +324,42 @@ export const RelatoriosView: React.FC = () => {
       {/* ====================== VISÃO GERAL ====================== */}
       {section === 'geral' && (
         <div className="space-y-3">
+          <Card title="Meu Mapa" subtitle="Respostas positivas e negativas no período" right={<button type="button" onClick={() => setSection('mapa')} className="text-xs font-semibold text-[#B78A58]">Detalhes ›</button>}>
+            {mapAll.validas === 0 ? (
+              <EmptyState hint="Responda as perguntas do Meu Mapa para ver este gráfico." />
+            ) : (
+              <Donut
+                center={mapAll.pctPositivo}
+                centerLabel="positivo"
+                parts={[
+                  { value: mapAll.positivo, color: '#7D9D7F', label: 'Positivo' },
+                  { value: mapAll.negativo, color: '#C58B68', label: 'Negativo' }
+                ]}
+                note={mapAll.naoSeAplica + mapAll.naoLembro > 0 ? `Neutro: ${plural(mapAll.naoSeAplica + mapAll.naoLembro, 'resposta', 'respostas')} (não se aplica / não lembro), fora da conta` : undefined}
+              />
+            )}
+          </Card>
+
+          <Card title="Evolução do humor" right={<button type="button" onClick={() => setSection('humor')} className="text-xs font-semibold text-[#B78A58]">Detalhes ›</button>}>
+            <MoodLine values={mood.series} labels={buckets.map((b) => b.label)} emojis={moodEmojiScale} />
+          </Card>
+
+          <Card title="Fatores mais frequentes">
+            {factors.rows.length === 0 ? (
+              <EmptyState hint="Marque os fatores do dia no Meu Mapa para ver o que mais apareceu." />
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {factors.rows.slice(0, 3).map((f) => (
+                  <div key={f.factor.id} className="flex flex-col items-center text-center gap-1">
+                    <span className="w-14 h-14 rounded-full bg-white flex items-center justify-center text-[28px] shadow-[0_3px_12px_rgba(150,100,60,0.08)]">{f.factor.icon || '•'}</span>
+                    <span className="text-xs text-[#4A3E34] leading-tight line-clamp-2">{f.factor.label}</span>
+                    <span className="text-sm font-bold text-[#2C2C2C]">{f.pctDays === null ? '—' : `${f.pctDays}%`}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
           <div className="grid grid-cols-2 gap-2">
             <button type="button" onClick={() => setSection('mapa')} className="text-left">
               <Stat

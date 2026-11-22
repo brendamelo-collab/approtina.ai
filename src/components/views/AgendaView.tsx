@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { todayISO, toISODate, shiftISODate, MONTH_NAMES } from '../../utils/dateUtils';
+import { todayISO, toISODate, shiftISODate, parseISODate, MONTH_NAMES } from '../../utils/dateUtils';
+import { IconBubble, ListRow, PageHeader, RoundButton, SectionTitle, SoftCard } from '../ui/Kit';
 import { agendaOccursOn } from '../../utils/routineCalculations';
 import { personalOccursOn, profileName } from '../../utils/routineSchedule';
 import { AgendaItem, WeeklyFixedTopic, AgendaCategory } from '../../types';
 import {
   ChevronLeft,
+  ChevronRight,
   ChevronDown,
   ChevronUp,
   Plus,
@@ -239,8 +241,33 @@ export const AgendaView: React.FC = () => {
     showToast(`Tópico fixo de ${daysOfWeekNames[newTopicDay]} adicionado!`);
   };
 
+  // Próximos compromissos (30 dias a partir de hoje, primeira ocorrência de cada um)
+  const [showAllUpcoming, setShowAllUpcoming] = useState(false);
+  const upcomingAll = (() => {
+    const out: { item: AgendaItem; date: string }[] = [];
+    const seen = new Set<string>();
+    const start = todayISO();
+    for (let i = 0; i <= 30 && out.length < 12; i++) {
+      const d = shiftISODate(start, i);
+      agendaItems
+        .filter((it) => !it.completed && !seen.has(it.id) && agendaOccursOn(it, d))
+        .sort((x, y) => x.time.localeCompare(y.time))
+        .forEach((it) => {
+          seen.add(it.id);
+          out.push({ item: it, date: d });
+        });
+    }
+    return out.slice(0, 12);
+  })();
+  const upcomingDayLabel = (iso: string) => {
+    if (iso === todayISO()) return 'Hoje';
+    if (iso === shiftISODate(todayISO(), 1)) return 'Amanhã';
+    const s = parseISODate(iso).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }).replace('.', '');
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  };
+
   return (
-    <div className="w-full max-w-xl mx-auto px-4 sm:px-6 pt-2 pb-32 select-none relative">
+    <div className="w-full max-w-xl mx-auto px-4 sm:px-6 pb-32 select-none relative">
       {/* Toast Notification */}
       {toastNotification && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-md bg-[#2C2C2C] text-white px-4 py-3 rounded-2xl shadow-xl flex items-center justify-between text-xs animate-in fade-in slide-in-from-top-4 duration-200">
@@ -254,168 +281,137 @@ export const AgendaView: React.FC = () => {
         </div>
       )}
 
-      {/* Top Header */}
-      <div className="flex items-center justify-between py-2 mb-3">
-        <button
-          onClick={() => setActiveTab('inicio')}
-          className="flex items-center gap-1.5 text-xs font-bold text-[#8C7A6B] hover:text-[#5C4F44] bg-[#F4EDE2] hover:bg-[#EAE0D2] px-3.5 py-1.5 rounded-full transition-colors"
-          aria-label="Voltar ao início"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Início</span>
-        </button>
+      <PageHeader
+        icon={CalendarDays}
+        title="Minha Agenda"
+        right={
+          <>
+            <RoundButton label="Gerenciar categorias" onClick={() => setIsCategoryModalOpen(true)}>
+              <Sliders className="w-[18px] h-[18px]" strokeWidth={1.9} />
+            </RoundButton>
+            <RoundButton
+              label="Adicionar compromisso"
+              tone="accent"
+              onClick={() => {
+                setNewDate(selectedDateStr);
+                setIsAddModalOpen(true);
+              }}
+            >
+              <Plus className="w-5 h-5" strokeWidth={2.2} />
+            </RoundButton>
+          </>
+        }
+      />
 
-        <div className="text-center">
-          <h1 className="text-lg font-bold text-[#2C2C2C] tracking-tight">Minha Agenda</h1>
-          <p className="text-[11px] text-[#8C7A6B]">Compromissos & Calendário Familiar</p>
-        </div>
+      <div className="space-y-4 mt-3">
+        {/* Calendário do mês (sempre aberto, como na foto) */}
+        <SoftCard className="p-4">
+          <div className="flex items-center justify-between px-1">
+            <button
+              type="button"
+              onClick={() => goToMonth(-1)}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-[#4A3E34] hover:bg-[#F4EDE2]"
+              aria-label="Mês anterior"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button type="button" onClick={goToToday} className="text-[17px] font-bold text-[#2C2C2C]" title="Ir para hoje">
+              {MONTH_NAMES[viewMonth]} {viewYear}
+            </button>
+            <button
+              type="button"
+              onClick={() => goToMonth(1)}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-[#4A3E34] hover:bg-[#F4EDE2]"
+              aria-label="Próximo mês"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
 
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => setIsCategoryModalOpen(true)}
-            className="w-8 h-8 rounded-full bg-[#F4EDE2] hover:bg-[#EAE0D2] text-[#8C7A6B] flex items-center justify-center transition-colors"
-            title="Gerenciar Categorias"
-          >
-            <Sliders className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => {
-              setNewDate(selectedDateStr);
-              setIsAddModalOpen(true);
-            }}
-            className="w-9 h-9 rounded-full bg-[#8C7A6B] hover:bg-[#786657] text-white flex items-center justify-center shadow-xs transition-colors"
-            title="Adicionar compromisso"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        {/* ========================================================
-            CARD 1: CALENDÁRIO COM SELEÇÃO INTERATIVA DE DIA
-           ======================================================== */}
-        <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(140,122,107,0.05)] transition-all">
-          <button
-            onClick={() => toggleSection('calendario')}
-            className="w-full p-4 sm:p-5 flex items-center justify-between text-left focus:outline-none"
-            aria-expanded={openSections.calendario}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-lg text-[#B78A58]">
-                <Calendar className="w-5 h-5 text-[#B78A58]" />
-              </div>
-              <div>
-                <h2 className="text-sm sm:text-base font-bold text-[#2C2C2C]">
-                  1. Calendário Interativo
-                </h2>
-                <p className="text-xs text-[#8C7A6B]">
-                  {monthLabel} • Clique em qualquer dia para ver os detalhes abaixo
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-xs font-semibold text-[#8C7A6B] bg-[#F4EDE2] px-2.5 py-1 rounded-full whitespace-nowrap">
-                Dia {activeDayNum}
+          <div className="grid grid-cols-7 text-center mt-3 mb-1">
+            {daysOfWeekLetters.map((d, i) => (
+              <span key={i} className="text-[13px] font-semibold text-[#8C7A6B]">
+                {d}
               </span>
-              <div className="w-7 h-7 rounded-full bg-[#F4EDE2] flex items-center justify-center text-[#8C7A6B]">
-                {openSections.calendario ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </div>
-            </div>
-          </button>
+            ))}
+          </div>
 
-          {openSections.calendario && (
-            <div className="px-4 sm:px-5 pb-5 pt-1 border-t border-[#EFE8DE]/60 space-y-4">
-              <div className="flex items-center justify-between pb-1">
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => goToMonth(-1)}
-                    className="w-7 h-7 rounded-full bg-[#F4EDE2] hover:bg-[#EAE0D2] flex items-center justify-center text-[#5C4F44]"
-                    aria-label="Mês anterior"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <span className="text-xs font-bold text-[#2C2C2C] min-w-[120px] text-center">{monthLabel}</span>
-                  <button
-                    type="button"
-                    onClick={() => goToMonth(1)}
-                    className="w-7 h-7 rounded-full bg-[#F4EDE2] hover:bg-[#EAE0D2] flex items-center justify-center text-[#5C4F44]"
-                    aria-label="Próximo mês"
-                  >
-                    <ChevronLeft className="w-4 h-4 rotate-180" />
-                  </button>
-                </div>
+          <div className="grid grid-cols-7 gap-y-1 text-center">
+            {Array.from({ length: leadingBlanks }, (_, i) => (
+              <span key={`blank-${i}`} />
+            ))}
+            {calendarDays.map((cd) => {
+              const isSelected = activeDayNum === cd.day;
+              const isToday = isoForDay(cd.day) === todayISO();
+              return (
                 <button
+                  key={cd.day}
                   type="button"
-                  onClick={goToToday}
-                  className="text-[11px] font-bold text-[#5C4F44] bg-[#EAE0D2] hover:bg-[#E4DACD] px-2.5 py-1 rounded-full transition-colors"
+                  onClick={() => setActiveDayNum(cd.day)}
+                  aria-label={`Dia ${cd.day}${cd.hasEvents ? ', com compromissos' : ''}`}
+                  aria-pressed={isSelected}
+                  className="h-11 flex flex-col items-center justify-center"
                 >
-                  Ir para Hoje ({today.getDate()})
-                </button>
-              </div>
-
-              {/* Days of week header */}
-              <div className="grid grid-cols-7 text-center mb-1">
-                {daysOfWeekLetters.map((d, i) => (
-                  <span key={i} className="text-xs font-bold text-[#8C7A6B]">
-                    {d}
+                  <span
+                    className={`w-9 h-9 rounded-full flex items-center justify-center text-[15px] transition ${
+                      isSelected
+                        ? 'bg-[#B78A58] text-white font-bold shadow-sm'
+                        : isToday
+                          ? 'ring-2 ring-[#B78A58] text-[#2C2C2C] font-bold'
+                          : 'text-[#2C2C2C] hover:bg-[#F4EDE2]'
+                    }`}
+                  >
+                    {cd.day}
                   </span>
-                ))}
-              </div>
-
-              {/* Calendar grid of the month being viewed */}
-              <div className="grid grid-cols-7 gap-1.5 text-center">
-                {Array.from({ length: leadingBlanks }, (_, i) => (
-                  <span key={`blank-${i}`} />
-                ))}
-                {calendarDays.map((cd) => {
-                  const isSelected = activeDayNum === cd.day;
-                  const isToday = isoForDay(cd.day) === todayISO();
-                  return (
-                    <button
-                      key={cd.day}
-                      type="button"
-                      onClick={() => setActiveDayNum(cd.day)}
-                      className={`h-10 flex flex-col items-center justify-center rounded-2xl text-xs font-semibold transition-all relative ${
-                        isSelected
-                          ? 'bg-[#8C7A6B] text-white shadow-xs font-bold scale-105 ring-2 ring-[#8C7A6B]/50'
-                          : isToday
-                          ? 'bg-[#EAE0D2] text-[#2C2C2C] font-bold border border-[#D8C7B4]'
-                          : 'text-[#4A3E34] hover:bg-[#F4EDE2] bg-white border border-[#EFE8DE]'
-                      }`}
-                    >
-                      <span>{cd.day}</span>
-                      {cd.hasEvents && (
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full mt-0.5 ${
-                            isSelected ? 'bg-white' : 'bg-[#B78A58]'
-                          }`}
-                        />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="flex items-center justify-between text-[11px] text-[#8C7A6B] pt-1">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#B78A58]" />
-                  <span>Pontinho indica compromissos no dia</span>
-                </span>
-                <span className="font-semibold text-[#5C4F44]">
-                  Selecionado: {selectedDayOfWeekName}, {activeDayNum}/{viewMonth + 1}
-                </span>
-              </div>
+                  <span className={`w-1 h-1 rounded-full -mt-0.5 ${cd.hasEvents && !isSelected ? 'bg-[#B78A58]' : 'bg-transparent'}`} />
+                </button>
+              );
+            })}
+          </div>
+          {(viewMonth !== today.getMonth() || viewYear !== today.getFullYear() || activeDayNum !== today.getDate()) && (
+            <div className="text-center pt-2">
+              <button type="button" onClick={goToToday} className="text-xs font-semibold text-[#B78A58] hover:underline">
+                Voltar para hoje ({today.getDate()})
+              </button>
             </div>
           )}
-        </div>
+        </SoftCard>
+
+        {/* Próximos compromissos */}
+        <SoftCard className="p-4">
+          <div className="px-1">
+            <SectionTitle
+              title="Próximos compromissos"
+              action={upcomingAll.length > 4 ? { label: showAllUpcoming ? 'Ver menos' : 'Ver todos', onClick: () => setShowAllUpcoming((v) => !v) } : undefined}
+            />
+          </div>
+          {upcomingAll.length === 0 ? (
+            <p className="px-1 pt-2 text-sm text-[#8C7A6B]">Nenhum compromisso nos próximos 30 dias.</p>
+          ) : (
+            <div className="mt-1">
+              {(showAllUpcoming ? upcomingAll : upcomingAll.slice(0, 4)).map(({ item, date }) => (
+                <ListRow
+                  key={`${item.id}-${date}`}
+                  icon={<IconBubble size="sm">{item.icon}</IconBubble>}
+                  title={item.title}
+                  subtitle={`${upcomingDayLabel(date)} · ${item.time}${item.location ? ` · ${item.location}` : ''}`}
+                  onClick={() => {
+                    const d = parseISODate(date);
+                    setViewYear(d.getFullYear());
+                    setViewMonth(d.getMonth());
+                    setActiveDayNum(d.getDate());
+                  }}
+                  right={<ChevronRight className="w-4 h-4 text-[#B78A58]" />}
+                />
+              ))}
+            </div>
+          )}
+        </SoftCard>
 
         {/* ========================================================
             CARD 2: COMPROMISSOS DETALHADOS DO DIA SELECIONADO (LOGO ABAIXO)
            ======================================================== */}
-        <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(140,122,107,0.05)] transition-all">
+        <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] overflow-hidden shadow-[0_6px_22px_rgba(150,100,60,0.09)] transition-all">
           <div className="p-4 sm:p-5 border-b border-[#EFE8DE]/60 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <span className="text-xl">📅</span>
@@ -561,14 +557,14 @@ export const AgendaView: React.FC = () => {
         {/* ========================================================
             CARD 3: TÓPICOS FIXOS DA SEMANA (TOTALMENTE EDITÁVEIS)
            ======================================================== */}
-        <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(140,122,107,0.05)] transition-all">
+        <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] overflow-hidden shadow-[0_6px_22px_rgba(150,100,60,0.09)] transition-all">
           <button
             onClick={() => toggleSection('topicosFixos')}
             className="w-full p-4 sm:p-5 flex items-center justify-between text-left focus:outline-none"
             aria-expanded={openSections.topicosFixos}
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-lg text-[#B78A58]">
+              <div className="w-10 h-10 rounded-full bg-white shadow-[0_3px_12px_rgba(150,100,60,0.08)] flex items-center justify-center text-lg text-[#B78A58]">
                 🎬
               </div>
               <div>
@@ -652,7 +648,7 @@ export const AgendaView: React.FC = () => {
          ======================================================== */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 sm:p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-4">
+          <div className="w-full max-w-md bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-5 sm:p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
               <div className="flex items-center gap-2">
                 <span className="text-xl">📅</span>
@@ -815,7 +811,7 @@ export const AgendaView: React.FC = () => {
          ======================================================== */}
       {isCategoryModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 shadow-2xl relative max-h-[85vh] flex flex-col">
+          <div className="w-full max-w-md bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-5 shadow-2xl relative max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
               <div className="flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-[#8C7A6B]" />
@@ -898,7 +894,7 @@ export const AgendaView: React.FC = () => {
          ======================================================== */}
       {isWeeklyTopicModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 shadow-2xl relative space-y-3.5">
+          <div className="w-full max-w-md bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-5 shadow-2xl relative space-y-3.5">
             <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
               <div className="flex items-center gap-2">
                 <span className="text-xl">🎬</span>

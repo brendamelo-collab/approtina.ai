@@ -187,10 +187,10 @@ export const CuidadosSaudeView: React.FC = () => {
       </div>
 
       {/* Interactive Self-Care Routine Card (Screen 7: 🧴 Esfoliação corporal with toggle) */}
-      <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-4 mb-4 shadow-[0_4px_20px_rgba(140,122,107,0.05)]">
+      <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-4 mb-4 shadow-[0_6px_22px_rgba(150,100,60,0.09)]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-xl shadow-2xs">
+            <div className="w-10 h-10 rounded-full bg-white shadow-[0_3px_12px_rgba(150,100,60,0.08)] flex items-center justify-center text-xl shadow-2xs">
               🧴
             </div>
             <div>
@@ -247,14 +247,14 @@ export const CuidadosSaudeView: React.FC = () => {
             return (
               <div
                 key={item.id}
-                className={`p-4 rounded-3xl border transition-all shadow-2xs flex items-center justify-between gap-3 ${
+                className={`p-4 rounded-[26px] border transition-all shadow-2xs flex items-center justify-between gap-3 ${
                   isConfirmed
                     ? 'bg-[#F2ECE2] border-[#DDD3C5]'
                     : 'bg-[#FAF8F5] border-[#EFE8DE] hover:bg-[#F9F6F1]'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#FAF8F5] border border-[#EAE0D2] flex items-center justify-center text-xl shrink-0 shadow-2xs">
+                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-xl shrink-0 shadow-2xs">
                     {item.category === 'medicamento' ? '🧪' : '💊'}
                   </div>
                   <div>
@@ -312,7 +312,7 @@ export const CuidadosSaudeView: React.FC = () => {
       </div>
 
       {/* Resumo do Mês Card (Screen 7: 87% Donut chart & "26 de 30 administrações") */}
-      <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 shadow-[0_4px_20px_rgba(140,122,107,0.05)] space-y-3">
+      <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-5 shadow-[0_6px_22px_rgba(150,100,60,0.09)] space-y-3">
         <h3 className="text-xs font-bold text-[#8C7A6B] uppercase tracking-wider">
           Resumo de hoje
         </h3>
@@ -364,7 +364,7 @@ export const CuidadosSaudeView: React.FC = () => {
       {/* Modal: Novo Medicamento / Cuidado */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-[#FDFBF7] rounded-3xl p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-md bg-[#FDFBF7] rounded-[26px] p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-[#F7EEE3] flex items-center justify-center text-[#B78A58]">

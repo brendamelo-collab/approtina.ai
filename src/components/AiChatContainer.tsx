@@ -77,7 +77,7 @@ export const AiChatContainer: React.FC<{ isEmbeddedView?: boolean; onClose?: () 
     {
       id: 'm-init',
       sender: 'ai',
-      text: `Olá, ${currentProfile.name}! Sou sua Assistente Inteligente no Rotina.ai. Estou aqui para aliviar sua carga mental, organizar compromissos, sugerir novos hábitos e acompanhar o bem-estar de toda a família. Como posso cuidar de você hoje? ✨`,
+      text: `Olá, ${currentProfile.name}! 🌸 Como posso te ajudar hoje?`,
       time: 'Agora'
     }
   ]);
@@ -472,10 +472,10 @@ export const AiChatContainer: React.FC<{ isEmbeddedView?: boolean; onClose?: () 
       <div className="flex-1 overflow-y-auto py-3 space-y-3.5 pr-1">
         {/* Friendly AI Avatar Card */}
         <div className="flex flex-col items-center justify-center py-2 text-center">
-          <div className="w-16 h-16 rounded-3xl bg-[#F7EEE3] border border-[#EAE0D2] flex items-center justify-center shadow-xs">
+          <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-[0_3px_12px_rgba(150,100,60,0.08)]">
             <span className="text-3xl">🤖</span>
           </div>
-          <h3 className="text-xs sm:text-sm font-bold text-[#2C2C2C] mt-2">
+          <h3 className="text-sm font-bold text-[#2C2C2C] mt-2">
             Assistente Rotina.ai
           </h3>
           <p className="text-[11px] text-[#8C7A6B]">
@@ -491,10 +491,10 @@ export const AiChatContainer: React.FC<{ isEmbeddedView?: boolean; onClose?: () 
               className={`flex flex-col ${isAi ? 'items-start' : 'items-end'}`}
             >
               <div
-                className={`max-w-[90%] rounded-2xl px-4 py-3 text-xs leading-relaxed ${
+                className={`max-w-[88%] px-4 py-3 text-[14px] leading-relaxed ${
                   isAi
-                    ? 'bg-[#FAF8F5] text-[#2C2C2C] border border-[#EFE8DE] shadow-xs'
-                    : 'bg-[#8C7A6B] text-white shadow-xs'
+                    ? 'bg-[#FAF8F5] text-[#2C2C2C] rounded-[22px] rounded-tl-md shadow-[0_3px_12px_rgba(150,100,60,0.08)]'
+                    : 'bg-[#E6C8A8] text-[#3A2619] rounded-[22px] rounded-tr-md shadow-[0_3px_12px_rgba(150,100,60,0.08)]'
                 }`}
               >
                 {m.text}
@@ -636,14 +636,15 @@ export const AiChatContainer: React.FC<{ isEmbeddedView?: boolean; onClose?: () 
         )}
       </div>
 
-      {/* Quick Prompt Pills */}
+      {/* Sugestões (empilhadas no começo da conversa, como na foto; depois viram uma faixa) */}
       <div className="pt-2 pb-2">
-        <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+        <div className={messages.length <= 1 ? 'flex flex-col items-start gap-2' : 'flex gap-2 overflow-x-auto pb-1 no-scrollbar'}>
           {quickPrompts.map((prompt) => (
             <button
               key={prompt}
+              type="button"
               onClick={() => handleSend(prompt)}
-              className="whitespace-nowrap px-3 py-1.5 rounded-xl bg-[#F4EDE2] hover:bg-[#EAE0D2] text-[#5C4F44] text-[11px] font-semibold transition-colors shrink-0 max-w-[280px] truncate shadow-2xs"
+              className={`whitespace-nowrap px-4 h-10 rounded-full bg-[#FAF8F5] hover:bg-[#F4EDE2] text-[#4A3E34] text-[13px] font-semibold transition-colors shrink-0 max-w-full truncate shadow-[0_3px_12px_rgba(150,100,60,0.08)]`}
             >
               {prompt}
             </button>
@@ -652,7 +653,7 @@ export const AiChatContainer: React.FC<{ isEmbeddedView?: boolean; onClose?: () 
       </div>
 
       {/* Input bar */}
-      <div className="pt-2 border-t border-[#EFE8DE]">
+      <div className="pt-1">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -662,15 +663,16 @@ export const AiChatContainer: React.FC<{ isEmbeddedView?: boolean; onClose?: () 
         >
           <input
             type="text"
-            placeholder="Ex: Agenda futebol na quinta às 18h, ou Como foi meu mês..."
+            placeholder="Digite sua mensagem..."
+            aria-label="Mensagem para o assistente (ex.: Agenda futebol na quinta às 18h)"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            className="flex-1 bg-[#FAF8F5] border border-[#EFE8DE] rounded-2xl px-4 py-3 text-xs text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-[#8C7A6B] placeholder:text-[#A8988B]"
+            className="flex-1 min-w-0 bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-full px-5 h-12 text-sm text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-[#B78A58] placeholder:text-[#A8988B] shadow-[0_3px_12px_rgba(150,100,60,0.08)]"
           />
           <button
             type="submit"
             disabled={!input.trim()}
-            className="w-11 h-11 rounded-2xl bg-[#8C7A6B] hover:bg-[#786657] disabled:opacity-50 text-white flex items-center justify-center transition-all shrink-0 active:scale-95"
+            className="w-12 h-12 rounded-full bg-[#B78A58] hover:brightness-95 disabled:opacity-50 text-white flex items-center justify-center transition-all shrink-0 active:scale-95"
             aria-label="Enviar mensagem"
           >
             <Send className="w-4 h-4" />

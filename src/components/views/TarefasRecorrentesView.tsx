@@ -11,8 +11,10 @@ import {
   X,
   Calendar,
   Clock,
-  Sparkles
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
+import { CheckCircle, IconBubble, ListRow, PageHeader, PeachButton, RoundButton, SectionTitle, SegmentTrack, SoftCard, StatusChip } from '../ui/Kit';
 import { RecurringTaskItem } from '../../types';
 
 const daysOfWeekNames = [
@@ -32,8 +34,11 @@ export const TarefasRecorrentesView: React.FC = () => {
     completeRecurringTask,
     addRecurringTask,
     updateRecurringTask,
-    deleteRecurringTask
+    deleteRecurringTask,
+    uncompleteRecurringTask,
+    recurringHistory
   } = useApp();
+  const [showAllHistory, setShowAllHistory] = useState(false);
 
   const [selectedDayFilter, setSelectedDayFilter] = useState<number | 'todos'>('todos');
 
@@ -112,7 +117,7 @@ export const TarefasRecorrentesView: React.FC = () => {
   });
 
   return (
-    <div className="w-full max-w-xl mx-auto px-4 sm:px-6 pt-2 pb-32 select-none relative">
+    <div className="w-full max-w-xl mx-auto px-4 sm:px-6 pb-32 select-none relative">
       {/* Toast Notification Banner */}
       {toastNotification && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-md bg-[#2C2C2C] text-white px-4 py-3 rounded-2xl shadow-xl flex items-center justify-between text-xs animate-in fade-in slide-in-from-top-4 duration-200">
@@ -126,187 +131,120 @@ export const TarefasRecorrentesView: React.FC = () => {
         </div>
       )}
 
-      {/* Top Header */}
-      <div className="flex items-center justify-between py-2 mb-3">
-        <button
-          onClick={() => setActiveTab('inicio')}
-          className="flex items-center gap-1.5 text-xs font-bold text-[#8C7A6B] hover:text-[#5C4F44] bg-[#F4EDE2] hover:bg-[#EAE0D2] px-3.5 py-1.5 rounded-full transition-colors"
-          aria-label="Voltar ao início"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Início</span>
-        </button>
+      <PageHeader
+        icon={RefreshCw}
+        title="Tarefas Recorrentes"
+        right={
+          <RoundButton label="Adicionar tarefa recorrente" tone="accent" onClick={() => setIsAddModalOpen(true)}>
+            <Plus className="w-5 h-5" strokeWidth={2.2} />
+          </RoundButton>
+        }
+      />
 
-        <div className="text-center">
-          <h1 className="text-lg font-bold text-[#2C2C2C] tracking-tight">Tarefas Recorrentes & Hábitos</h1>
-          <p className="text-[11px] text-[#8C7A6B]">Manutenção periódica integrada à Rotina Diária</p>
-        </div>
-
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="w-9 h-9 rounded-full bg-[#8C7A6B] hover:bg-[#786657] text-white flex items-center justify-center shadow-xs transition-colors"
-          title="Nova Tarefa Recorrente"
-          aria-label="Adicionar tarefa recorrente"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Days of the Week Visual Filter Pills */}
-      <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-3 mb-4 shadow-2xs space-y-2">
-        <span className="text-[11px] font-bold text-[#8C7A6B] block px-1">
-          Visualização por Dia da Semana:
-        </span>
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-          <button
-            onClick={() => setSelectedDayFilter('todos')}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${
-              selectedDayFilter === 'todos'
-                ? 'bg-[#8C7A6B] text-white shadow-xs'
-                : 'bg-[#F4EDE2] text-[#5C4F44] hover:bg-[#EAE0D2]'
-            }`}
-          >
-            Todos os dias
-          </button>
-          {daysOfWeekNames.map((d) => {
-            const isSelected = selectedDayFilter === d.id;
-            return (
-              <button
-                key={d.id}
-                onClick={() => setSelectedDayFilter(d.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 ${
-                  isSelected
-                    ? 'bg-[#8C7A6B] text-white font-bold shadow-xs'
-                    : 'bg-[#FAF8F5] text-[#5C4F44] border border-[#EFE8DE] hover:bg-[#F4EDE2]'
-                }`}
-              >
-                {d.name}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* List of Tasks Assigned to Days */}
-      <div className="space-y-3 mb-6">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-sm font-bold text-[#2C2C2C]">
-            Tarefas & Hábitos Periódicos ({displayedTasks.length})
-          </h2>
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="text-xs font-semibold text-[#8C7A6B] hover:text-[#5C4F44] flex items-center gap-1 bg-[#F4EDE2] px-2.5 py-1 rounded-xl transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Adicionar Tarefa</span>
-          </button>
-        </div>
+      <div className="mt-3 space-y-4">
+        <SegmentTrack<number | 'todos'>
+          options={[{ id: 'todos', label: 'Todas' }, ...daysOfWeekNames.map((d) => ({ id: d.id, label: d.short }))]}
+          value={selectedDayFilter}
+          onChange={setSelectedDayFilter}
+          marker={new Date().getDay()}
+        />
 
         {displayedTasks.length === 0 ? (
-          <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-8 text-center space-y-2">
+          <SoftCard className="p-8 text-center space-y-2">
             <Repeat className="w-8 h-8 text-[#B78A58] mx-auto opacity-70" />
             <h3 className="text-sm font-bold text-[#2C2C2C]">Nenhuma tarefa para este filtro</h3>
-            <p className="text-xs text-[#8C7A6B]">
-              Adicione tarefas recorrentes e escolha em quais dias da semana elas entram na sua Rotina Diária.
-            </p>
-          </div>
+            <p className="text-xs text-[#8C7A6B]">Adicione tarefas recorrentes e escolha em quais dias da semana elas entram na sua Rotina Diária.</p>
+          </SoftCard>
         ) : (
           displayedTasks.map((task: RecurringTaskItem) => {
             const isDone = task.status === 'concluido';
             const showOnCal = task.showOnCalendar ?? true;
-
+            const days = task.daysOfWeek && task.daysOfWeek.length > 0 ? task.daysOfWeek.map((d) => daysOfWeekNames.find((day) => day.id === d)?.short).join(', ') : 'Seg';
             return (
-              <div
-                key={task.id}
-                className={`p-4 rounded-3xl border transition-all shadow-2xs space-y-3 ${
-                  isDone
-                    ? 'bg-[#F2ECE2] border-[#DDD3C5] opacity-75'
-                    : 'bg-white border-[#EFE8DE] hover:bg-[#FDFBF7]'
-                }`}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-11 h-11 rounded-2xl bg-[#FAF8F5] border border-[#EAE0D2] flex items-center justify-center text-xl shrink-0 shadow-2xs">
-                      {getTaskEmoji(task)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-xs sm:text-sm font-bold text-[#2C2C2C] break-words">
-                        {task.title}
-                      </h3>
-                      <p className="text-[11px] text-[#8C7A6B] mt-0.5 leading-snug">
-                        {task.recurrence} • Horário: <strong className="text-[#5C4F44]">{task.time || '13:00'}</strong>
-                      </p>
-                    </div>
+              <SoftCard key={task.id} as="div" className={`p-4 ${isDone ? 'opacity-90' : ''}`}>
+                <div className="flex items-center gap-3.5">
+                  <IconBubble>{getTaskEmoji(task)}</IconBubble>
+                  <div className="min-w-0 flex-1">
+                    <h3 className={`text-[16px] font-bold leading-snug break-words ${isDone ? 'text-[#8C7A6B]' : 'text-[#2C2C2C]'}`}>{task.title}</h3>
+                    <p className="text-[13px] text-[#8C7A6B] mt-0.5">{task.recurrence}</p>
+                    <p className="text-[13px] text-[#4A3E34] mt-0.5">
+                      {isDone ? 'Feita hoje' : `Próxima: ${task.nextDate || days}`} · {task.time || '13:00'}
+                    </p>
                   </div>
-
-                  <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                    {/* Toggle Show on Calendar */}
-                    <button
-                      type="button"
-                      onClick={() => toggleCalendarVisibility(task)}
-                      className={`p-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 border ${
-                        showOnCal
-                          ? 'bg-[#EEF5EF] border-[#B7D2B9] text-[#2C5230]'
-                          : 'bg-[#FAF8F5] border-[#EFE8DE] text-[#8C7A6B]'
-                      }`}
-                      title={showOnCal ? 'Visível na Agenda' : 'Oculto da Agenda'}
-                    >
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span className="text-[10px]">{showOnCal ? 'Na Agenda' : 'Oculto'}</span>
+                  {isDone ? (
+                    <CheckCircle done label={`Desfazer ${task.title}`} onClick={() => uncompleteRecurringTask(task.id)} />
+                  ) : (
+                    <button type="button" onClick={() => handleCompleteWithToast(task)} aria-label={`Concluir ${task.title}`} className="shrink-0">
+                      <StatusChip tone="pending">Pendente</StatusChip>
                     </button>
-
-                    {/* Complete button */}
-                    <button
-                      type="button"
-                      onClick={() => handleCompleteWithToast(task)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-2xs ${
-                        isDone
-                          ? 'bg-[#7D9D7F] text-white'
-                          : 'bg-[#EAE0D2] hover:bg-[#DFD3C3] text-[#5C4F44]'
-                      }`}
-                    >
-                      {isDone ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 stroke-[3]" />
-                          <span>Feito</span>
-                        </>
-                      ) : (
-                        <span>Concluir</span>
-                      )}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => deleteRecurringTask(task.id)}
-                      className="p-1.5 text-[#B4A597] hover:text-[#8C3A24] rounded-lg hover:bg-[#FDF2EE] transition-colors"
-                      title="Excluir tarefa"
-                      aria-label={`Excluir tarefa ${task.title}`}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  )}
                 </div>
-
-                {/* Integration notice */}
-                <div className="pt-2 border-t border-[#EFE8DE]/60 flex items-center justify-between text-[11px] text-[#8C7A6B]">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-[#B78A58]" />
-                    Encaixa automaticamente na Rotina Diária às {task.time || '13:00'}
-                  </span>
-                  <span className="font-semibold text-[#5C4F44]">
-                    Dias: {task.daysOfWeek && task.daysOfWeek.length > 0 ? task.daysOfWeek.map((d) => daysOfWeekNames.find((day) => day.id === d)?.short).join(', ') : 'Segunda'}
-                  </span>
+                <div className="mt-3 pt-3 border-t border-[#EFE8DE]/70 flex items-center gap-2 text-xs">
+                  <span className="flex-1 min-w-0 text-[#8C7A6B] truncate">Dias: <strong className="text-[#4A3E34]">{days}</strong></span>
+                  <button
+                    type="button"
+                    onClick={() => toggleCalendarVisibility(task)}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-semibold ${showOnCal ? 'bg-[#EEF5EF] text-[#2C5230]' : 'bg-[#F4EDE2] text-[#8C7A6B]'}`}
+                    title={showOnCal ? 'Visível na Agenda' : 'Oculto da Agenda'}
+                  >
+                    <Calendar className="w-3.5 h-3.5" /> {showOnCal ? 'Na Agenda' : 'Oculto'}
+                  </button>
+                  {!isDone && (
+                    <button type="button" onClick={() => handleCompleteWithToast(task)} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#E6C8A8] text-[#4A3E34] font-semibold">
+                      <Check className="w-3.5 h-3.5" /> Concluir
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => deleteRecurringTask(task.id)}
+                    className="p-1.5 text-[#B4A597] hover:text-[#8C3A24] rounded-full hover:bg-[#FDF2EE]"
+                    title="Excluir tarefa"
+                    aria-label={`Excluir tarefa ${task.title}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-              </div>
+              </SoftCard>
             );
           })
         )}
+
+        <PeachButton onClick={() => setIsAddModalOpen(true)}>
+          Adicionar tarefa <Plus className="w-4 h-4" />
+        </PeachButton>
+
+        <SoftCard className="p-4">
+          <div className="px-1">
+            <SectionTitle
+              title="Histórico recente"
+              action={recurringHistory.length > 4 ? { label: showAllHistory ? 'Ver menos' : 'Ver histórico', onClick: () => setShowAllHistory((v) => !v) } : undefined}
+            />
+          </div>
+          {recurringHistory.length === 0 ? (
+            <p className="px-1 pt-2 text-sm text-[#8C7A6B]">Quando você concluir uma tarefa, ela aparece aqui.</p>
+          ) : (
+            <div className="mt-1">
+              {[...recurringHistory]
+                .sort((x, y) => (y.completedAt || '').localeCompare(x.completedAt || ''))
+                .slice(0, showAllHistory ? 30 : 4)
+                .map((h) => (
+                  <ListRow
+                    key={h.id}
+                    icon={<IconBubble size="sm">{getTaskEmoji({ title: h.taskTitle } as RecurringTaskItem)}</IconBubble>}
+                    title={h.taskTitle}
+                    subtitle={`Concluída em ${h.displayDate}`}
+                    right={<CheckCircle done label="Concluída" />}
+                  />
+                ))}
+            </div>
+          )}
+        </SoftCard>
       </div>
 
       {/* Modal: Nova Tarefa Recorrente */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-[#FDFBF7] rounded-3xl p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-md bg-[#FDFBF7] rounded-[26px] p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-[#F7EEE3] flex items-center justify-center text-[#8C7A6B]">

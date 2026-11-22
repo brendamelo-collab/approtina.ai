@@ -273,9 +273,17 @@ export const ConfiguracoesPerfilView: React.FC = () => {
 
   const paletteOptions: { key: ColorPalette; title: string; subtitle: string; bg: string; card: string; accent: string }[] = [
     {
+      key: 'pessego',
+      title: 'Pêssego (Padrão)',
+      subtitle: 'Creme pêssego com caramelo, como nas fotos',
+      bg: '#FCF1E8',
+      card: '#FEF8F3',
+      accent: '#C38B5A'
+    },
+    {
       key: 'original',
-      title: 'Bege Acolhedor (Padrão)',
-      subtitle: 'Tons terrosos, creme e marrom suave',
+      title: 'Bege clássico',
+      subtitle: 'O bege acolhedor de antes, exatamente igual',
       bg: '#FDFBF7',
       card: '#FAF8F5',
       accent: '#8C7A6B'
@@ -356,7 +364,7 @@ export const ConfiguracoesPerfilView: React.FC = () => {
       </div>
 
       {/* Overview Card: Active Profile */}
-      <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 mb-4 shadow-[0_4px_20px_rgba(140,122,107,0.05)] flex items-center justify-between gap-3">
+      <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-5 mb-4 shadow-[0_6px_22px_rgba(150,100,60,0.09)] flex items-center justify-between gap-3">
         <div className="flex items-center gap-3.5 min-w-0 flex-1">
           <div className="relative group shrink-0">
             <UserAvatar name={currentProfile.name} avatarUrl={currentProfile.avatarUrl} size="lg" />
@@ -407,14 +415,14 @@ export const ConfiguracoesPerfilView: React.FC = () => {
         {/* ========================================================
             ACORDEÃO 1: PERFIS DA FAMÍLIA (FANTASMAS VS REAIS)
            ======================================================== */}
-        <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(140,122,107,0.05)] transition-all">
+        <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] overflow-hidden shadow-[0_6px_22px_rgba(150,100,60,0.09)] transition-all">
           <button
             onClick={() => toggleSection('perfis')}
             className="w-full p-4 sm:p-5 flex items-center justify-between text-left focus:outline-none"
             aria-expanded={openSections.perfis}
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-lg text-[#B78A58]">
+              <div className="w-10 h-10 rounded-full bg-white shadow-[0_3px_12px_rgba(150,100,60,0.08)] flex items-center justify-center text-lg text-[#B78A58]">
                 <Users className="w-5 h-5 text-[#B78A58]" />
               </div>
               <div>
@@ -587,14 +595,14 @@ export const ConfiguracoesPerfilView: React.FC = () => {
         {/* ========================================================
             ACORDEÃO 2: APARÊNCIA (PALETA DE CORES & TAMANHO DOS TEXTOS)
            ======================================================== */}
-        <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(140,122,107,0.05)] transition-all">
+        <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] overflow-hidden shadow-[0_6px_22px_rgba(150,100,60,0.09)] transition-all">
           <button
             onClick={() => toggleSection('aparencia')}
             className="w-full p-4 sm:p-5 flex items-center justify-between text-left focus:outline-none"
             aria-expanded={openSections.aparencia}
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-lg text-[#B78A58]">
+              <div className="w-10 h-10 rounded-full bg-white shadow-[0_3px_12px_rgba(150,100,60,0.08)] flex items-center justify-center text-lg text-[#B78A58]">
                 <Palette className="w-5 h-5 text-[#B78A58]" />
               </div>
               <div>
@@ -719,14 +727,14 @@ export const ConfiguracoesPerfilView: React.FC = () => {
         {/* ========================================================
             ACORDEÃO 3: CÓDIGO DE VÍNCULO DO NÚCLEO FAMILIAR
            ======================================================== */}
-        <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(140,122,107,0.05)] transition-all">
+        <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] overflow-hidden shadow-[0_6px_22px_rgba(150,100,60,0.09)] transition-all">
           <button
             onClick={() => toggleSection('vinculo')}
             className="w-full p-4 sm:p-5 flex items-center justify-between text-left focus:outline-none"
             aria-expanded={openSections.vinculo}
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-lg text-[#B78A58]">
+              <div className="w-10 h-10 rounded-full bg-white shadow-[0_3px_12px_rgba(150,100,60,0.08)] flex items-center justify-center text-lg text-[#B78A58]">
                 <Link className="w-5 h-5 text-[#B78A58]" />
               </div>
               <div>
@@ -796,14 +804,14 @@ export const ConfiguracoesPerfilView: React.FC = () => {
         {/* ========================================================
             ACORDEÃO 4: PREFERÊNCIAS DE NOTIFICAÇÕES & LEMBRETES
            ======================================================== */}
-        <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(140,122,107,0.05)] transition-all">
+        <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] overflow-hidden shadow-[0_6px_22px_rgba(150,100,60,0.09)] transition-all">
           <button
             onClick={() => toggleSection('notificacoes')}
             className="w-full p-4 sm:p-5 flex items-center justify-between text-left focus:outline-none"
             aria-expanded={openSections.notificacoes}
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-lg text-[#B78A58]">
+              <div className="w-10 h-10 rounded-full bg-white shadow-[0_3px_12px_rgba(150,100,60,0.08)] flex items-center justify-center text-lg text-[#B78A58]">
                 <Bell className="w-5 h-5 text-[#B78A58]" />
               </div>
               <div>
@@ -938,14 +946,14 @@ export const ConfiguracoesPerfilView: React.FC = () => {
         {/* ========================================================
             ACORDEÃO 5: DADOS, BACKUP & LIMPEZA LOCAL
            ======================================================== */}
-        <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(140,122,107,0.05)] transition-all">
+        <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] overflow-hidden shadow-[0_6px_22px_rgba(150,100,60,0.09)] transition-all">
           <button
             onClick={() => toggleSection('dados')}
             className="w-full p-4 sm:p-5 flex items-center justify-between text-left focus:outline-none"
             aria-expanded={openSections.dados}
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-lg text-[#B78A58]">
+              <div className="w-10 h-10 rounded-full bg-white shadow-[0_3px_12px_rgba(150,100,60,0.08)] flex items-center justify-center text-lg text-[#B78A58]">
                 <Database className="w-5 h-5 text-[#B78A58]" />
               </div>
               <div>
@@ -1065,7 +1073,7 @@ export const ConfiguracoesPerfilView: React.FC = () => {
       {/* MODAL: MUDAR FOTO / AVATAR DO PERFIL */}
       {editingPhotoProfile && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-[#FDFBF7] rounded-3xl p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-md bg-[#FDFBF7] rounded-[26px] p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
               <div className="flex items-center gap-2.5">
                 <UserAvatar name={editingPhotoProfile.name} avatarUrl={editingPhotoProfile.avatarUrl} size="md" />
@@ -1180,7 +1188,7 @@ export const ConfiguracoesPerfilView: React.FC = () => {
       {/* Modal: Adicionar Membro da Família */}
       {isAddProfileModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-[#FDFBF7] rounded-3xl p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-md bg-[#FDFBF7] rounded-[26px] p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-[#F7EEE3] flex items-center justify-center text-[#8C7A6B]">
@@ -1325,7 +1333,7 @@ export const ConfiguracoesPerfilView: React.FC = () => {
       {/* Modal: Restaurar Cópia de Segurança */}
       {isImportModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-[#FDFBF7] rounded-3xl p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-md bg-[#FDFBF7] rounded-[26px] p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-[#F7EEE3] flex items-center justify-center text-[#8C7A6B]">
@@ -1382,7 +1390,7 @@ export const ConfiguracoesPerfilView: React.FC = () => {
       {/* Modal: Confirmação de Limpeza de Dados */}
       {isResetConfirmModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-[#FDFBF7] rounded-3xl p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-md bg-[#FDFBF7] rounded-[26px] p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200">
             <div className="text-center space-y-2 pt-2">
               <div className="w-12 h-12 rounded-full bg-[#FDF2EE] text-[#8C3A24] flex items-center justify-center mx-auto">
                 <RotateCcw className="w-6 h-6" />

@@ -82,7 +82,7 @@ export const CustomizeBottomNavModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200 select-none">
-      <div className="w-full max-w-md bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 sm:p-6 shadow-2xl relative max-h-[90vh] flex flex-col">
+      <div className="w-full max-w-md bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-5 sm:p-6 shadow-2xl relative max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
           <div className="flex items-center gap-2">

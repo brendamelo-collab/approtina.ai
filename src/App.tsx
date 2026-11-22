@@ -19,6 +19,7 @@ import { RoutineModal } from './components/RoutineModal';
 import { AgendaModal } from './components/AgendaModal';
 import { NotificationsModal } from './components/NotificationsModal';
 import { AuthModal } from './components/AuthModal';
+import { BrandMark, BrandName } from './components/ui/Brand';
 import { ManageQuestionsModal } from './components/ManageQuestionsModal';
 import { RelatoriosModal } from './components/RelatoriosModal';
 import { AlarmBalloonModal } from './components/AlarmBalloonModal';
@@ -46,7 +47,8 @@ const MainContent: React.FC = () => {
   if (!authReady) {
     return (
       <div className="min-h-screen bg-[#FDFBF7] flex flex-col items-center justify-center gap-3">
-        <div className="w-10 h-10 rounded-full border-4 border-[#EFE8DE] border-t-[#8C7A6B] animate-spin" />
+        <BrandMark className="w-16 h-16 animate-pulse" />
+        <BrandName className="text-[28px]" />
         <p className="text-xs font-semibold text-[#8C7A6B]">Carregando...</p>
       </div>
     );

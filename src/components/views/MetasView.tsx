@@ -11,8 +11,10 @@ import {
   Sparkles,
   X,
   Layers,
-  FolderPlus
+  FolderPlus,
+  ChevronDown
 } from 'lucide-react';
+import { CheckCircle, IconBubble, PageHeader, PeachButton, PillTabs, ProgressLine, RoundButton, SHADOW_SOFT, SoftCard, StatusChip } from '../ui/Kit';
 import { GoalItem } from '../../types';
 
 export const MetasView: React.FC = () => {
@@ -29,6 +31,7 @@ export const MetasView: React.FC = () => {
 
   const [activeStatusTab, setActiveStatusTab] = useState<'em_andamento' | 'concluida'>('em_andamento');
   const [selectedCategory, setSelectedCategory] = useState<string>('todas');
+  const [openSteps, setOpenSteps] = useState<Record<string, boolean>>({});
 
   // Modal for new goal
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -106,250 +109,150 @@ export const MetasView: React.FC = () => {
   );
 
   return (
-    <div className="w-full max-w-xl mx-auto px-4 sm:px-6 pt-2 pb-28 select-none">
-      {/* Top Header */}
-      <div className="flex items-center justify-between py-2 mb-3">
-        <button
-          onClick={() => setActiveTab('inicio')}
-          className="flex items-center gap-1.5 text-xs font-bold text-[#8C7A6B] hover:text-[#5C4F44] bg-[#F4EDE2] hover:bg-[#EAE0D2] px-3.5 py-1.5 rounded-full transition-colors"
-          aria-label="Voltar ao início"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Início</span>
-        </button>
+    <div className="w-full max-w-xl mx-auto px-4 sm:px-6 pb-32 select-none">
+      <PageHeader
+        icon={Target}
+        title="Minhas Metas"
+        right={
+          <RoundButton label="Adicionar nova meta" tone="accent" onClick={() => setIsAddModalOpen(true)}>
+            <Plus className="w-5 h-5" strokeWidth={2.2} />
+          </RoundButton>
+        }
+      />
 
-        <div className="text-center">
-          <h1 className="text-lg font-bold text-[#2C2C2C] tracking-tight">Minhas Metas</h1>
-          <p className="text-[11px] text-[#8C7A6B]">Seus objetivos em passos possíveis</p>
+      <div className="mt-3 space-y-4 mb-5">
+        <PillTabs
+          options={[
+            { id: 'em_andamento', label: `Em andamento (${activeGoals.length})` },
+            { id: 'concluida', label: `Concluídas (${completedGoals.length})` }
+          ]}
+          value={activeStatusTab}
+          onChange={setActiveStatusTab}
+        />
+
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
+          {[{ id: 'todas', name: 'Todas' }, ...goalCategories].map((cat) => {
+            const isSelected = selectedCategory.toLowerCase() === (cat.id === 'todas' ? 'todas' : cat.name.toLowerCase());
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setSelectedCategory(cat.id === 'todas' ? 'todas' : cat.name)}
+                className={`shrink-0 px-4 h-9 rounded-full text-[13px] font-semibold whitespace-nowrap transition ${
+                  isSelected ? 'bg-[#E6C8A8] text-[#3A2619]' : `bg-[#FAF8F5] text-[#4A3E34] ${SHADOW_SOFT}`
+                }`}
+              >
+                {cat.name}
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setIsAddCatModalOpen(true)}
+            className={`shrink-0 inline-flex items-center gap-1 px-3.5 h-9 rounded-full text-[13px] font-semibold bg-[#FAF8F5] text-[#9E6C52] ${SHADOW_SOFT}`}
+            title="Nova Categoria"
+          >
+            <FolderPlus className="w-4 h-4" /> Categoria
+          </button>
         </div>
 
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="w-9 h-9 rounded-full bg-[#8C7A6B] hover:bg-[#786657] text-white flex items-center justify-center shadow-xs transition-colors"
-          title="Nova Meta"
-          aria-label="Adicionar nova meta"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Segmented Controller: Em andamento / Concluídas */}
-      <div className="flex bg-[#F4EDE2] p-1 rounded-2xl mb-3">
-        <button
-          onClick={() => setActiveStatusTab('em_andamento')}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
-            activeStatusTab === 'em_andamento'
-              ? 'bg-[#FAF8F5] text-[#2C2C2C] shadow-xs'
-              : 'text-[#8C7A6B] hover:text-[#2C2C2C]'
-          }`}
-        >
-          Em andamento ({activeGoals.length})
-        </button>
-        <button
-          onClick={() => setActiveStatusTab('concluida')}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
-            activeStatusTab === 'concluida'
-              ? 'bg-[#FAF8F5] text-[#2C2C2C] shadow-xs'
-              : 'text-[#8C7A6B] hover:text-[#2C2C2C]'
-          }`}
-        >
-          Concluídas ({completedGoals.length})
-        </button>
-      </div>
-
-      {/* Category Pills Filter Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none">
-        <button
-          onClick={() => setSelectedCategory('todas')}
-          className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${
-            selectedCategory === 'todas'
-              ? 'bg-[#8C7A6B] text-white shadow-xs'
-              : 'bg-[#FAF8F5] text-[#5C4F44] border border-[#EFE8DE] hover:bg-[#F4EDE2]'
-          }`}
-        >
-          Todas
-        </button>
-        {goalCategories.map((cat) => {
-          const isSelected = selectedCategory.toLowerCase() === cat.name.toLowerCase();
-          return (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.name)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shrink-0 ${
-                isSelected
-                  ? 'bg-[#8C7A6B] text-white shadow-xs font-bold'
-                  : 'bg-[#FAF8F5] text-[#5C4F44] border border-[#EFE8DE] hover:bg-[#F4EDE2]'
-              }`}
-            >
-              <span>{cat.name}</span>
-            </button>
-          );
-        })}
-        <button
-          onClick={() => setIsAddCatModalOpen(true)}
-          className="px-2.5 py-1.5 rounded-full text-xs font-bold bg-[#F4EDE2] text-[#8C7A6B] hover:bg-[#EAE0D2] flex items-center gap-1 shrink-0"
-          title="Nova Categoria"
-        >
-          <FolderPlus className="w-3.5 h-3.5" />
-          <span>Categoria</span>
-        </button>
-      </div>
-
-      {/* Goals List */}
-      <div className="space-y-4 mb-5">
         {displayedGoals.length === 0 ? (
-          <div className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-8 text-center space-y-2">
+          <SoftCard className="p-8 text-center space-y-2">
             <Target className="w-8 h-8 text-[#9E6C52] mx-auto opacity-70" />
             <h3 className="text-sm font-bold text-[#2C2C2C]">
-              {activeStatusTab === 'em_andamento'
-                ? 'Nenhuma meta em andamento no momento!'
-                : 'Nenhuma meta concluída ainda.'}
+              {activeStatusTab === 'em_andamento' ? 'Nenhuma meta em andamento no momento!' : 'Nenhuma meta concluída ainda.'}
             </h3>
-            <p className="text-xs text-[#8C7A6B]">
-              Defina pequenos passos para realizar grandes conquistas familiares.
-            </p>
-            {activeStatusTab === 'em_andamento' && (
-              <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="mt-2 px-4 py-2 bg-[#8C7A6B] text-white text-xs font-bold rounded-xl shadow-xs"
-              >
-                Criar Primeira Meta
-              </button>
-            )}
-          </div>
+            <p className="text-xs text-[#8C7A6B]">Defina pequenos passos para realizar grandes conquistas familiares.</p>
+          </SoftCard>
         ) : (
           displayedGoals.map((goal: GoalItem) => {
             const isCompleted = goal.status === 'concluida' || goal.progressPercent >= 100;
-            const icon =
-              goal.category.toLowerCase().includes('casa')
-                ? '🔨'
-                : goal.category.toLowerCase().includes('fam')
-                ? '🛍️'
-                : goal.category.toLowerCase().includes('saúde') || goal.category.toLowerCase().includes('saude')
-                ? '🩺'
-                : '🎯';
-
+            const lower = goal.category.toLowerCase();
+            const icon = lower.includes('casa') ? '🏠' : lower.includes('fam') ? '👨‍👩‍👧' : lower.includes('saúde') || lower.includes('saude') ? '🩺' : lower.includes('finan') ? '💰' : '🎯';
+            const deadline =
+              goal.deadlineType === 'contagem_dias'
+                ? goal.targetDays != null
+                  ? `Faltam ${goal.targetDays} ${goal.targetDays === 1 ? 'dia' : 'dias'}`
+                  : 'Sem prazo'
+                : goal.dueDate
+                  ? `Prazo: ${/^\d{4}-\d{2}-\d{2}$/.test(goal.dueDate) ? goal.dueDate.split('-').reverse().slice(0, 2).join('/') : goal.dueDate}`
+                  : 'Sem prazo';
+            const open = !!openSteps[goal.id];
             return (
-              <div
-                key={goal.id}
-                className="bg-[#FAF8F5] border border-[#EFE8DE] rounded-3xl p-5 shadow-[0_4px_20px_rgba(140,122,107,0.05)] space-y-3.5 transition-all"
-              >
-                {/* Header of Goal Card */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#F7EDE4] flex items-center justify-center text-xl shrink-0 shadow-2xs">
-                      {icon}
+              <SoftCard key={goal.id} as="div" className="p-4">
+                <div className="flex items-start gap-3.5">
+                  <IconBubble>{icon}</IconBubble>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start gap-2">
+                      <h3 className="flex-1 min-w-0 text-[16px] font-bold text-[#2C2C2C] leading-snug break-words">{goal.title}</h3>
+                      <button
+                        type="button"
+                        onClick={() => deleteGoal(goal.id)}
+                        className="-mr-1 -mt-1 p-1.5 text-[#B4A597] hover:text-[#8C3A24] rounded-full hover:bg-[#FDF2EE]"
+                        title="Excluir meta"
+                        aria-label={`Excluir meta ${goal.title}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-[#2C2C2C] leading-snug">
-                          {goal.title}
-                        </h3>
-                        {isCompleted && (
-                          <span className="text-[10px] font-bold text-[#2C5230] bg-[#EEF5EF] px-2 py-0.5 rounded-full border border-[#B7D2B9]">
-                            Concluída
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[#8C7A6B] mt-0.5">
-                        <span className="font-semibold whitespace-nowrap">{goal.category}</span>
-                        <span>•</span>
-
-                        {/* Deadline Display: Data Específica vs Contagem de Dias */}
-                        {goal.deadlineType === 'contagem_dias' ? (
-                          <span className="flex items-center gap-1 font-bold whitespace-nowrap text-[#9E6C52] bg-[#FDF2EE] px-2 py-0.5 rounded-md border border-[#E8C2B8]">
-                            <Clock className="w-3 h-3" />
-                            {goal.targetDays != null ? `Faltam ${goal.targetDays} ${goal.targetDays === 1 ? 'dia' : 'dias'}` : 'Sem prazo definido'}
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1 font-semibold whitespace-nowrap text-[#5C4F44]">
-                            <Calendar className="w-3 h-3 text-[#B78A58]" />
-                            {goal.dueDate ? `Prazo: ${/^\d{4}-\d{2}-\d{2}$/.test(goal.dueDate) ? goal.dueDate.split('-').reverse().join('/') : goal.dueDate}` : 'Sem prazo definido'}
-                          </span>
-                        )}
-                      </div>
+                    <p className="text-[12px] text-[#8C7A6B]">{goal.category}</p>
+                    <div className="mt-2">
+                      <ProgressLine value={goal.progressPercent} tone={isCompleted ? 'green' : 'caramel'} />
                     </div>
-                  </div>
-
-                  <button
-                    onClick={() => deleteGoal(goal.id)}
-                    className="p-1.5 text-[#B4A597] hover:text-[#8C3A24] rounded-lg hover:bg-[#F4EDE2] transition-colors"
-                    title="Excluir meta"
-                    aria-label={`Excluir meta ${goal.title}`}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="font-extrabold text-[#5C4F44]">
-                      {goal.progressPercent}% concluído
-                    </span>
-                    <span className="text-[11px] text-[#8C7A6B] font-semibold">
-                      {goal.completedSteps} de {goal.totalSteps} passos
-                    </span>
-                  </div>
-                  <div className="w-full bg-[#EFE8DE] h-2.5 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500 ease-out"
-                      style={{
-                        width: `${goal.progressPercent}%`,
-                        backgroundColor: isCompleted ? '#7D9D7F' : '#9E6C52'
-                      }}
-                    />
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      {isCompleted ? (
+                        <StatusChip tone="done" icon>
+                          Concluída
+                        </StatusChip>
+                      ) : goal.progressPercent > 0 ? (
+                        <StatusChip tone="info">Em andamento</StatusChip>
+                      ) : (
+                        <StatusChip tone="pending">Pendente</StatusChip>
+                      )}
+                      <span className="text-[13px] text-[#4A3E34] whitespace-nowrap">{deadline}</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Checklist Steps */}
                 {goal.steps && goal.steps.length > 0 && (
-                  <div className="pt-1 space-y-2 border-t border-[#EFE8DE]/60">
-                    <span className="text-[11px] font-bold text-[#8C7A6B] block">
-                      Passos para realizar:
-                    </span>
-                    <div className="space-y-1.5">
-                      {goal.steps.map((step) => (
-                        <div
-                          key={step.id}
-                          onClick={() => toggleGoalStep(goal.id, step.id)}
-                          className={`p-2.5 rounded-2xl border flex items-center gap-3 cursor-pointer transition-colors ${
-                            step.done
-                              ? 'bg-[#F2ECE2] border-[#DDD3C5] text-[#8C7A6B]'
-                              : 'bg-white border-[#EFE8DE] text-[#2C2C2C] hover:bg-[#FDFBF7]'
-                          }`}
-                        >
-                          <div
-                            className={`w-5 h-5 rounded-lg flex items-center justify-center border transition-colors ${
-                              step.done
-                                ? 'bg-[#7D9D7F] border-[#7D9D7F] text-white'
-                                : 'border-[#C8B8A6] bg-white'
-                            }`}
-                          >
-                            {step.done && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                  <div className="mt-3 pt-2 border-t border-[#EFE8DE]/70">
+                    <button
+                      type="button"
+                      onClick={() => setOpenSteps((o) => ({ ...o, [goal.id]: !o[goal.id] }))}
+                      aria-expanded={open}
+                      className="w-full flex items-center justify-between py-1.5 text-[13px] font-semibold text-[#9E6C52]"
+                    >
+                      <span>
+                        Passos ({goal.completedSteps} de {goal.totalSteps})
+                      </span>
+                      <ChevronDown className={`w-4 h-4 transition ${open ? 'rotate-180' : ''}`} />
+                    </button>
+                    {open && (
+                      <div className="pt-1 space-y-0.5">
+                        {goal.steps.map((step) => (
+                          <div key={step.id} className="flex items-center gap-3 py-1.5">
+                            <CheckCircle done={step.done} onClick={() => toggleGoalStep(goal.id, step.id)} label={`${step.done ? 'Desmarcar' : 'Marcar'} ${step.text}`} />
+                            <span className={`text-sm ${step.done ? 'line-through text-[#8C7A6B]' : 'text-[#2C2C2C]'}`}>{step.text}</span>
                           </div>
-                          <span
-                            className={`text-xs font-semibold ${
-                              step.done ? 'line-through text-[#8C7A6B]' : 'text-[#2C2C2C]'
-                            }`}
-                          >
-                            {step.text}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
+              </SoftCard>
             );
           })
         )}
+
+        <PeachButton onClick={() => setIsAddModalOpen(true)}>
+          Adicionar Meta <Plus className="w-4 h-4" />
+        </PeachButton>
       </div>
 
       {/* Encouragement Card */}
-      <div className="bg-[#FAF5ED] border border-[#EAE0D2] rounded-3xl p-4 flex items-center justify-between shadow-2xs">
+      <div className="bg-[#FAF5ED] border border-[#EAE0D2] rounded-[26px] p-4 flex items-center justify-between shadow-2xs">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#F7EEE3] flex items-center justify-center text-xl shrink-0">
+          <div className="w-10 h-10 rounded-full bg-white shadow-[0_3px_12px_rgba(150,100,60,0.08)] flex items-center justify-center text-xl shrink-0">
             💡
           </div>
           <div>
@@ -365,7 +268,7 @@ export const MetasView: React.FC = () => {
       {/* Modal: Nova Meta */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-[#FDFBF7] rounded-3xl p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-md bg-[#FDFBF7] rounded-[26px] p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-[#F7EDE4] flex items-center justify-center text-[#9E6C52]">
@@ -528,7 +431,7 @@ export const MetasView: React.FC = () => {
       {/* Modal: Nova Categoria de Meta */}
       {isAddCatModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-sm bg-[#FDFBF7] rounded-3xl p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-sm bg-[#FDFBF7] rounded-[26px] p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-[#F7EEE3] flex items-center justify-center text-[#8C7A6B]">
