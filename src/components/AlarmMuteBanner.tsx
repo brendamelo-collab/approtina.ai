@@ -1,22 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { BellOff } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { isMuted, muteLabel } from '../utils/alarmMute';
+import { muteLabel, useMuted } from '../utils/alarmMute';
 
 /** Aviso no topo do app enquanto os alarmes estiverem silenciados, com o botão para reativar. */
 export const AlarmMuteBanner: React.FC = () => {
   const { notificationPreferences, updateNotificationPreferences } = useApp();
-  const [, tick] = useState(0);
   const until = notificationPreferences.alarmsMutedUntil;
+  const muted = useMuted(until);
 
-  // Some sozinho quando o tempo de silêncio acaba
-  useEffect(() => {
-    if (!isMuted(until)) return;
-    const t = setInterval(() => tick((n) => n + 1), 30 * 1000);
-    return () => clearInterval(t);
-  }, [until]);
-
-  if (!isMuted(until)) return null;
+  if (!muted) return null;
   return (
     <div className="px-4 sm:px-6 pt-3">
       <div className="flex items-center gap-2.5 bg-[#FEF9E7] border border-[#EADB9B] rounded-2xl px-3 py-2.5">

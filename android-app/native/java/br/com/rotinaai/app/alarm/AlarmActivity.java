@@ -2,7 +2,6 @@ package br.com.rotinaai.app.alarm;
 
 import android.animation.ValueAnimator;
 import android.app.Activity;
-import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
@@ -98,15 +97,13 @@ public class AlarmActivity extends Activity {
     }
 
     private void showOverLockScreen() {
+        // Shows over the lock screen WITHOUT asking to unlock: all buttons work with the phone locked
         if (Build.VERSION.SDK_INT >= 27) {
             setShowWhenLocked(true);
             setTurnScreenOn(true);
-            KeyguardManager km = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
-            if (km != null) km.requestDismissKeyguard(this, null);
         } else {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                    | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-                    | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+                    | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         }
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
@@ -321,8 +318,13 @@ public class AlarmActivity extends Activity {
         }
         actionsPanel.addView(snoozeRow, full(8));
 
-        actionsPanel.addView(button("🔕   Silenciar", Color.TRANSPARENT, INK_SOFT, Color.parseColor("#D8CDBE"), 52, 16,
-                v -> showMute(true)), full(14));
+        // "Recebi": stops this alert (stays pending in the notification); "Silenciar": options
+        LinearLayout lower = row();
+        lower.addView(button("👁  Recebi", Color.TRANSPARENT, INK_SOFT, Color.parseColor("#D8CDBE"), 52, 16,
+                v -> silenceCurrent()), weighted(0, 4));
+        lower.addView(button("🔕  Silenciar", Color.TRANSPARENT, INK_SOFT, Color.parseColor("#D8CDBE"), 52, 16,
+                v -> showMute(true)), weighted(4, 0));
+        actionsPanel.addView(lower, full(14));
 
         // ---- Silence options (replace the answers while open)
         mutePanel = column();
@@ -332,14 +334,14 @@ public class AlarmActivity extends Activity {
         TextView muteTitle = text("Silenciar alarmes", 19, INK, Typeface.BOLD);
         muteTitle.setGravity(Gravity.START);
         mutePanel.addView(muteTitle, full(0));
-        TextView muteHint = text("Os lembretes continuam aparecendo na notificação, só que sem som, sem voz e sem vibração.", 14, MUTED, Typeface.NORMAL);
+        TextView muteHint = text("Pausa só os avisos (som, voz e vibração). As tarefas e os horários não mudam.", 14, MUTED, Typeface.NORMAL);
         muteHint.setGravity(Gravity.START);
         muteHint.setLineSpacing(0, 1.15f);
         mutePanel.addView(muteHint, full(6));
 
         mutePanel.addView(button("Só este aviso", Color.parseColor("#F1E9DE"), INK_SOFT, 0, 50, 16, v -> silenceCurrent()), full(16));
 
-        String[][] grid = {{"30 minutos", "30"}, {"1 hora", "60"}, {"2 horas", "120"}, {"4 horas", "240"}};
+        String[][] grid = {{"1 hora", "60"}, {"2 horas", "120"}, {"3 horas", "180"}, {"Resto do dia", "-2"}};
         for (int i = 0; i < grid.length; i += 2) {
             LinearLayout pair = row();
             for (int j = 0; j < 2; j++) {
@@ -370,9 +372,17 @@ public class AlarmActivity extends Activity {
         finish();
     }
 
-    /** minutes = -1: until reactivated. */
+    /** minutes = -1: until reactivated; -2: rest of the day. Tasks are never changed, only the alerts. */
     private void muteFor(int minutes) {
-        long until = minutes < 0 ? MuteManager.MUTE_FOREVER : System.currentTimeMillis() + minutes * 60L * 1000L;
+        long until;
+        if (minutes == -1) until = MuteManager.MUTE_FOREVER;
+        else if (minutes == -2) {
+            java.util.Calendar c = java.util.Calendar.getInstance();
+            c.set(java.util.Calendar.HOUR_OF_DAY, 23);
+            c.set(java.util.Calendar.MINUTE, 59);
+            c.set(java.util.Calendar.SECOND, 59);
+            until = c.getTimeInMillis();
+        } else until = System.currentTimeMillis() + minutes * 60L * 1000L;
         MuteManager.setMute(this, until);
         finish();
     }

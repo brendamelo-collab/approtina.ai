@@ -13,6 +13,8 @@ public class ActionReceiver extends BroadcastReceiver {
     public static final String ACTION_DONE = "br.com.rotinaai.app.ALARM_DONE";
     public static final String ACTION_SNOOZE = "br.com.rotinaai.app.ALARM_SNOOZE";
     public static final String ACTION_UNMUTE = "br.com.rotinaai.app.ALARM_UNMUTE";
+    /** Lock-screen "Silenciar": stops this alert; it stays pending in the notification bar. */
+    public static final String ACTION_SILENCE = "br.com.rotinaai.app.ALARM_SILENCE";
     private static final String EXTRA_MINUTES = "minutes";
 
     public static PendingIntent pending(Context c, JSONObject alarm, String action, int minutes, int requestCode) {
@@ -28,6 +30,17 @@ public class ActionReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (ACTION_UNMUTE.equals(intent.getAction())) {
             MuteManager.setMute(context, 0); // "Reativar som"
+            return;
+        }
+        if (ACTION_SILENCE.equals(intent.getAction())) {
+            if (AlarmService.current != null) {
+                try {
+                    Intent i = new Intent(context, AlarmService.class);
+                    i.setAction(AlarmService.ACTION_SILENCE_CURRENT);
+                    context.startService(i);
+                } catch (Exception ignored) {
+                }
+            }
             return;
         }
         try {

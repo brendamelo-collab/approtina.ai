@@ -3,7 +3,7 @@
 // para que a prévia no site soe igual ao alarme do celular.
 import { isNativeAlarmAvailable, nativeAlarm } from '../services/nativeAlarm';
 
-export type AlarmSoundId = 'padrao' | 'sino' | 'marimba' | 'harpa' | 'digital' | 'pulso' | 'celular';
+export type AlarmSoundId = 'padrao' | 'sino' | 'marimba' | 'harpa' | 'digital' | 'pulso' | 'celular' | 'nenhum';
 
 export const ALARM_SOUNDS: { id: AlarmSoundId; label: string; description: string }[] = [
   { id: 'padrao', label: 'Padrão do Rotina.ai', description: 'O som que o app já usava' },
@@ -12,7 +12,16 @@ export const ALARM_SOUNDS: { id: AlarmSoundId; label: string; description: strin
   { id: 'harpa', label: 'Harpa', description: 'Acorde que sobe devagar' },
   { id: 'digital', label: 'Despertador digital', description: 'Bipes clássicos de relógio' },
   { id: 'pulso', label: 'Alerta forte', description: 'Bipes rápidos, difíceis de ignorar' },
-  { id: 'celular', label: 'Alarme do celular', description: 'O toque de alarme do seu Android' }
+  { id: 'celular', label: 'Alarme do celular', description: 'O toque de alarme do seu Android' },
+  { id: 'nenhum', label: 'Só a voz', description: 'Sem som antes: a voz fala direto' }
+];
+
+/** Quantas vezes o som toca antes da voz. 0 = como sempre foi (3 bipes no padrão). */
+export const ALERT_REPEATS = [
+  { value: 0, label: 'Padrão' },
+  { value: 1, label: '1 vez' },
+  { value: 2, label: '2 vezes' },
+  { value: 3, label: '3 vezes' }
 ];
 
 // [frequência inicial, frequência final, início (s), duração (s), onda (0 seno, 1 triângulo, 2 quadrada, 3 serra), volume, 1 = dedilhado / 0 = contínuo]
@@ -59,6 +68,7 @@ const WAVES: OscillatorType[] = ['sine', 'triangle', 'square', 'sawtooth'];
 
 /** Toca um ciclo do som no navegador. Retorna a duração em ms. */
 export function playWebSound(id: string): number {
+  if (id === 'nenhum') return 0;
   const notes = SPECS[id === 'padrao' || id === 'celular' ? (id === 'celular' ? 'digital' : 'suave') : id] || SPECS.suave;
   const ac = audio();
   if (!ac) return 0;
@@ -87,9 +97,26 @@ export function playWebSound(id: string): number {
   return Math.round(end * 1000);
 }
 
+/** Toca o som `repeats` vezes seguidas (0 = uma vez). Retorna quando termina (ms). */
+export function playWebSoundTimes(id: string, repeats = 0): number {
+  if (id === 'nenhum') return 0;
+  const times = Math.max(1, Math.min(6, repeats || 1));
+  let total = 0;
+  for (let i = 0; i < times; i++) {
+    const at = total;
+    if (i === 0) total += playWebSound(id) + 250;
+    else {
+      setTimeout(() => playWebSound(id), at);
+      total += (SPECS[id === 'padrao' ? 'suave' : id === 'celular' ? 'digital' : id] || SPECS.suave).reduce((m, n) => Math.max(m, (n[2] + n[3]) * 1000), 0) + 250;
+    }
+  }
+  return total;
+}
+
 /** Prévia do som: no app Android usa o alarme nativo (se o app instalado já tiver essa função). */
-export async function previewAlarmSound(id: AlarmSoundId): Promise<'native' | 'web'> {
-  if (isNativeAlarmAvailable()) {
+export async function previewAlarmSound(id: AlarmSoundId, repeats = 0): Promise<'native' | 'web'> {
+  if (id === 'nenhum') return 'web';
+  if (isNativeAlarmAvailable() && !repeats) {
     try {
       await nativeAlarm.previewSound(id);
       return 'native';
@@ -97,7 +124,7 @@ export async function previewAlarmSound(id: AlarmSoundId): Promise<'native' | 'w
       // APK antigo sem a prévia: toca no navegador
     }
   }
-  playWebSound(id);
+  playWebSoundTimes(id, repeats);
   return 'web';
 }
 

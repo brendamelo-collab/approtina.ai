@@ -78,6 +78,21 @@ jobs:
             gh release create android-latest --title "App Android do Rotina.ai" \
               --notes "Baixe rotina-ai.apk no celular Android e instale. Atualizado automaticamente a cada mudança no app nativo." --latest=false
           gh release upload android-latest rotina-ai.apk --clobber
+          # Versão publicada: o app compara com a instalada para se atualizar sozinho
+          SIG=$(keytool -list -v -keystore "$KEYSTORE_PATH" -storepass "$KEYSTORE_PASSWORD" -alias rotinaai 2>/dev/null | grep -m1 'SHA256:' | sed 's/.*SHA256: *//' | tr -d ' ')
+          python3 - <<PY
+          import json, datetime
+          json.dump({
+            "versionCode": int("$GITHUB_RUN_NUMBER"),
+            "versionName": "1.0.$GITHUB_RUN_NUMBER",
+            "apkUrl": "https://github.com/$GITHUB_REPOSITORY/releases/download/android-latest/rotina-ai.apk",
+            "signature": "$SIG",
+            "size": __import__('os').path.getsize('rotina-ai.apk'),
+            "publishedAt": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+          }, open('android-version.json', 'w'))
+          PY
+          cat android-version.json
+          gh release upload android-latest android-version.json --clobber
 
       - uses: actions/upload-artifact@v4
         with:

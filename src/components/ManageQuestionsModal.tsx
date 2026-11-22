@@ -13,6 +13,7 @@ import {
   ArrowDown
 } from 'lucide-react';
 import { LifeArea, QuestionGroup, QuestionItem } from '../types';
+import { QuestionEditorModal } from './QuestionEditorModal';
 
 export const ManageQuestionsModal: React.FC = () => {
   const {
@@ -49,6 +50,7 @@ export const ManageQuestionsModal: React.FC = () => {
 
   // Editing state
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const [fullEdit, setFullEdit] = useState<QuestionItem | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editHabitType, setEditHabitType] = useState<'bom' | 'ruim'>('bom');
 
@@ -110,6 +112,7 @@ export const ManageQuestionsModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-150">
+      {fullEdit && <QuestionEditorModal question={fullEdit} onClose={() => setFullEdit(null)} />}
       <div className="w-full max-w-xl bg-[#FDFBF7] rounded-3xl p-5 shadow-2xl border border-[#EFE8DE] max-h-[92vh] flex flex-col justify-between overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
@@ -474,11 +477,7 @@ export const ManageQuestionsModal: React.FC = () => {
                                       <Copy className="w-3.5 h-3.5" />
                                     </button>
                                     <button
-                                      onClick={() => {
-                                        setEditingQuestionId(q.id);
-                                        setEditTitle(q.title);
-                                        setEditHabitType(q.habitType || (q.positiveIf === 'sim' ? 'bom' : 'ruim'));
-                                      }}
+                                      onClick={() => setFullEdit(q)}
                                       className="p-1 text-[#8C7A6B] hover:text-[#2C2C2C]"
                                       title="Editar"
                                     >

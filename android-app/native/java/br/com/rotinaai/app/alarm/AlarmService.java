@@ -204,8 +204,17 @@ public class AlarmService extends Service {
                 .setContentIntent(fullPi)
                 .setFullScreenIntent(fullPi, true)
                 .addAction(0, "✔ Já fiz", ActionReceiver.pending(this, alarm, ActionReceiver.ACTION_DONE, 0, 10))
-                .addAction(0, "Adiar 10 min", ActionReceiver.pending(this, alarm, ActionReceiver.ACTION_SNOOZE, 10, 11));
+                .addAction(0, "Adiar 10 min", ActionReceiver.pending(this, alarm, ActionReceiver.ACTION_SNOOZE, 10, 11))
+                .addAction(0, "🔕 Silenciar", silencePending());
         return b.build();
+    }
+
+    /** Lock-screen button: stops this alert without changing the task (it stays pending). */
+    private PendingIntent silencePending() {
+        Intent i = new Intent(this, ActionReceiver.class);
+        i.setAction(ActionReceiver.ACTION_SILENCE);
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0);
+        return PendingIntent.getBroadcast(this, 12, i, flags);
     }
 
     /** Shows the alarm screen over other apps (needs "display over other apps" when the phone is in use). */
@@ -247,10 +256,13 @@ public class AlarmService extends Service {
             return;
         }
         vibrate();
-        // Sound chosen in Configurações (padrao = original beeps)
+        // Sound chosen in Configurações (padrao = original beeps; nenhum = straight to the voice)
         String sound = current.optString("sound", "padrao");
+        int repeats = Math.max(0, Math.min(6, current.optInt("repeats", 0))); // 0 = original amount
         long soundMs;
-        if ("celular".equals(sound)) {
+        if ("nenhum".equals(sound)) {
+            soundMs = 0;
+        } else if ("celular".equals(sound)) {
             stopPhoneRingtone();
             ringtone = SoundSynth.phoneRingtone(this);
             if (ringtone != null) {
@@ -266,16 +278,24 @@ public class AlarmService extends Service {
         } else {
             short[] pcm = SoundSynth.render(sound);
             if (pcm != null) {
-                SoundSynth.release(track);
-                track = SoundSynth.play(pcm);
-                soundMs = SoundSynth.durationMs(pcm);
+                final long one = SoundSynth.durationMs(pcm) + 250;
+                int times = Math.max(1, repeats);
+                for (int i = 0; i < times; i++) {
+                    handler.postDelayed(() -> {
+                        if (id != cycleId) return;
+                        SoundSynth.release(track);
+                        track = SoundSynth.play(pcm);
+                    }, i * one);
+                }
+                soundMs = times * one;
             } else {
-                for (int i = 0; i < BEEPS_PER_CYCLE; i++) {
+                int beeps = repeats > 0 ? repeats : BEEPS_PER_CYCLE;
+                for (int i = 0; i < beeps; i++) {
                     handler.postDelayed(() -> {
                         if (id == cycleId) beep();
                     }, i * BEEP_INTERVAL_MS);
                 }
-                soundMs = BEEPS_PER_CYCLE * BEEP_INTERVAL_MS;
+                soundMs = beeps * BEEP_INTERVAL_MS;
             }
         }
         handler.postDelayed(() -> speak(id), soundMs + 300);
