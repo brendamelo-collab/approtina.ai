@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { todayISO, toISODate, shiftISODate, MONTH_NAMES } from '../../utils/dateUtils';
 import { agendaOccursOn } from '../../utils/routineCalculations';
+import { personalOccursOn, profileName } from '../../utils/routineSchedule';
 import { AgendaItem, WeeklyFixedTopic, AgendaCategory } from '../../types';
 import {
   ChevronLeft,
@@ -41,7 +42,9 @@ export const AgendaView: React.FC = () => {
     updateWeeklyFixedTopic,
     deleteWeeklyFixedTopic,
     recurringTasks,
-    triggerAlarm
+    triggerAlarm,
+    personalRoutines,
+    profiles
   } = useApp();
 
   // Strict vertical collapsible accordion sections
@@ -138,7 +141,22 @@ export const AgendaView: React.FC = () => {
         category: 'rotina',
         icon: '🔁'
       }));
-    return [...directEvents, ...recurringEvents];
+    // Rotinas Pessoais com "Mostrar no calendário" (lidas do cadastro original, sem cópia)
+    const personalEvents = personalRoutines
+      .filter((p) => p.showOnCalendar && p.time && personalOccursOn(p, dayOfWeek))
+      .map((p) => ({
+        id: `pes-cal-${p.id}`,
+        title: `${p.icon || '✨'} ${p.title}${p.context ? ` ${p.context}` : ''}`,
+        date: dateStr,
+        time: p.time || '',
+        displayDay: daysOfWeekNames[dayOfWeek],
+        isRecurring: true,
+        recurrenceLabel: `Rotina pessoal · ${profileName(profiles, p.profileId)}`,
+        completed: dateStr === todayISO() && !!p.completedOn,
+        category: 'rotina',
+        icon: p.icon || '✨'
+      }));
+    return [...directEvents, ...recurringEvents, ...personalEvents];
   };
 
   const selectedDateStr = isoForDay(activeDayNum);

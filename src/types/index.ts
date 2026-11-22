@@ -203,6 +203,31 @@ export interface DailyChronologicalStep {
   period: PeriodKey;
   isRecurringAuto?: boolean;
   completedOn?: string; // YYYY-MM-DD
+  daysOfWeek?: number[]; // vazio/ausente = todos os dias
+  spokenText?: string; // o que a voz fala (vazio = texto automático)
+  sound?: string; // som de alerta desta rotina (vazio = o escolhido em Configurações)
+  personalId?: string; // item vindo de uma Rotina Pessoal (não salvo; só na tela)
+}
+
+/**
+ * Rotina Pessoal: cuidado ou atividade de um integrante da família.
+ * É o cadastro original; aparece na rotina diária/voz e no calendário só se for pedido.
+ */
+export interface PersonalRoutine {
+  id: string;
+  profileId: string; // integrante da família
+  title: string; // "Fazer esfoliação"
+  context?: string; // "durante o banho"
+  icon: string;
+  daysOfWeek: number[]; // vazio = todos os dias
+  time?: string; // HH:MM
+  notes?: string;
+  inDailyRoutine: boolean; // ADICIONAR À ROTINA DIÁRIA / LEMBRETE POR VOZ
+  showOnCalendar: boolean;
+  spokenText?: string; // vazio = "Brenda, hoje é dia de fazer esfoliação durante o banho."
+  sound?: string;
+  completedOn?: string; // YYYY-MM-DD
+  createdAt: string;
 }
 
 export interface ContextualReminder {
@@ -309,6 +334,7 @@ export interface RecurringTaskItem {
   showOnCalendar?: boolean;
   daysOfWeek?: number[];
   time?: string;
+  completedOn?: string; // YYYY-MM-DD: "concluído" vale só para o dia em que foi feito
 }
 
 export interface AppNotification {
@@ -342,6 +368,7 @@ export interface NotificationPreferences {
   voicePitch?: number; // tom da fala
   // Silenciar alarmes: até quando (ms). 0/ausente = tocando normalmente; MUTE_FOREVER = até reativar
   alarmsMutedUntil?: number;
+  alarmRepeats?: number; // quantas vezes o som toca antes da voz (0/ausente = padrão)
 }
 
 export type NavTab =

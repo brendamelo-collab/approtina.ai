@@ -4,6 +4,7 @@ import { MUTE_OPTIONS, isMuted, muteLabel, muteUntilFor } from '../utils/alarmMu
 import { useApp } from '../context/AppContext';
 import {
   ALARM_SOUNDS,
+  ALERT_REPEATS,
   AlarmSoundId,
   VOICE_PITCHES,
   VOICE_RATES,
@@ -172,24 +173,50 @@ export const SoundVoiceSettings: React.FC<{ onSaved?: (msg: string) => void }> =
                     </span>
                   </span>
                 </button>
-                <button
+                {s.id !== 'nenhum' && <button
                   type="button"
                   disabled={unavailable}
                   onClick={() => {
                     flash(`som:${s.id}`, 3500);
-                    previewAlarmSound(s.id).catch(() => undefined);
+                    previewAlarmSound(s.id, prefs.alarmRepeats || 0).catch(() => undefined);
                   }}
                   className="shrink-0 inline-flex items-center gap-1 text-[11px] font-bold text-[#5C4F44] bg-[#F4EDE2] hover:bg-[#EAE0D2] px-3 py-2 rounded-xl"
                   aria-label={`Ouvir ${s.label}`}
                 >
                   <Play className="w-3 h-3" />
                   {playing === `som:${s.id}` ? 'Tocando' : 'Ouvir'}
-                </button>
+                </button>}
               </div>
             );
           })}
         </div>
       </div>
+
+      {/* Quantas vezes o som toca antes da voz */}
+      {sound !== 'nenhum' && (
+        <div className="space-y-1.5">
+          <span className="text-[11px] font-bold text-[#5C4F44]">Quantas vezes o som toca antes da voz</span>
+          <div className="grid grid-cols-4 gap-1.5">
+            {ALERT_REPEATS.map((o) => (
+              <button
+                key={o.value}
+                type="button"
+                onClick={() => {
+                  updateNotificationPreferences({ alarmRepeats: o.value });
+                  flash(`som:${sound}`, 3500);
+                  previewAlarmSound(sound, o.value).catch(() => undefined);
+                }}
+                className={`py-2 rounded-xl text-xs font-bold border ${
+                  (prefs.alarmRepeats || 0) === o.value ? 'bg-[#8C7A6B] border-[#8C7A6B] text-white' : 'bg-white border-[#EFE8DE] text-[#4A3E34]'
+                }`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-[#8C7A6B] leading-snug">“Padrão” mantém como sempre foi. Para a voz falar direto, escolha “Só a voz” acima.</p>
+        </div>
+      )}
 
       {/* Voz dos lembretes */}
       <div className="space-y-2 pt-3 border-t border-[#EFE8DE]/60">

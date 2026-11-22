@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { CalendarCheck, ChevronRight, Plus } from 'lucide-react';
 import { agendaOccursOn, formatBrazilianDate } from '../utils/routineCalculations';
 import { todayISO, shiftISODate, parseISODate, nowHHMM, WEEKDAY_NAMES } from '../utils/dateUtils';
+import { personalOccursOn, stepOccursOn } from '../utils/routineSchedule';
 
 type ScheduleEntry = {
   key: string;
@@ -21,6 +22,7 @@ export const AgendaCard: React.FC = () => {
     routineTasks,
     dailyChronologicalSteps,
     recurringTasks,
+    personalRoutines,
     selectedDate,
     setIsAgendaModalOpen,
     setActiveTab
@@ -43,14 +45,25 @@ export const AgendaCard: React.FC = () => {
         kind: 'Agenda' as const,
         done: !!a.completed
       })),
-    ...dailyChronologicalSteps.map((s) => ({
+    ...dailyChronologicalSteps.filter((s) => stepOccursOn(s, weekday)).map((s) => ({
       key: `st-${s.id}`,
       time: s.time || '',
       title: s.title,
       icon: s.icon || '⏰',
       kind: 'Rotina' as const,
-      done: !!s.completed
+      done: isToday && !!s.completed
     })),
+    // Rotinas Pessoais na rotina diária ou no calendário (cadastro original, sem cópia)
+    ...personalRoutines
+      .filter((p) => (p.inDailyRoutine || p.showOnCalendar) && p.time && personalOccursOn(p, weekday))
+      .map((p) => ({
+        key: `pr-${p.id}`,
+        time: p.time || '',
+        title: `${p.title}${p.context ? ` ${p.context}` : ''}`,
+        icon: p.icon || '✨',
+        kind: 'Rotina' as const,
+        done: isToday && !!p.completedOn
+      })),
     ...routineTasks
       .filter((t) => t.time && appliesToday(t.daysOfWeek))
       .map((t) => ({
@@ -59,7 +72,7 @@ export const AgendaCard: React.FC = () => {
         title: t.title,
         icon: '✅',
         kind: 'Rotina' as const,
-        done: !!t.completed
+        done: isToday && !!t.completed
       })),
     ...recurringTasks
       .filter((t) => (t.daysOfWeek ? t.daysOfWeek.includes(weekday) : t.nextDate === dateStr))
@@ -69,7 +82,7 @@ export const AgendaCard: React.FC = () => {
         title: t.title,
         icon: t.icon || '🔁',
         kind: 'Recorrente' as const,
-        done: t.status === 'concluido'
+        done: isToday && t.status === 'concluido'
       }))
   ].sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
 

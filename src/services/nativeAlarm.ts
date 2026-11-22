@@ -15,6 +15,7 @@ export interface NativeAlarm {
   voice?: string; // Android voice name ('' = phone default)
   rate?: number; // speech speed
   pitch?: number; // speech pitch
+  repeats?: number; // how many times the sound plays before the voice (0 = original)
   accent?: string; // palette colors for the alarm screen
   accentDark?: string;
 }

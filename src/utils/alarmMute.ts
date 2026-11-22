@@ -4,16 +4,43 @@
 /** "Até eu reativar" (data bem distante; o mesmo valor é usado no app Android). */
 export const MUTE_FOREVER = 4102444800000; // 01/01/2100
 
+/** Opções rápidas (tela do alarme e Configurações); as mesmas do alarme do Android. */
 export const MUTE_OPTIONS: { id: string; label: string; minutes: number | null }[] = [
-  { id: '30', label: '30 minutos', minutes: 30 },
   { id: '60', label: '1 hora', minutes: 60 },
   { id: '120', label: '2 horas', minutes: 120 },
-  { id: '240', label: '4 horas', minutes: 240 },
+  { id: '180', label: '3 horas', minutes: 180 },
+  { id: 'dia', label: 'Resto do dia', minutes: -2 },
   { id: 'sempre', label: 'Até eu reativar', minutes: null }
 ];
 
+/** Opções do botão SILENCIAR ROTINAS (horas). */
+export const MUTE_HOURS = [1, 2, 3, 4];
+
+/** Fim do dia de hoje (23:59:59). */
+export const endOfToday = (now = Date.now()) => {
+  const d = new Date(now);
+  d.setHours(23, 59, 59, 0);
+  return d.getTime();
+};
+
+/** Próxima vez que o relógio marcar HH:MM (hoje, ou amanhã se já passou). */
+export const untilClock = (hhmm: string, now = Date.now()) => {
+  const [h, m] = hhmm.split(':').map(Number);
+  const d = new Date(now);
+  d.setHours(h || 0, m || 0, 0, 0);
+  if (d.getTime() <= now) d.setDate(d.getDate() + 1);
+  return d.getTime();
+};
+
+/** Data e hora escolhidas (YYYY-MM-DD + HH:MM, horário do aparelho). */
+export const untilDateTime = (date: string, hhmm: string) => {
+  const [y, mo, d] = date.split('-').map(Number);
+  const [h, m] = hhmm.split(':').map(Number);
+  return new Date(y, (mo || 1) - 1, d || 1, h || 0, m || 0, 0, 0).getTime();
+};
+
 export const muteUntilFor = (minutes: number | null, now = Date.now()) =>
-  minutes === null ? MUTE_FOREVER : now + minutes * 60 * 1000;
+  minutes === null ? MUTE_FOREVER : minutes === -2 ? endOfToday(now) : now + minutes * 60 * 1000;
 
 export const isMuted = (until: number | undefined, now = Date.now()) => !!until && until > now;
 

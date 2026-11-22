@@ -38,13 +38,13 @@ import {
   NotificationPreferences,
   MemberType,
   ActivityLog,
+  PersonalRoutine,
   ActivityStatus,
   DataMaintenance
 } from '../types';
 import { resolveResponseValue } from '../utils/routineCalculations';
-import { todayISO } from '../utils/dateUtils';
-import { playWebSound, speakText } from '../utils/alarmSounds';
-import { isMuted } from '../utils/alarmMute';
+import { todayISO, toISODate } from '../utils/dateUtils';
+import { speakText } from '../utils/alarmSounds';
 import { auth, onAuthStateChanged, saveUserRealtimeData, loadUserRealtimeData, logoutFirebase } from '../firebase';
 
 // Maps each synced state field to its localStorage key suffix (must match the persist effect)
@@ -76,7 +76,8 @@ const CLOUD_SYNC_FIELDS: Record<string, string> = {
   recurringHistory: 'recurring_history',
   notifications: 'notifications',
   activityLog: 'activity_log',
-  dataMaintenance: 'data_maintenance'
+  dataMaintenance: 'data_maintenance',
+  personalRoutines: 'personal_routines'
 };
 
 export interface ActiveAlarmPayload {
@@ -89,6 +90,8 @@ export interface ActiveAlarmPayload {
   dosage?: string;
   key?: string; // scheduler id (used to snooze)
   voice?: boolean; // speak the reminder out loud
+  spoken?: string; // texto falado (vazio = texto automático)
+  sound?: string; // som desta rotina (vazio = o de Configurações)
 }
 
 interface AppContextType {
@@ -258,6 +261,13 @@ interface AppContextType {
   toggleDailyChronologicalStep: (id: string) => void;
   addDailyChronologicalStep: (step: Omit<DailyChronologicalStep, 'id' | 'completed'>) => void;
   updateDailyChronologicalStep: (id: string, updates: Partial<DailyChronologicalStep>) => void;
+  // Rotinas Pessoais
+  personalRoutines: PersonalRoutine[];
+  addPersonalRoutine: (r: Omit<PersonalRoutine, 'id' | 'createdAt'>) => string;
+  updatePersonalRoutine: (id: string, updates: Partial<PersonalRoutine>) => void;
+  deletePersonalRoutine: (id: string) => void;
+  togglePersonalRoutineToday: (id: string) => void;
+  completePersonalRoutineToday: (id: string) => void;
   deleteDailyChronologicalStep: (id: string) => void;
   speakVoiceReminder: (text: string) => void;
 
@@ -313,6 +323,7 @@ interface AppContextType {
   recurringTasks: RecurringTaskItem[];
   recurringHistory: TaskExecutionRecord[];
   completeRecurringTask: (id: string) => void;
+  uncompleteRecurringTask: (id: string) => void;
   addRecurringTask: (task: Omit<RecurringTaskItem, 'id' | 'status'>) => void;
   updateRecurringTask: (id: string, updates: Partial<RecurringTaskItem>) => void;
   deleteRecurringTask: (id: string) => void;
@@ -1602,7 +1613,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateQuestion = (id: string, updates: Partial<QuestionItem>) => {
+    // Mesmo id: o histórico de respostas continua ligado à pergunta
+    const before = questions.find((q) => q.id === id);
     setQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, ...updates } : q)));
+    // Se o tipo mudou (positivo <-> a evitar), o "Sim"/"Não" já respondido continua igual
+    // e só a classificação positivo/negativo acompanha o novo tipo
+    if (before && updates.positiveIf && updates.positiveIf !== before.positiveIf) {
+      const simPositive = updates.positiveIf !== 'nao';
+      setQuestionResponses((prev) =>
+        prev.map((r) => {
+          if (r.questionId !== id || (r.choice !== 'sim' && r.choice !== 'nao')) return r;
+          const value = (r.choice === 'sim') === simPositive ? 'positivo' : 'negativo';
+          return value === r.value ? r : { ...r, value };
+        })
+      );
+    }
   };
 
   const deleteQuestion = (id: string) => {
@@ -1904,6 +1929,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setDailyChronologicalSteps((prev) => [...prev, newStep]);
   };
 
+  // ---------------- Rotinas Pessoais (cadastro original; integração com rotina diária/calendário é opcional)
+  const [personalRoutines, setPersonalRoutines] = useState<PersonalRoutine[]>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_personal_routines`);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const personalRoutinesToday = React.useMemo(
+    () => personalRoutines.map((r) => (r.completedOn && r.completedOn !== currentDay ? { ...r, completedOn: undefined } : r)),
+    [personalRoutines, currentDay]
+  );
+  const addPersonalRoutine = (r: Omit<PersonalRoutine, 'id' | 'createdAt'>) => {
+    const id = `pr-${Date.now()}`;
+    setPersonalRoutines((prev) => [...prev, { ...r, id, createdAt: new Date().toISOString() }]);
+    return id;
+  };
+  const updatePersonalRoutine = (id: string, updates: Partial<PersonalRoutine>) => {
+    setPersonalRoutines((prev) => prev.map((r) => (r.id === id ? { ...r, ...updates, id } : r)));
+  };
+  // A rotina diária e os alarmes leem direto deste cadastro: ao excluir, não sobra lembrete órfão
+  const deletePersonalRoutine = (id: string) => {
+    setPersonalRoutines((prev) => prev.filter((r) => r.id !== id));
+  };
+  const togglePersonalRoutineToday = (id: string) => {
+    setPersonalRoutines((prev) => prev.map((r) => (r.id === id ? { ...r, completedOn: r.completedOn === currentDay ? undefined : currentDay } : r)));
+  };
+  const completePersonalRoutineToday = (id: string) => {
+    setPersonalRoutines((prev) => prev.map((r) => (r.id === id && r.completedOn !== currentDay ? { ...r, completedOn: currentDay } : r)));
+  };
+
   const updateDailyChronologicalStep = (id: string, updates: Partial<DailyChronologicalStep>) => {
     setDailyChronologicalSteps((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
   };
@@ -2189,9 +2246,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   });
 
+  // "Concluído" de uma tarefa recorrente vale só no dia em que foi feita.
+  // Antes, o status ficava "concluido" para sempre: a tarefa aparecia feita todos os dias
+  // e o alarme dela parava de tocar. Registros antigos sem data usam o histórico de execuções.
+  const recurringDoneToday = (t: RecurringTaskItem) => {
+    if (t.status !== 'concluido') return false;
+    if (t.completedOn) return t.completedOn === currentDay;
+    return recurringHistory.some((h) => h.taskId === t.id && h.completedAt && toISODate(new Date(h.completedAt)) === currentDay);
+  };
+  const recurringTasksToday = React.useMemo(
+    () =>
+      recurringTasks.map((t) =>
+        recurringDoneToday(t) ? t : t.status === 'concluido' ? { ...t, status: 'pendente' as const, nextDate: t.nextDate === 'Concluído hoje' ? '' : t.nextDate } : t
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [recurringTasks, recurringHistory, currentDay]
+  );
+
   const completeRecurringTask = (id: string) => {
     const task = recurringTasks.find((t) => t.id === id);
     if (!task) return;
+    if (recurringDoneToday(task)) return; // já feita hoje: não duplica o histórico
     const execution: TaskExecutionRecord = {
       id: `th-${Date.now()}`,
       taskId: task.id,
@@ -2201,8 +2276,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setRecurringHistory((prev) => [execution, ...prev]);
     setRecurringTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, status: 'concluido', nextDate: 'Concluído hoje' } : t))
+      prev.map((t) => (t.id === id ? { ...t, status: 'concluido', completedOn: currentDay, nextDate: 'Concluído hoje' } : t))
     );
+  };
+
+  /** Desfaz a conclusão de hoje (toque de novo no item). */
+  const uncompleteRecurringTask = (id: string) => {
+    setRecurringTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: 'pendente', completedOn: undefined, nextDate: '' } : t)));
+    setRecurringHistory((prev) => {
+      const i = prev.findIndex((h) => h.taskId === id && h.completedAt && toISODate(new Date(h.completedAt)) === currentDay);
+      return i < 0 ? prev : prev.filter((_, k) => k !== i);
+    });
   };
 
   const addRecurringTask = (task: Omit<RecurringTaskItem, 'id' | 'status'>) => {
@@ -2245,16 +2329,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Global Interactive Alarm State (Balão + Alarme)
   const [activeAlarm, setActiveAlarm] = useState<ActiveAlarmPayload | null>(null);
 
-  // The balloon (AlarmBalloonModal) speaks the reminder; here only the chime
+  // O balão (AlarmBalloonModal) toca o som e depois fala; aqui só abre o aviso
   const triggerAlarm = (payload: ActiveAlarmPayload) => {
     setActiveAlarm({
       ...payload,
       voice: payload.voice !== false && notificationPreferences.voiceAlerts !== false
     });
-    // Alarmes silenciados: o aviso aparece, mas sem som
-    if (notificationPreferences.soundAlerts !== false && !isMuted(notificationPreferences.alarmsMutedUntil)) {
-      playWebSound(notificationPreferences.alarmSound || 'padrao');
-    }
   };
 
   const dismissAlarm = () => {
@@ -2268,19 +2348,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else if (activeAlarm.type === 'rotina') {
       const kind = (activeAlarm.key || '').split(':')[0];
       if (action === 'fez') {
-        if (kind === 'etapa') toggleDailyChronologicalStep(activeAlarm.id);
-        else if (kind !== 'recorrente') toggleRoutineTask(activeAlarm.id);
-      } else if (action === 'viu' && kind !== 'etapa' && kind !== 'recorrente') {
+        // "Já fiz" só marca como feito; nunca desmarca algo que já estava feito
+        if (kind === 'etapa') {
+          const s = dailyChronologicalStepsToday.find((x) => x.id === activeAlarm.id);
+          if (s && !s.completed) toggleDailyChronologicalStep(activeAlarm.id);
+        } else if (kind === 'recorrente') {
+          completeRecurringTask(activeAlarm.id);
+        } else if (kind === 'pessoal') {
+          completePersonalRoutineToday(activeAlarm.id);
+        } else {
+          const t = routineTasksToday.find((x) => x.id === activeAlarm.id);
+          if (t && !t.completed) toggleRoutineTask(activeAlarm.id);
+        }
+      } else if (action === 'viu' && kind !== 'etapa' && kind !== 'recorrente' && kind !== 'pessoal') {
         const t = routineTasks.find((x) => x.id === activeAlarm.id);
         if (!(t && t.completed && t.completedOn === currentDay)) logActivity('r', activeAlarm.id, 'viu');
         setRoutineTasks((prev) => prev.map((t) => (t.id === activeAlarm.id ? { ...t, statusHistory: 'viu' } : t)));
-      } else if (action === 'adiar' && kind !== 'etapa' && kind !== 'recorrente') {
+      } else if (action === 'adiar' && kind !== 'etapa' && kind !== 'recorrente' && kind !== 'pessoal') {
         const t = routineTasks.find((x) => x.id === activeAlarm.id);
         if (!(t && t.completed && t.completedOn === currentDay)) logActivity('r', activeAlarm.id, 'adiado');
       }
     } else if (activeAlarm.type === 'agenda') {
       if (action === 'fez') {
-        toggleAgendaItem(activeAlarm.id);
+        const it = agendaItems.find((x) => x.id === activeAlarm.id);
+        if (it && !it.completed) toggleAgendaItem(activeAlarm.id);
       }
     }
     // "Adiar": the scheduler shows this reminder again after the chosen minutes
@@ -2625,7 +2716,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       recurringHistory,
       notifications,
       activityLog,
-      dataMaintenance
+      dataMaintenance,
+      personalRoutines
     };
 
     try {
@@ -2656,6 +2748,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem(`${STORAGE_KEY}_recurring_history`, JSON.stringify(recurringHistory));
       localStorage.setItem(`${STORAGE_KEY}_notifications`, JSON.stringify(notifications));
       localStorage.setItem(`${STORAGE_KEY}_activity_log`, JSON.stringify(activityLog));
+      localStorage.setItem(`${STORAGE_KEY}_personal_routines`, JSON.stringify(personalRoutines));
       localStorage.setItem(`${STORAGE_KEY}_data_maintenance`, JSON.stringify(dataMaintenance));
 
       // If user is authenticated in Firebase, save to Realtime Database instance (app-rotinaai-default-rtdb)
@@ -2694,6 +2787,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     notifications,
     activityLog,
     dataMaintenance,
+    personalRoutines,
     cloudSyncReady
   ]);
 
@@ -2726,7 +2820,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       recurringTasks,
       recurringHistory,
       notifications,
-      activityLog
+      activityLog,
+      personalRoutines
     };
     return JSON.stringify(data, null, 2);
   };
@@ -2760,6 +2855,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (data.recurringHistory) setRecurringHistory(data.recurringHistory);
       if (data.moodRecords === undefined && data.moodEntries) setMoodRecords(data.moodEntries);
       if (data.activityLog) setActivityLog(data.activityLog);
+      if (data.personalRoutines) setPersonalRoutines(data.personalRoutines);
       return true;
     } catch {
       return false;
@@ -2796,6 +2892,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setRecurringHistory([]);
     setNotifications([]);
     setActivityLog({ since: todayISO(), days: {} });
+    setPersonalRoutines([]);
   };
 
   return (
@@ -2934,6 +3031,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toggleDailyChronologicalStep,
         addDailyChronologicalStep,
         updateDailyChronologicalStep,
+        personalRoutines: personalRoutinesToday,
+        addPersonalRoutine,
+        updatePersonalRoutine,
+        deletePersonalRoutine,
+        togglePersonalRoutineToday,
+        completePersonalRoutineToday,
         deleteDailyChronologicalStep,
         speakVoiceReminder,
 
@@ -2981,9 +3084,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateGoal,
         deleteGoal,
 
-        recurringTasks,
+        recurringTasks: recurringTasksToday,
         recurringHistory,
         completeRecurringTask,
+        uncompleteRecurringTask,
         addRecurringTask,
         updateRecurringTask,
         deleteRecurringTask,

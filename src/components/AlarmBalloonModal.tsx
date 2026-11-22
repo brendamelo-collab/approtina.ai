@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { playWebSound } from '../utils/alarmSounds';
+import { playWebSoundTimes } from '../utils/alarmSounds';
 import { MUTE_OPTIONS, isMuted, muteLabel, muteUntilFor } from '../utils/alarmMute';
 import { BellOff, Check, ChevronLeft, Eye, X } from 'lucide-react';
 
@@ -24,18 +24,15 @@ export const AlarmBalloonModal: React.FC = () => {
     if (!activeAlarm || silent) return;
     let repeats = 0;
 
-    // Som escolhido em Configurações > Sons e voz
-    const playChimeBeep = () => {
-      if (notificationPreferences.soundAlerts === false) return;
-      playWebSound(notificationPreferences.alarmSound || 'padrao');
-    };
-
+    // Som (o desta rotina ou o de Configurações), tocado N vezes; depois a voz — igual ao alarme do celular
+    const soundId = activeAlarm.sound || notificationPreferences.alarmSound || 'padrao';
     const triggerAnnounce = () => {
-      const title = activeAlarm.title.replace(/^[^\p{L}\p{N}]+/u, '');
+      const ms = notificationPreferences.soundAlerts === false ? 0 : playWebSoundTimes(soundId, notificationPreferences.alarmRepeats || 0);
       if (activeAlarm.voice !== false) {
-        speakVoiceReminder(`${activeAlarm.memberName ? `${activeAlarm.memberName}, ` : ''}são ${activeAlarm.time}. Hora de: ${title}.`);
+        const title = activeAlarm.title.replace(/^[^\p{L}\p{N}]+/u, '');
+        const text = activeAlarm.spoken || `${activeAlarm.memberName ? `${activeAlarm.memberName}, ` : ''}são ${activeAlarm.time}. Hora de: ${title}.`;
+        setTimeout(() => speakVoiceReminder(text), ms + 300);
       }
-      setTimeout(playChimeBeep, 1200);
     };
 
     triggerAnnounce();
@@ -50,7 +47,7 @@ export const AlarmBalloonModal: React.FC = () => {
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [activeAlarm, silent, speakVoiceReminder, notificationPreferences.soundAlerts, notificationPreferences.alarmSound]);
+  }, [activeAlarm, silent, speakVoiceReminder, notificationPreferences.soundAlerts, notificationPreferences.alarmSound, notificationPreferences.alarmRepeats]);
 
   if (!activeAlarm) return null;
 

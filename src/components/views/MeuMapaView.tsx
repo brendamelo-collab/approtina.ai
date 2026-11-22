@@ -30,6 +30,7 @@ import {
 import { DayPeriod, QuestionResponseValue, QuestionItem, MoodOption } from '../../types';
 import { buildPeriod, bucketsFor, countAnswers, factorReport, moodReport } from '../../utils/reportStats';
 import { BarSeries, EmptyState, ProgressRow } from '../reports/ReportCharts';
+import { QuestionEditorModal } from '../QuestionEditorModal';
 
 const FACTOR_EMOJIS = ['😴', '🔋', '👶', '💸', '⏳', '⚡', '🤕', '🌿', '☀️', '🤝', '🥗', '😰', '🎉', '🏠', '🚗', '💼', '🌧️', '❤️', '📚', '🙏'];
 
@@ -67,6 +68,7 @@ export const MeuMapaView: React.FC = () => {
   // Subtab switcher: 'diario' (Registro Diário) vs 'resumo' (Resumo & Análises)
   const [subTab, setSubTab] = useState<'diario' | 'resumo'>('diario');
   const [saveToast, setSaveToast] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<QuestionItem | null>(null);
 
   // Vertical accordion sections
   const [openSections, setOpenSections] = useState<{
@@ -210,6 +212,7 @@ export const MeuMapaView: React.FC = () => {
 
   return (
     <div className="w-full max-w-xl mx-auto px-4 sm:px-6 pt-2 pb-32 select-none">
+      {editingQuestion && <QuestionEditorModal question={editingQuestion} onClose={() => setEditingQuestion(null)} />}
       {/* Toast Confirmation */}
       {saveToast && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-md bg-[#2C2C2C] text-white px-4 py-3 rounded-2xl shadow-xl flex items-center justify-between text-xs animate-in fade-in slide-in-from-top-4 duration-200">
@@ -1159,9 +1162,15 @@ export const MeuMapaView: React.FC = () => {
                 }`}
                 title={isGoodHabit ? 'Hábito Desejável (Bom)' : 'Comportamento a Evitar (Atenção)'}
               />
-              <h4 className="text-xs sm:text-sm font-bold text-[#2C2C2C] leading-snug">
+              <button
+                type="button"
+                onClick={() => setEditingQuestion(q)}
+                className="text-left text-xs sm:text-sm font-bold text-[#2C2C2C] leading-snug break-words hover:underline decoration-[#DDD3C5] underline-offset-2"
+                title="Toque para editar a pergunta"
+              >
                 {q.title}
-              </h4>
+                <Pencil className="inline w-3 h-3 ml-1.5 -mt-0.5 text-[#B4A597]" aria-hidden="true" />
+              </button>
             </div>
 
             <div className="flex items-center gap-2 flex-wrap pl-4">

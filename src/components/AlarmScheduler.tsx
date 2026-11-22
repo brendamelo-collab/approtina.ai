@@ -3,6 +3,7 @@ import { useApp, ActiveAlarmPayload } from '../context/AppContext';
 import { agendaOccursOn } from '../utils/routineCalculations';
 import { todayISO, nowHHMM } from '../utils/dateUtils';
 import { isNativeAlarmAvailable } from '../services/nativeAlarm';
+import { personalOccursOn, profileName, spokenForPersonal, spokenForStep, stepOccursOn } from '../utils/routineSchedule';
 
 // Fires the alarm balloon (+ voice) when a routine, timeline step, agenda item,
 // recurring task or medication reaches its time. Works while the app is open.
@@ -60,7 +61,9 @@ export const AlarmScheduler: React.FC = () => {
         agendaItems,
         recurringTasks,
         healthMedications,
-        currentProfile
+        currentProfile,
+        personalRoutines,
+        profiles
       } = appRef.current;
       if (!isLoggedIn || activeAlarm) return;
 
@@ -94,7 +97,7 @@ export const AlarmScheduler: React.FC = () => {
       });
 
       dailyChronologicalSteps.forEach((s) => {
-        if (!s.time || s.completed) return;
+        if (!s.time || s.completed || !stepOccursOn(s, weekday)) return;
         add({
           keyBase: `etapa:${s.id}`,
           id: s.id,
@@ -104,7 +107,26 @@ export const AlarmScheduler: React.FC = () => {
           time: s.time,
           dueAt: s.time,
           memberName: currentProfile?.name,
-          voice: s.voiceAlert !== false
+          voice: s.voiceAlert !== false,
+          spoken: spokenForStep(s, currentProfile?.name),
+          sound: s.sound || undefined
+        });
+      });
+
+      // Rotinas Pessoais ligadas à rotina diária (lidas do cadastro original)
+      personalRoutines.forEach((p) => {
+        if (!p.inDailyRoutine || !p.time || p.completedOn === day || !personalOccursOn(p, weekday)) return;
+        add({
+          keyBase: `pessoal:${p.id}`,
+          id: p.id,
+          type: 'rotina',
+          title: `${p.icon ? `${p.icon} ` : ''}${p.title}`,
+          subtitle: [profileName(profiles, p.profileId), p.context].filter(Boolean).join(' · '),
+          time: p.time,
+          dueAt: p.time,
+          voice: true,
+          spoken: spokenForPersonal(p, profiles),
+          sound: p.sound || undefined
         });
       });
 

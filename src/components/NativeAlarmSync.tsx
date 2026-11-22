@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import { agendaOccursOn } from '../utils/routineCalculations';
 import { parseISODate, shiftISODate, todayISO } from '../utils/dateUtils';
 import { isNativeAlarmAvailable, nativeAlarm, NativeAlarm, NativeAlarmStatus } from '../services/nativeAlarm';
+import { personalOccursOn, profileName, spokenForPersonal, spokenForStep, stepOccursOn } from '../utils/routineSchedule';
 import { isMuted } from '../utils/alarmMute';
 
 // Android app only: sends the upcoming alarms (next 7 days) to the native alarm and
@@ -51,7 +52,9 @@ export const NativeAlarmSync: React.FC = () => {
     healthMedications,
     currentProfile,
     notificationPreferences,
-    colorPalette
+    colorPalette,
+    personalRoutines,
+    profiles
   } = app;
 
   // 1) Keep the native alarm list up to date with the user's data
@@ -94,7 +97,7 @@ export const NativeAlarmSync: React.FC = () => {
         });
 
         dailyChronologicalSteps.forEach((s) => {
-          if (!s.time || (isToday && s.completed) || s.voiceAlert === false) return;
+          if (!s.time || (isToday && s.completed) || s.voiceAlert === false || !stepOccursOn(s, weekday)) return;
           const title = stripEmoji(s.title);
           push({
             key: `etapa:${s.id}@${day}T${s.time}`,
@@ -103,9 +106,29 @@ export const NativeAlarmSync: React.FC = () => {
             heading: 'Hora da rotina',
             title,
             subtitle: s.description,
-            spoken: `${name}está na hora de: ${title}.`,
+            spoken: spokenForStep(s, currentProfile?.name),
+            sound: s.sound || undefined,
             timeLabel: s.time,
             at: atFor(day, s.time)
+          });
+        });
+
+        // Rotinas Pessoais com "Adicionar à rotina diária" ligado (lidas direto do cadastro original)
+        personalRoutines.forEach((p) => {
+          if (!p.inDailyRoutine || !p.time || !personalOccursOn(p, weekday)) return;
+          if (isToday && p.completedOn === today) return;
+          const who = profileName(profiles, p.profileId);
+          push({
+            key: `pessoal:${p.id}@${day}T${p.time}`,
+            id: p.id,
+            type: 'rotina',
+            heading: `Rotina pessoal · ${who}`,
+            title: stripEmoji(p.title),
+            subtitle: p.context || undefined,
+            spoken: spokenForPersonal(p, profiles),
+            sound: p.sound || undefined,
+            timeLabel: p.time,
+            at: atFor(day, p.time)
           });
         });
 
@@ -168,6 +191,7 @@ export const NativeAlarmSync: React.FC = () => {
       const prefs = notificationPreferences || ({} as typeof notificationPreferences);
       const style = {
         sound: prefs.alarmSound || 'padrao',
+        repeats: prefs.alarmRepeats || 0,
         voice: prefs.nativeVoiceName || '',
         rate: prefs.voiceRate ?? 0.95,
         pitch: prefs.voicePitch ?? 1,
@@ -177,11 +201,11 @@ export const NativeAlarmSync: React.FC = () => {
       };
       const speak = prefs.voiceAlerts !== false;
       nativeAlarm
-        .setAlarms(alarms.slice(0, MAX_ALARMS).map((a) => ({ ...a, ...style, spoken: speak ? a.spoken : '' })))
+        .setAlarms(alarms.slice(0, MAX_ALARMS).map((a) => ({ ...a, ...style, sound: a.sound || style.sound, spoken: speak ? a.spoken : '' })))
         .catch(() => undefined);
     }, 1500);
     return () => clearTimeout(timer);
-  }, [native, isLoggedIn, routineTasks, dailyChronologicalSteps, agendaItems, recurringTasks, healthMedications, currentProfile, notificationPreferences, colorPalette]);
+  }, [native, isLoggedIn, routineTasks, dailyChronologicalSteps, agendaItems, recurringTasks, healthMedications, currentProfile, notificationPreferences, colorPalette, personalRoutines, profiles]);
 
   // 2) Apply "Já fiz" / "Adiar" answered on the native alarm screen
   useEffect(() => {
@@ -217,6 +241,8 @@ export const NativeAlarmSync: React.FC = () => {
         } else if (kind === 'recorrente') {
           const r = a.recurringTasks.find((x) => x.id === id);
           if (r && r.status !== 'concluido') a.completeRecurringTask(id);
+        } else if (kind === 'pessoal' && day === today) {
+          a.completePersonalRoutineToday(id);
         } else if (kind === 'remedio') {
           a.setMedicationStatus(id, 'fez');
         }
