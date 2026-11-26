@@ -27,7 +27,8 @@ export const MetasView: React.FC = () => {
     deleteGoalCategory,
     toggleGoalStep,
     addGoal,
-    deleteGoal
+    deleteGoal,
+    updateGoal
   } = useApp();
 
   const [activeStatusTab, setActiveStatusTab] = useState<'em_andamento' | 'concluida'>('em_andamento');

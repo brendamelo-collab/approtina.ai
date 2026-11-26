@@ -178,21 +178,20 @@ export const MaisDrawer: React.FC = () => {
             <div className="p-5 space-y-3">
               {/* Profile Bar */}
               <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[22px] p-3.5 flex items-center justify-between mb-3 shadow-[0_3px_12px_rgba(150,100,60,0.08)]">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                   <UserAvatar name={currentProfile.name} avatarUrl={currentProfile.avatarUrl} size="md" />
-                  <div>
-                    <span className="block text-sm font-bold text-[#2C2C2C]">
-                      {currentProfile.name}
-                    </span>
-                    <span className="block text-xs text-[#8C7A6B]">
-                      {currentProfile.role} • {isLoggedIn ? userEmail : 'Modo Offline'}
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-sm font-bold text-[#2C2C2C] truncate">{currentProfile.name}</span>
+                    {currentProfile.role && <span className="block text-xs text-[#8C7A6B] truncate">{currentProfile.role}</span>}
+                    <span className="block text-xs text-[#5C4F44] truncate" title={isLoggedIn ? userEmail : undefined}>
+                      {isLoggedIn ? userEmail : 'Modo Offline'}
                     </span>
                   </div>
                 </div>
 
                 <button
                   onClick={() => setActiveSubView('familia')}
-                  className="text-xs font-semibold text-[#8C7A6B] hover:text-[#5C4F44] bg-[#F4EDE2] px-2.5 py-1.5 rounded-xl"
+                  className="shrink-0 ml-2 text-xs font-semibold text-[#8C7A6B] hover:text-[#5C4F44] bg-[#F4EDE2] px-2.5 py-1.5 rounded-xl"
                 >
                   Trocar
                 </button>
