@@ -3,6 +3,7 @@
 // As cores usam os tons do app, então acompanham qualquer paleta escolhida.
 import React from 'react';
 import { Check, ChevronRight, LucideIcon } from 'lucide-react';
+import { displayEmoji } from '../../utils/emoji';
 
 export const SHADOW = 'shadow-[0_6px_22px_rgba(150,100,60,0.09)]';
 export const SHADOW_SOFT = 'shadow-[0_3px_12px_rgba(150,100,60,0.08)]';
@@ -146,7 +147,11 @@ export const SectionTitle: React.FC<{ title: React.ReactNode; icon?: React.React
 /** Ícone/emoji num círculo claro, como nas fotos. */
 export const IconBubble: React.FC<{ children: React.ReactNode; size?: 'sm' | 'md' | 'lg'; className?: string }> = ({ children, size = 'md', className = '' }) => {
   const s = size === 'lg' ? 'w-16 h-16 text-[34px]' : size === 'sm' ? 'w-10 h-10 text-xl' : 'w-14 h-14 text-[28px]';
-  return <span className={`${s} shrink-0 rounded-full bg-white flex items-center justify-center leading-none ${SHADOW_SOFT} ${className}`}>{children}</span>;
+  return (
+    <span className={`${s} shrink-0 rounded-full bg-white flex items-center justify-center leading-none ${SHADOW_SOFT} ${className}`}>
+      {typeof children === 'string' ? displayEmoji(children) : children}
+    </span>
+  );
 };
 
 /** Linha de lista: ícone, título, detalhe e algo à direita. */
@@ -243,4 +248,34 @@ export const ProgressLine: React.FC<{ value: number; tone?: 'caramel' | 'green' 
 /** Área da página (largura, margens e espaço para a barra inferior). */
 export const Page: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
   <div className={`w-full max-w-xl mx-auto px-4 sm:px-6 pb-32 space-y-4 ${className}`}>{children}</div>
+);
+
+/** Confirmação antes de apagar (ou outra ação sem volta). */
+export const ConfirmDialog: React.FC<{
+  title: string;
+  message: React.ReactNode;
+  confirmLabel?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}> = ({ title, message, confirmLabel = 'Excluir', onConfirm, onCancel }) => (
+  <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/45 backdrop-blur-xs p-0 sm:p-4" onClick={onCancel}>
+    <div
+      role="alertdialog"
+      aria-modal="true"
+      aria-label={title}
+      onClick={(e) => e.stopPropagation()}
+      className="w-full sm:max-w-sm bg-[#FAF8F5] rounded-t-[26px] sm:rounded-[26px] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] space-y-3 shadow-2xl"
+    >
+      <h3 className="text-base font-bold text-[#2C2C2C] leading-snug break-words">{title}</h3>
+      <div className="text-sm text-[#5C4F44] leading-snug break-words">{message}</div>
+      <div className="grid grid-cols-2 gap-2 pt-1">
+        <button type="button" onClick={onCancel} className="h-12 rounded-full bg-[#F4EDE2] text-[#4A3E34] text-sm font-bold">
+          Cancelar
+        </button>
+        <button type="button" onClick={onConfirm} className="h-12 rounded-full bg-[#A9472F] text-white text-sm font-bold">
+          {confirmLabel}
+        </button>
+      </div>
+    </div>
+  </div>
 );

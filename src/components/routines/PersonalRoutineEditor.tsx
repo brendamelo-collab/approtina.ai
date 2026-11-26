@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { PersonalRoutine } from '../../types';
 import { spokenForPersonal } from '../../utils/routineSchedule';
 import { DayPicker, Field, Sheet, SoundSelect, SpokenField, ToggleRow, inputCls } from './RoutineFormParts';
+import { cleanEmojiInput, displayEmoji } from '../../utils/emoji';
 
 const ICONS = ['🧴', '🚿', '💆', '🪥', '💅', '🧖', '💊', '🩹', '🏃', '📚', '🧘', '✨'];
 
@@ -49,7 +50,7 @@ export const PersonalRoutineEditor: React.FC<{ routine?: PersonalRoutine; defaul
       profileId,
       title: t,
       context: context.trim() || undefined,
-      icon: icon.trim() || '✨',
+      icon: cleanEmojiInput(icon) || '✨',
       daysOfWeek: days,
       time: time || undefined,
       notes: notes.trim() || undefined,
@@ -91,7 +92,7 @@ export const PersonalRoutineEditor: React.FC<{ routine?: PersonalRoutine; defaul
 
       <div className="grid grid-cols-[4.5rem_1fr] gap-2">
         <Field label="Emoji">
-          <input value={icon} onChange={(e) => setIcon(e.target.value)} maxLength={4} className={`${inputCls} text-center text-xl`} aria-label="Emoji" />
+          <input value={icon} onChange={(e) => setIcon(e.target.value)} onBlur={() => setIcon(displayEmoji(icon, '✨'))} className={`${inputCls} text-center text-xl`} aria-label="Emoji" />
         </Field>
         <Field label="Atividade">
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Fazer esfoliação" className={inputCls} />

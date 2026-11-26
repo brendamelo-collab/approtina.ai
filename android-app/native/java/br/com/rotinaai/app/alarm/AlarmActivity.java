@@ -298,8 +298,12 @@ public class AlarmActivity extends Activity {
         actionsPanel = column();
         card.addView(actionsPanel, full(0));
 
-        actionsPanel.addView(button(med ? "✔   Já tomei" : "✔   Já fiz", GREEN, Color.WHITE, 0, 62, 20,
-                v -> AlarmActions.handle(this, alarm, AlarmActions.DONE, 0)), full(0));
+        LinearLayout answers = row();
+        answers.addView(button(med ? "✔  Já tomei" : "✔  Já fiz", GREEN, Color.WHITE, 0, 62, 19,
+                v -> AlarmActions.handle(this, alarm, AlarmActions.DONE, 0)), weighted(0, 4));
+        answers.addView(button(med ? "✕  Não tomei" : "✕  Não fiz", Color.TRANSPARENT, Color.parseColor("#8C3A24"), Color.parseColor("#E3B9AC"), 62, 19,
+                v -> AlarmActions.handle(this, alarm, AlarmActions.NOT_DONE, 0)), weighted(4, 0));
+        actionsPanel.addView(answers, full(0));
 
         TextView snoozeLabel = text("ADIAR POR", 12, MUTED, Typeface.BOLD);
         snoozeLabel.setGravity(Gravity.START);

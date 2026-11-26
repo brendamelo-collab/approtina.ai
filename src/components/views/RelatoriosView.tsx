@@ -1,3 +1,4 @@
+import { iconPrefix } from '../../utils/emoji';
 import React, { useMemo, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
@@ -448,7 +449,7 @@ export const RelatoriosView: React.FC = () => {
               <option value="todas">Todas as áreas</option>
               {lifeAreas.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.icon ? `${a.icon} ` : ''}
+                  {iconPrefix(a.icon)}
                   {a.name}
                 </option>
               ))}
@@ -595,7 +596,7 @@ export const RelatoriosView: React.FC = () => {
               factors.rows.map((f) => (
                 <ProgressRow
                   key={f.factor.id}
-                  label={`${f.factor.icon ? `${f.factor.icon} ` : ''}${f.factor.label}`}
+                  label={`${iconPrefix(f.factor.icon)}${f.factor.label}`}
                   value={f.pctDays}
                   tone="gold"
                   right={<DeltaBadge d={delta(f.days, f.previousDays)} unit="" higherIsBetter label="dias" />}
@@ -786,7 +787,7 @@ export const RelatoriosView: React.FC = () => {
                     .map((r) => (
                       <div key={r.task.id} className="flex items-start justify-between gap-2 text-xs">
                         <span className="min-w-0 break-words text-[#2C2C2C] font-semibold">
-                          {r.task.icon} {r.task.title}
+                          {iconPrefix(r.task.icon)}{r.task.title}
                         </span>
                         <span className="shrink-0 text-[#5C4F44]">
                           <strong>{r.count}×</strong> <span className="text-[10px] text-[#8C7A6B]">(antes {r.previous}×)</span>

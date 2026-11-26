@@ -16,6 +16,9 @@ export interface NativeAlarm {
   rate?: number; // speech speed
   pitch?: number; // speech pitch
   repeats?: number; // how many times the sound plays before the voice (0 = original)
+  mode?: 'ambos' | 'alarme' | 'voz'; // som + voz, só som ou só voz
+  voiceRepeats?: number; // quantas vezes a voz fala em cada rodada
+  durationSec?: number; // 0 = como antes (10 min), -1 = até desligar, -2 = uma rodada, >0 = segundos
   accent?: string; // palette colors for the alarm screen
   accentDark?: string;
 }
@@ -31,7 +34,7 @@ export interface NativeAlarmAction {
   key: string;
   id: string;
   type: string;
-  action: 'fez' | 'adiar';
+  action: 'fez' | 'adiar' | 'naofez';
   minutes: number;
   at: number;
 }
@@ -42,6 +45,7 @@ export interface NativeAlarmStatus {
   fullScreen: boolean;
   overlay: boolean;
   battery: boolean;
+  lockscreen?: boolean; // canal do alarme urgente e visível na tela bloqueada (APKs novos)
 }
 
 const cap = () => (typeof window !== 'undefined' ? (window as any).Capacitor : undefined);

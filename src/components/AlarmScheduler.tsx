@@ -1,8 +1,10 @@
+import { iconPrefix } from '../utils/emoji';
 import { useEffect, useRef } from 'react';
 import { useApp, ActiveAlarmPayload } from '../context/AppContext';
 import { agendaOccursOn } from '../utils/routineCalculations';
 import { todayISO, nowHHMM } from '../utils/dateUtils';
 import { isNativeAlarmAvailable } from '../services/nativeAlarm';
+import { isMuted } from '../utils/alarmMute';
 import { personalOccursOn, profileName, spokenForPersonal, spokenForStep, stepOccursOn } from '../utils/routineSchedule';
 
 // Fires the alarm balloon (+ voice) when a routine, timeline step, agenda item,
@@ -102,7 +104,7 @@ export const AlarmScheduler: React.FC = () => {
           keyBase: `etapa:${s.id}`,
           id: s.id,
           type: 'rotina',
-          title: `${s.icon ? `${s.icon} ` : ''}${s.title}`,
+          title: `${iconPrefix(s.icon)}${s.title}`,
           subtitle: s.description,
           time: s.time,
           dueAt: s.time,
@@ -120,7 +122,7 @@ export const AlarmScheduler: React.FC = () => {
           keyBase: `pessoal:${p.id}`,
           id: p.id,
           type: 'rotina',
-          title: `${p.icon ? `${p.icon} ` : ''}${p.title}`,
+          title: `${iconPrefix(p.icon)}${p.title}`,
           subtitle: [profileName(profiles, p.profileId), p.context].filter(Boolean).join(' · '),
           time: p.time,
           dueAt: p.time,
@@ -149,16 +151,16 @@ export const AlarmScheduler: React.FC = () => {
       });
 
       recurringTasks.forEach((t) => {
-        if (!t.time || t.status === 'concluido') return;
+        if (!t.time || t.status === 'concluido' || t.voiceReminder === false) return;
         if (!(t.daysOfWeek ? t.daysOfWeek.includes(weekday) : t.nextDate === day)) return;
         add({
           keyBase: `recorrente:${t.id}`,
           id: t.id,
           type: 'rotina',
-          title: `${t.icon ? `${t.icon} ` : ''}${t.title}`,
+          title: `${iconPrefix(t.icon)}${t.title}`,
           time: t.time,
           dueAt: t.time,
-          memberName: currentProfile?.name,
+          memberName: (t.memberId && profiles.find((p) => p.id === t.memberId)?.name) || currentProfile?.name,
           voice: true
         });
       });
@@ -217,9 +219,11 @@ export const AlarmScheduler: React.FC = () => {
       // App in the background: also show a system notification
       if (document.visibilityState !== 'visible' && 'Notification' in window && Notification.permission === 'granted') {
         const body = `${c.time} • ${c.title}`;
+        // Alarmes silenciados: a notificação aparece sem som
+        const silent = isMuted(appRef.current.notificationPreferences?.alarmsMutedUntil);
         navigator.serviceWorker?.getRegistration().then((reg) => {
-          if (reg) reg.showNotification('Rotina.ai', { body, icon: '/pwa-192x192-v2.png', tag: c.key });
-          else new Notification('Rotina.ai', { body, icon: '/pwa-192x192-v2.png', tag: c.key });
+          if (reg) reg.showNotification('Rotina.ai', { body, icon: '/pwa-192x192-v2.png', tag: c.key, silent });
+          else new Notification('Rotina.ai', { body, icon: '/pwa-192x192-v2.png', tag: c.key, silent });
         });
       }
     };

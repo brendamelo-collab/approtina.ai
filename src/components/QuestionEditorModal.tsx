@@ -1,3 +1,4 @@
+import { iconPrefix } from '../utils/emoji';
 import React, { useMemo, useState } from 'react';
 import { Check, Trash2, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -130,7 +131,7 @@ export const QuestionEditorModal: React.FC<{ question: QuestionItem; onClose: (m
             >
               {lifeAreas.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.icon ? `${a.icon} ` : ''}
+                  {iconPrefix(a.icon)}
                   {a.name}
                 </option>
               ))}

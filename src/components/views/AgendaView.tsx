@@ -1,3 +1,4 @@
+import { displayEmoji } from '../../utils/emoji';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { todayISO, toISODate, shiftISODate, parseISODate, MONTH_NAMES } from '../../utils/dateUtils';
@@ -148,7 +149,7 @@ export const AgendaView: React.FC = () => {
       .filter((p) => p.showOnCalendar && p.time && personalOccursOn(p, dayOfWeek))
       .map((p) => ({
         id: `pes-cal-${p.id}`,
-        title: `${p.icon || '✨'} ${p.title}${p.context ? ` ${p.context}` : ''}`,
+        title: `${displayEmoji(p.icon, '✨')} ${p.title}${p.context ? ` ${p.context}` : ''}`,
         date: dateStr,
         time: p.time || '',
         displayDay: daysOfWeekNames[dayOfWeek],
@@ -156,7 +157,7 @@ export const AgendaView: React.FC = () => {
         recurrenceLabel: `Rotina pessoal · ${profileName(profiles, p.profileId)}`,
         completed: dateStr === todayISO() && !!p.completedOn,
         category: 'rotina',
-        icon: p.icon || '✨'
+        icon: displayEmoji(p.icon, '✨')
       }));
     return [...directEvents, ...recurringEvents, ...personalEvents];
   };
@@ -865,7 +866,7 @@ export const AgendaView: React.FC = () => {
                     placeholder="Nome da categoria (ex: Culinária, Música...)"
                     value={newCatName}
                     onChange={(e) => setNewCatName(e.target.value)}
-                    className="flex-1 bg-white border border-[#EFE8DE] rounded-xl px-3 py-2 text-xs"
+                    className="flex-1 min-w-0 bg-white border border-[#EFE8DE] rounded-xl px-3 py-2 text-xs"
                   />
                   <button
                     type="submit"

@@ -37,7 +37,7 @@ import {
   Smile,
   Settings
 } from 'lucide-react';
-import { PageHeader } from '../ui/Kit';
+import { ConfirmDialog, PageHeader } from '../ui/Kit';
 
 export const ConfiguracoesPerfilView: React.FC = () => {
   const {
@@ -101,6 +101,7 @@ export const ConfiguracoesPerfilView: React.FC = () => {
 
   // Editing profile name
   const [editingProfileId, setEditingProfileId] = useState<string | null>(null);
+  const [confirmRemoveProfile, setConfirmRemoveProfile] = useState<UserProfile | null>(null);
   const [editingNameValue, setEditingNameValue] = useState('');
 
   // Toast notification
@@ -346,53 +347,60 @@ export const ConfiguracoesPerfilView: React.FC = () => {
         </div>
       )}
 
+      {confirmRemoveProfile && (
+        <ConfirmDialog
+          title={`Remover ${confirmRemoveProfile.name} da família?`}
+          message="O perfil sai da lista de membros. Confira antes: isso não pode ser desfeito por aqui."
+          confirmLabel="Remover"
+          onCancel={() => setConfirmRemoveProfile(null)}
+          onConfirm={() => {
+            deleteProfile(confirmRemoveProfile.id);
+            setConfirmRemoveProfile(null);
+          }}
+        />
+      )}
+
       <div className="mb-3">
         <PageHeader icon={Settings} title="Configurações" subtitle="Perfis, foto, cores e texto" />
       </div>
 
       {/* Overview Card: Active Profile */}
-      <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-5 mb-4 shadow-[0_6px_22px_rgba(150,100,60,0.09)] flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3.5 min-w-0 flex-1">
-          <div className="relative group shrink-0">
+      <div className="bg-[#FAF8F5] border border-[#EFE8DE]/70 rounded-[26px] p-4 sm:p-5 mb-4 shadow-[0_6px_22px_rgba(150,100,60,0.09)] space-y-3">
+        <div className="flex items-center gap-3.5 min-w-0">
+          <div className="relative shrink-0">
             <UserAvatar name={currentProfile.name} avatarUrl={currentProfile.avatarUrl} size="lg" />
             <button
               onClick={() => setEditingPhotoProfile(currentProfile)}
               className="absolute -bottom-1 -right-1 p-1.5 bg-[#8C7A6B] hover:bg-[#786657] text-white rounded-full shadow-md border-2 border-white transition-transform active:scale-90"
               title="Mudar foto de perfil"
+              aria-label="Mudar foto de perfil"
             >
               <Camera className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-              <h2 className="text-sm sm:text-base font-bold text-[#2C2C2C] break-words">
-                {currentProfile.name}
-              </h2>
-              <span className="text-[10px] font-bold text-[#5C4F44] bg-[#EAE0D2] px-2 py-0.5 rounded-full whitespace-nowrap">
-                Perfil Ativo
-              </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <h2 className="text-base font-bold text-[#2C2C2C] leading-tight break-words">{currentProfile.name}</h2>
+              <span className="text-[10px] font-bold text-[#5C4F44] bg-[#EAE0D2] px-2 py-0.5 rounded-full whitespace-nowrap">Perfil Ativo</span>
             </div>
-            <p className="text-xs text-[#8C7A6B] break-all leading-snug">
-              {currentProfile.role} • {isLoggedIn ? userEmail : 'Armazenamento Local'}
+            {currentProfile.role && <p className="mt-0.5 text-xs text-[#8C7A6B] leading-snug truncate">{currentProfile.role}</p>}
+            <p className="text-xs text-[#5C4F44] leading-snug truncate" title={isLoggedIn ? userEmail : undefined}>
+              {isLoggedIn ? userEmail : 'Armazenamento Local'}
             </p>
           </div>
         </div>
-
-        <div className="flex flex-col gap-1.5 items-end shrink-0">
+        <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => setEditingPhotoProfile(currentProfile)}
-            className="text-[11px] font-bold text-[#8C7A6B] hover:text-[#5C4F44] flex items-center gap-1 bg-[#F4EDE2] hover:bg-[#EAE0D2] px-2.5 py-1 rounded-xl transition-colors"
+            className="h-10 text-xs font-bold text-[#5C4F44] inline-flex items-center justify-center gap-1.5 bg-[#F4EDE2] hover:bg-[#EAE0D2] rounded-full transition-colors"
           >
-            <Camera className="w-3.5 h-3.5" />
-            <span>Mudar Foto</span>
+            <Camera className="w-3.5 h-3.5" /> Mudar foto
           </button>
-
           <button
             onClick={() => setIsAddProfileModalOpen(true)}
-            className="text-[11px] font-bold text-[#5C4F44] hover:text-[#2C2C2C] flex items-center gap-1 bg-[#EAE0D2] hover:bg-[#D8C7B4] px-2.5 py-1 rounded-xl transition-colors"
+            className="h-10 text-xs font-bold text-[#5C4F44] inline-flex items-center justify-center gap-1.5 bg-[#EAE0D2] hover:bg-[#D8C7B4] rounded-full transition-colors"
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Membro</span>
+            <Plus className="w-3.5 h-3.5" /> Membro
           </button>
         </div>
       </div>
@@ -423,7 +431,7 @@ export const ConfiguracoesPerfilView: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-[#8C7A6B] bg-[#F4EDE2] px-2.5 py-1 rounded-full">
+              <span className="text-xs font-semibold text-[#8C7A6B] bg-[#F4EDE2] px-2.5 py-1 rounded-full whitespace-nowrap">
                 {profiles.length} membros
               </span>
               <div className="w-7 h-7 rounded-full bg-[#F4EDE2] flex items-center justify-center text-[#8C7A6B]">
@@ -434,16 +442,16 @@ export const ConfiguracoesPerfilView: React.FC = () => {
 
           {openSections.perfis && (
             <div className="px-4 sm:px-5 pb-5 pt-1 border-t border-[#EFE8DE]/60 space-y-3">
-              <div className="flex items-center justify-between pb-1">
-                <span className="text-xs font-bold text-[#4A3E34]">
+              <div className="flex items-center justify-between gap-3 pb-1">
+                <span className="min-w-0 text-xs font-bold text-[#4A3E34] leading-snug">
                   Selecione quem está usando o app:
                 </span>
                 <button
                   onClick={() => setIsAddProfileModalOpen(true)}
-                  className="text-xs font-bold text-[#8C7A6B] hover:text-[#5C4F44] flex items-center gap-1 bg-[#F4EDE2] px-2.5 py-1 rounded-xl transition-colors"
+                  className="shrink-0 whitespace-nowrap text-xs font-bold text-[#8C7A6B] hover:text-[#5C4F44] flex items-center gap-1 bg-[#F4EDE2] px-2.5 py-1.5 rounded-xl transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>Adicionar Membro</span>
+                  <span>Adicionar</span>
                 </button>
               </div>
 
@@ -455,7 +463,7 @@ export const ConfiguracoesPerfilView: React.FC = () => {
                   return (
                     <div
                       key={p.id}
-                      className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                      className={`p-3.5 rounded-2xl border transition-all flex flex-wrap items-center gap-x-3 gap-y-2 ${
                         isSelected
                           ? 'bg-white border-[#8C7A6B] shadow-2xs'
                           : 'bg-[#FAF8F5] border-[#EFE8DE] hover:bg-[#F9F6F1]'
@@ -463,7 +471,7 @@ export const ConfiguracoesPerfilView: React.FC = () => {
                     >
                       <div
                         onClick={() => !isEditing && switchProfile(p.id)}
-                        className="flex items-center gap-3 cursor-pointer flex-1 min-w-0"
+                        className="flex items-center gap-3 cursor-pointer flex-1 basis-52 min-w-0"
                       >
                         <UserAvatar name={p.name} avatarUrl={p.avatarUrl} size="md" />
 
@@ -511,16 +519,20 @@ export const ConfiguracoesPerfilView: React.FC = () => {
                                   </span>
                                 )}
                               </div>
-                              <p className="text-[11px] text-[#8C7A6B] truncate">
-                                {p.role} {p.subtitle ? `• ${p.subtitle}` : ''}
-                                {p.email ? ` • ${p.email}` : ''}
+                              <p className="text-[11px] text-[#8C7A6B] leading-snug truncate">
+                                {[p.role, p.subtitle].filter(Boolean).join(' • ')}
                               </p>
+                              {p.email && (
+                                <p className="text-[11px] text-[#5C4F44] leading-snug truncate" title={p.email}>
+                                  {p.email}
+                                </p>
+                              )}
                             </>
                           )}
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0 ml-auto">
                         <button
                           type="button"
                           onClick={() => setEditingPhotoProfile(p)}
@@ -562,7 +574,7 @@ export const ConfiguracoesPerfilView: React.FC = () => {
                         {!p.isPrimary && profiles.length > 1 && (
                           <button
                             type="button"
-                            onClick={() => deleteProfile(p.id)}
+                            onClick={() => setConfirmRemoveProfile(p)}
                             className="p-1.5 text-[#B4A597] hover:text-[#8C3A24] rounded-lg hover:bg-[#FDF2EE] transition-colors"
                             title="Remover perfil"
                             aria-label={`Remover perfil de ${p.name}`}
@@ -774,11 +786,11 @@ export const ConfiguracoesPerfilView: React.FC = () => {
                     placeholder="Cole aqui o código (ex: ROTINA-FAM-1234)"
                     value={familyCodeInput}
                     onChange={(e) => setFamilyCodeInput(e.target.value)}
-                    className="flex-1 bg-white border border-[#EFE8DE] rounded-xl px-3 py-2 text-xs font-semibold text-[#2C2C2C] focus:outline-none"
+                    className="flex-1 min-w-0 bg-white border border-[#EFE8DE] rounded-xl px-3 py-2 text-xs font-semibold text-[#2C2C2C] focus:outline-none"
                   />
                   <button
                     type="submit"
-                    className="bg-[#7D9D7F] hover:bg-[#68886A] text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors shadow-2xs"
+                    className="shrink-0 bg-[#7D9D7F] hover:bg-[#68886A] text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors shadow-2xs"
                   >
                     Vincular
                   </button>
@@ -1137,7 +1149,7 @@ export const ConfiguracoesPerfilView: React.FC = () => {
                   placeholder="https://exemplo.com/minha-foto.jpg"
                   value={photoInputUrl}
                   onChange={(e) => setPhotoInputUrl(e.target.value)}
-                  className="flex-1 bg-[#FAF8F5] border border-[#EFE8DE] rounded-xl px-3 py-1.5 text-xs text-[#2C2C2C] focus:outline-none"
+                  className="flex-1 min-w-0 bg-[#FAF8F5] border border-[#EFE8DE] rounded-xl px-3 py-1.5 text-xs text-[#2C2C2C] focus:outline-none"
                 />
                 <button
                   type="submit"

@@ -8,6 +8,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
+import android.hardware.camera2.CameraManager;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.AudioTrack;
@@ -30,7 +31,9 @@ import androidx.core.app.NotificationCompat;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Locale;
 
 /**
@@ -67,6 +70,29 @@ public class AlarmService extends Service {
     private PowerManager.WakeLock wakeLock;
     private long ringStartedAt;
     private int cycleId = 0;
+    /** Cameras in use right now (filled by the availability callback). */
+    private final Set<String> camerasInUse = new HashSet<>();
+    private CameraManager.AvailabilityCallback cameraCallback;
+
+    // ---- Settings sent by the app with each alarm (Configurações > Sons e voz)
+    /** 'ambos' (som + voz), 'alarme' (só som) or 'voz' (só voz). */
+    private static String modeOf(JSONObject a) {
+        String m = a.optString("mode", "");
+        if ("alarme".equals(m) || "voz".equals(m)) return m;
+        return "ambos";
+    }
+
+    /** How long it rings: 0 = original (10 min, then snoozes itself), -1 = until answered, -2 = one round, >0 = seconds. */
+    private static long durationMsOf(JSONObject a) {
+        int d = a.optInt("durationSec", 0);
+        if (d == 0) return MAX_RING_MS;
+        if (d < 0) return d;
+        return d * 1000L;
+    }
+
+    private static int voiceRepeatsOf(JSONObject a) {
+        return Math.max(1, Math.min(10, a.optInt("voiceRepeats", 1)));
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -77,6 +103,7 @@ public class AlarmService extends Service {
     public void onCreate() {
         super.onCreate();
         createChannel(this);
+        watchCameras();
         tts = new TextToSpeech(this, status -> {
             if (status == TextToSpeech.SUCCESS) {
                 int r = tts.setLanguage(new Locale("pt", "BR"));
@@ -167,7 +194,28 @@ public class AlarmService extends Service {
 
     private void ringNext() {
         current = queue.remove(0);
-        startInForeground(current);
+        startInForeground(current, false);
+        // Waits a moment so the camera check has answered, then decides how to warn
+        final JSONObject alarm = current;
+        handler.postDelayed(() -> {
+            if (current == alarm) startAlert();
+        }, 400);
+    }
+
+    private void startAlert() {
+        if (isPhoneBusy()) {
+            // On a call, with the camera open or recording: only a discreet banner, no alarm screen,
+            // no sound and no voice. The reminder stays in the notification bar with its buttons.
+            MuteManager.showDiscreetReminder(this, current);
+            current = null;
+            if (!queue.isEmpty()) ringNext();
+            else {
+                stopForegroundCompat();
+                stopSelf();
+            }
+            return;
+        }
+        startInForeground(current, true);
         openFullScreen(current);
         acquireWakeLock();
         ringStartedAt = System.currentTimeMillis();
@@ -176,7 +224,11 @@ public class AlarmService extends Service {
     }
 
     private void startInForeground(JSONObject alarm) {
-        Notification n = buildNotification(alarm);
+        startInForeground(alarm, true);
+    }
+
+    private void startInForeground(JSONObject alarm, boolean fullScreen) {
+        Notification n = buildNotification(alarm, fullScreen);
         if (Build.VERSION.SDK_INT >= 29) {
             startForeground(NOTIFICATION_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
         } else {
@@ -184,7 +236,7 @@ public class AlarmService extends Service {
         }
     }
 
-    private Notification buildNotification(JSONObject alarm) {
+    private Notification buildNotification(JSONObject alarm, boolean fullScreen) {
         int piFlags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0);
         Intent full = new Intent(this, AlarmActivity.class);
         full.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_USER_ACTION);
@@ -202,10 +254,11 @@ public class AlarmService extends Service {
                 .setOngoing(true)
                 .setAutoCancel(false)
                 .setContentIntent(fullPi)
-                .setFullScreenIntent(fullPi, true)
                 .addAction(0, "✔ Já fiz", ActionReceiver.pending(this, alarm, ActionReceiver.ACTION_DONE, 0, 10))
-                .addAction(0, "Adiar 10 min", ActionReceiver.pending(this, alarm, ActionReceiver.ACTION_SNOOZE, 10, 11))
+                .addAction(0, "✕ Não fiz", ActionReceiver.pending(this, alarm, ActionReceiver.ACTION_NOT_DONE, 0, 13))
                 .addAction(0, "🔕 Silenciar", silencePending());
+        if (fullScreen) b.setFullScreenIntent(fullPi, true);
+        else b.setSilent(true).setPriority(NotificationCompat.PRIORITY_LOW);
         return b.build();
     }
 
@@ -234,7 +287,8 @@ public class AlarmService extends Service {
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
             if (pm != null && (wakeLock == null || !wakeLock.isHeld())) {
                 wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "RotinaAI:alarm");
-                wakeLock.acquire(MAX_RING_MS + 60 * 1000);
+                long limit = current != null ? durationMsOf(current) : MAX_RING_MS;
+                wakeLock.acquire(limit > 0 ? limit + 60 * 1000 : 3 * 60 * 60 * 1000L);
             }
         } catch (Exception ignored) {
         }
@@ -243,8 +297,13 @@ public class AlarmService extends Service {
     /** One cycle = a burst of beeps + vibration, then the spoken reminder; repeats. */
     private void runCycle(final int id) {
         if (id != cycleId || current == null) return;
-        if (System.currentTimeMillis() - ringStartedAt > MAX_RING_MS) {
-            // No answer: snooze automatically so it keeps insisting later
+        long limit = durationMsOf(current);
+        if (limit > 0 && System.currentTimeMillis() - ringStartedAt > limit) {
+            if (current.optInt("durationSec", 0) != 0) {
+                timeUp(); // chosen duration: stop and leave it pending in the notification bar
+                return;
+            }
+            // No answer (original behaviour): snooze automatically so it keeps insisting later
             JSONObject alarm = current;
             AlarmStore.addSnooze(this, alarm, System.currentTimeMillis() + AUTO_SNOOZE_MS);
             AlarmStore.scheduleNext(this);
@@ -257,10 +316,11 @@ public class AlarmService extends Service {
         }
         vibrate();
         // Sound chosen in Configurações (padrao = original beeps; nenhum = straight to the voice)
+        String mode = modeOf(current);
         String sound = current.optString("sound", "padrao");
-        int repeats = Math.max(0, Math.min(6, current.optInt("repeats", 0))); // 0 = original amount
+        int repeats = Math.max(0, Math.min(20, current.optInt("repeats", 0))); // 0 = original amount
         long soundMs;
-        if ("nenhum".equals(sound)) {
+        if ("voz".equals(mode) || "nenhum".equals(sound)) {
             soundMs = 0;
         } else if ("celular".equals(sound)) {
             stopPhoneRingtone();
@@ -298,7 +358,93 @@ public class AlarmService extends Service {
                 soundMs = beeps * BEEP_INTERVAL_MS;
             }
         }
-        handler.postDelayed(() -> speak(id), soundMs + 300);
+        if ("alarme".equals(mode)) {
+            // Only the alarm: no voice; next round after a short pause
+            handler.postDelayed(() -> endOfRound(id), soundMs + 1500);
+        } else {
+            handler.postDelayed(() -> speak(id, voiceRepeatsOf(current)), soundMs + 300);
+        }
+    }
+
+    /** One round (sound + voice) finished: ring again, or stop if it was set to ring only once. */
+    private void endOfRound(final int id) {
+        if (id != cycleId || current == null) return;
+        if (durationMsOf(current) == -2) {
+            timeUp();
+            return;
+        }
+        runCycle(id);
+    }
+
+    /** Chosen time is over: stop sound and voice; the reminder stays pending (never marked as done). */
+    private void timeUp() {
+        JSONObject alarm = current;
+        if (alarm == null) return;
+        stopRinging();
+        MuteManager.showQuietReminder(this, alarm);
+        current = null;
+        AlarmActivity.closeIfOpen(this);
+        if (!queue.isEmpty()) ringNext();
+        else {
+            stopForegroundCompat();
+            stopSelf();
+        }
+    }
+
+    // ---- Busy phone: call, video call, camera or recording
+    private void watchCameras() {
+        if (Build.VERSION.SDK_INT < 21) return;
+        try {
+            CameraManager cm = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+            if (cm == null) return;
+            cameraCallback = new CameraManager.AvailabilityCallback() {
+                @Override
+                public void onCameraAvailable(String cameraId) {
+                    synchronized (camerasInUse) {
+                        camerasInUse.remove(cameraId);
+                    }
+                }
+
+                @Override
+                public void onCameraUnavailable(String cameraId) {
+                    synchronized (camerasInUse) {
+                        camerasInUse.add(cameraId);
+                    }
+                }
+            };
+            // The callback reports right away which cameras are already in use
+            cm.registerAvailabilityCallback(cameraCallback, handler);
+        } catch (Exception ignored) {
+        }
+    }
+
+    /** True during a phone/video call, while the camera is open or while something is recording. */
+    private boolean isPhoneBusy() {
+        try {
+            AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            if (am != null) {
+                int mode = am.getMode();
+                if (mode == AudioManager.MODE_IN_CALL || mode == AudioManager.MODE_IN_COMMUNICATION || mode == AudioManager.MODE_RINGTONE) {
+                    return true;
+                }
+                if (Build.VERSION.SDK_INT >= 33 && mode == AudioManager.MODE_CALL_SCREENING) return true;
+                if (Build.VERSION.SDK_INT >= 24) {
+                    // Someone recording (voice memo, video): ignores the assistant's "Ok Google" listening
+                    for (android.media.AudioRecordingConfiguration rc : am.getActiveRecordingConfigurations()) {
+                        int src = rc.getClientAudioSource();
+                        if (src == android.media.MediaRecorder.AudioSource.MIC || src == android.media.MediaRecorder.AudioSource.CAMCORDER
+                                || src == android.media.MediaRecorder.AudioSource.VOICE_COMMUNICATION || src == android.media.MediaRecorder.AudioSource.DEFAULT
+                                || src == android.media.MediaRecorder.AudioSource.UNPROCESSED) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        synchronized (camerasInUse) {
+            return !camerasInUse.isEmpty();
+        }
     }
 
     private void stopPhoneRingtone() {
@@ -330,11 +476,11 @@ public class AlarmService extends Service {
         }
     }
 
-    private void speak(final int id) {
+    private void speak(final int id, final int timesLeft) {
         if (id != cycleId || current == null) return;
         String text = current.optString("spoken", current.optString("title"));
         if (!ttsReady || text.isEmpty()) {
-            handler.postDelayed(() -> runCycle(id), 2500);
+            handler.postDelayed(() -> endOfRound(id), 2500);
             return;
         }
         // Voice, speed and pitch chosen in Configurações (empty voice = phone default)
@@ -348,12 +494,15 @@ public class AlarmService extends Service {
 
             @Override
             public void onDone(String s) {
-                if (utteranceId.equals(s)) handler.postDelayed(() -> runCycle(id), 1500);
+                if (!utteranceId.equals(s)) return;
+                // Says it again (as many times as chosen), then the round ends
+                if (timesLeft > 1) handler.postDelayed(() -> speak(id, timesLeft - 1), 700);
+                else handler.postDelayed(() -> endOfRound(id), 1500);
             }
 
             @Override
             public void onError(String s) {
-                if (utteranceId.equals(s)) handler.postDelayed(() -> runCycle(id), 1500);
+                if (utteranceId.equals(s)) handler.postDelayed(() -> endOfRound(id), 1500);
             }
         });
         Bundle params = new Bundle();
@@ -393,6 +542,13 @@ public class AlarmService extends Service {
 
     @Override
     public void onDestroy() {
+        try {
+            if (cameraCallback != null && Build.VERSION.SDK_INT >= 21) {
+                CameraManager cm = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+                if (cm != null) cm.unregisterAvailabilityCallback(cameraCallback);
+            }
+        } catch (Exception ignored) {
+        }
         stopRinging();
         current = null;
         try {

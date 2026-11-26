@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { playWebSoundTimes } from '../utils/alarmSounds';
 import { MUTE_OPTIONS, muteLabel, muteUntilFor, useMuted } from '../utils/alarmMute';
+import { alertModeOf, beepsOf, durationMsForWeb, voiceRepeatsOf } from '../utils/alertStyle';
+import { stripEmojis } from '../utils/emoji';
 import { BellOff, Check, ChevronLeft, Eye, X } from 'lucide-react';
 
 const SNOOZE_MINUTES = [5, 10, 15, 30, 60];
@@ -22,32 +24,49 @@ export const AlarmBalloonModal: React.FC = () => {
 
   useEffect(() => {
     if (!activeAlarm || silent) return;
-    let repeats = 0;
+    const prefs = notificationPreferences;
+    const mode = alertModeOf(prefs);
+    const beeps = beepsOf(prefs);
+    const voiceTimes = voiceRepeatsOf(prefs);
+    const limitMs = durationMsForWeb(prefs); // null = até responder; 0 = uma rodada
+    const startedAt = Date.now();
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    let stopped = false;
 
-    // Som (o desta rotina ou o de Configurações), tocado N vezes; depois a voz — igual ao alarme do celular
-    const soundId = activeAlarm.sound || notificationPreferences.alarmSound || 'padrao';
-    const triggerAnnounce = () => {
-      const ms = notificationPreferences.soundAlerts === false ? 0 : playWebSoundTimes(soundId, notificationPreferences.alarmRepeats || 0);
-      if (activeAlarm.voice !== false) {
-        const title = activeAlarm.title.replace(/^[^\p{L}\p{N}]+/u, '');
-        const text = activeAlarm.spoken || `${activeAlarm.memberName ? `${activeAlarm.memberName}, ` : ''}são ${activeAlarm.time}. Hora de: ${title}.`;
-        setTimeout(() => speakVoiceReminder(text), ms + 300);
+    // Som (o desta rotina ou o de Configurações) com N toques; depois a voz M vezes — igual ao alarme do celular
+    const soundId = activeAlarm.sound || prefs.alarmSound || 'padrao';
+    const title = stripEmojis(activeAlarm.title.replace(/^[^\p{L}\p{N}]+/u, ''));
+    const text = stripEmojis(activeAlarm.spoken || `${activeAlarm.memberName ? `${activeAlarm.memberName}, ` : ''}são ${activeAlarm.time}. Hora de: ${title}.`);
+
+    const round = () => {
+      if (stopped) return;
+      const withSound = mode !== 'voz' && prefs.soundAlerts !== false;
+      const withVoice = mode !== 'alarme' && activeAlarm.voice !== false;
+      const soundMs = withSound ? playWebSoundTimes(soundId, beeps) : 0;
+      let speechMs = 0;
+      if (withVoice && text) {
+        const spoken = Array.from({ length: voiceTimes }, () => text).join(' … ');
+        speechMs = Math.max(1500, spoken.split(/\s+/).length * 420);
+        timers.push(setTimeout(() => !stopped && speakVoiceReminder(spoken), soundMs + 300));
       }
+      const roundMs = soundMs + 300 + speechMs + 1500;
+      // Próxima rodada, enquanto estiver dentro do tempo escolhido
+      if (limitMs === 0) return;
+      if (limitMs !== null && Date.now() - startedAt + roundMs > limitMs) return;
+      timers.push(setTimeout(round, Math.max(roundMs, 4000)));
     };
 
-    triggerAnnounce();
-    // Repete voz + som a cada 10 segundos por cerca de 1 minuto; depois fica só na tela até responder
-    const interval = setInterval(() => {
-      repeats += 1;
-      if (repeats > 5) {
-        clearInterval(interval);
-        return;
+    round();
+    return () => {
+      stopped = true;
+      timers.forEach(clearTimeout);
+      try {
+        window.speechSynthesis?.cancel();
+      } catch {
+        // sem voz no navegador
       }
-      triggerAnnounce();
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [activeAlarm, silent, speakVoiceReminder, notificationPreferences.soundAlerts, notificationPreferences.alarmSound, notificationPreferences.alarmRepeats]);
+    };
+  }, [activeAlarm, silent, speakVoiceReminder, notificationPreferences]);
 
   if (!activeAlarm) return null;
 
@@ -127,24 +146,32 @@ export const AlarmBalloonModal: React.FC = () => {
         <div className="relative -mt-6 bg-[#FAF8F5] rounded-t-[28px] sm:rounded-b-[28px] px-5 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] space-y-3">
           {!showMute ? (
             <>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => confirmAlarmAction('fez')}
-                  className="flex-[2] min-h-14 rounded-2xl bg-[#4F7A53] hover:bg-[#43694A] text-white font-bold text-base inline-flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition"
+                  className="min-h-14 rounded-2xl bg-[#4F7A53] hover:bg-[#43694A] text-white font-bold text-base inline-flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition"
                 >
                   <Check className="w-5 h-5 shrink-0" />
                   {isMed ? 'Já tomei' : 'Já fiz'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => confirmAlarmAction('viu')}
-                  className="flex-1 min-h-14 rounded-2xl bg-[#EFE8DE] hover:bg-[#E5DCCF] text-[#4A3E34] font-bold text-sm inline-flex items-center justify-center gap-1.5 active:scale-[0.98] transition"
+                  onClick={() => confirmAlarmAction('naofez')}
+                  className="min-h-14 rounded-2xl border-2 border-[#E3B9AC] bg-white hover:bg-[#FDF2EE] text-[#8C3A24] font-bold text-base inline-flex items-center justify-center gap-2 active:scale-[0.98] transition"
                 >
-                  <Eye className="w-4 h-4 shrink-0" />
-                  Já vi
+                  <X className="w-5 h-5 shrink-0" />
+                  {isMed ? 'Não tomei' : 'Não fiz'}
                 </button>
               </div>
+              <button
+                type="button"
+                onClick={() => confirmAlarmAction('viu')}
+                className="w-full h-11 rounded-2xl bg-[#EFE8DE] hover:bg-[#E5DCCF] text-[#4A3E34] font-bold text-sm inline-flex items-center justify-center gap-1.5 active:scale-[0.98] transition"
+              >
+                <Eye className="w-4 h-4 shrink-0" />
+                Já vi
+              </button>
 
               <div className="space-y-1.5">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-[#8C7A6B]">Adiar por</p>

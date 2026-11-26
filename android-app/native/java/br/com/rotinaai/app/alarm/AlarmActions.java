@@ -9,6 +9,7 @@ import org.json.JSONObject;
 public class AlarmActions {
     public static final String DONE = "fez";
     public static final String SNOOZE = "adiar";
+    public static final String NOT_DONE = "naofez";
 
     public static void handle(Context c, JSONObject alarm, String action, int snoozeMinutes) {
         if (alarm == null) return;

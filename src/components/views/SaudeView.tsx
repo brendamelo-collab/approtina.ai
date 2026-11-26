@@ -222,7 +222,7 @@ export const SaudeView: React.FC = () => {
         <div className="px-1">
           <SectionTitle title="Minha família" />
         </div>
-        <div className="mt-3 flex items-start gap-3 overflow-x-auto no-scrollbar -mx-1 px-1 pb-1">
+        <div className="mt-3 flex flex-wrap items-start gap-x-2 gap-y-3">
           {[{ id: 'todos', name: 'Todos', avatarUrl: undefined as string | undefined }, ...profiles].map((p) => {
             const isSelected = selectedMember === p.id;
             return (
