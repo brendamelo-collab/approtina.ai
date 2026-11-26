@@ -1089,7 +1089,7 @@ export const MeuMapaView: React.FC = () => {
                     type="text"
                     value={newMoodLabel}
                     onChange={(e) => setNewMoodLabel(e.target.value)}
-                    className="flex-1 bg-white border border-[#EFE8DE] rounded-xl px-3 py-2 text-xs"
+                    className="flex-1 min-w-0 bg-white border border-[#EFE8DE] rounded-xl px-3 py-2 text-xs"
                     placeholder="Nome do humor (ex: Inspirada, Tranquila...)"
                   />
                   <button

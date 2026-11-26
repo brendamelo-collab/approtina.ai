@@ -866,7 +866,7 @@ export const AgendaView: React.FC = () => {
                     placeholder="Nome da categoria (ex: Culinária, Música...)"
                     value={newCatName}
                     onChange={(e) => setNewCatName(e.target.value)}
-                    className="flex-1 bg-white border border-[#EFE8DE] rounded-xl px-3 py-2 text-xs"
+                    className="flex-1 min-w-0 bg-white border border-[#EFE8DE] rounded-xl px-3 py-2 text-xs"
                   />
                   <button
                     type="submit"

@@ -786,11 +786,11 @@ export const ConfiguracoesPerfilView: React.FC = () => {
                     placeholder="Cole aqui o código (ex: ROTINA-FAM-1234)"
                     value={familyCodeInput}
                     onChange={(e) => setFamilyCodeInput(e.target.value)}
-                    className="flex-1 bg-white border border-[#EFE8DE] rounded-xl px-3 py-2 text-xs font-semibold text-[#2C2C2C] focus:outline-none"
+                    className="flex-1 min-w-0 bg-white border border-[#EFE8DE] rounded-xl px-3 py-2 text-xs font-semibold text-[#2C2C2C] focus:outline-none"
                   />
                   <button
                     type="submit"
-                    className="bg-[#7D9D7F] hover:bg-[#68886A] text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors shadow-2xs"
+                    className="shrink-0 bg-[#7D9D7F] hover:bg-[#68886A] text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors shadow-2xs"
                   >
                     Vincular
                   </button>
@@ -1149,7 +1149,7 @@ export const ConfiguracoesPerfilView: React.FC = () => {
                   placeholder="https://exemplo.com/minha-foto.jpg"
                   value={photoInputUrl}
                   onChange={(e) => setPhotoInputUrl(e.target.value)}
-                  className="flex-1 bg-[#FAF8F5] border border-[#EFE8DE] rounded-xl px-3 py-1.5 text-xs text-[#2C2C2C] focus:outline-none"
+                  className="flex-1 min-w-0 bg-[#FAF8F5] border border-[#EFE8DE] rounded-xl px-3 py-1.5 text-xs text-[#2C2C2C] focus:outline-none"
                 />
                 <button
                   type="submit"

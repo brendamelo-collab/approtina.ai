@@ -170,7 +170,7 @@ export const ManageQuestionsModal: React.FC = () => {
                     placeholder="Nome da Área (ex: Espiritualidade, Estudos)"
                     value={newAreaName}
                     onChange={(e) => setNewAreaName(e.target.value)}
-                    className="flex-1 bg-white border border-[#EFE8DE] rounded-xl px-3 py-1.5 text-xs text-[#2C2C2C]"
+                    className="flex-1 min-w-0 bg-white border border-[#EFE8DE] rounded-xl px-3 py-1.5 text-xs text-[#2C2C2C]"
                     autoFocus
                   />
                 </div>
