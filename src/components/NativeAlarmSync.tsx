@@ -6,11 +6,23 @@ import { parseISODate, shiftISODate, todayISO } from '../utils/dateUtils';
 import { isNativeAlarmAvailable, nativeAlarm, NativeAlarm, NativeAlarmStatus } from '../services/nativeAlarm';
 import { personalOccursOn, profileName, spokenForPersonal, spokenForStep, stepOccursOn } from '../utils/routineSchedule';
 import { isMuted } from '../utils/alarmMute';
+import { stripEmojis } from '../utils/emoji';
+import { alertStyleFrom } from '../utils/alertStyle';
 
 // Android app only: sends the upcoming alarms (next 7 days) to the native alarm and
 // applies the answers given on the alarm screen ("Já fiz" / "Adiar").
 
 const DAYS_AHEAD = 7;
+// false quando o app Android instalado é antigo e não tem "Silenciar" (getMute/setMute)
+let nativeMuteSupported: boolean | null = null;
+const MUTE_SYNC_KEY = 'rotina_ai_mute_synced';
+const rememberMuteSync = (v: number) => {
+  try {
+    localStorage.setItem(MUTE_SYNC_KEY, String(v || 0));
+  } catch {
+    // sem armazenamento: segue sem lembrar
+  }
+};
 const MAX_ALARMS = 400;
 
 const cssVar = (name: string, fallback: string) => {
@@ -153,16 +165,17 @@ export const NativeAlarmSync: React.FC = () => {
         });
 
         recurringTasks.forEach((t) => {
-          if (!t.time || (isToday && t.status === 'concluido')) return;
+          if (!t.time || (isToday && t.status === 'concluido') || t.voiceReminder === false) return;
           if (!(t.daysOfWeek ? t.daysOfWeek.includes(weekday) : t.nextDate === day)) return;
           const title = stripEmoji(t.title);
+          const member = t.memberId && t.memberId !== currentProfile?.id ? profiles.find((p) => p.id === t.memberId)?.name : '';
           push({
             key: `recorrente:${t.id}@${day}T${t.time}`,
             id: t.id,
             type: 'rotina',
-            heading: 'Tarefa recorrente',
+            heading: member ? `Tarefa recorrente · ${member}` : 'Tarefa recorrente',
             title,
-            spoken: `${name}está na hora de: ${title}.`,
+            spoken: `${name}está na hora de: ${title}${member ? `, de ${member}` : ''}.`,
             timeLabel: t.time,
             at: atFor(day, t.time)
           });
@@ -190,6 +203,7 @@ export const NativeAlarmSync: React.FC = () => {
       // Sound and voice chosen in Configurações > Sons e voz
       const prefs = notificationPreferences || ({} as typeof notificationPreferences);
       const style = {
+        ...alertStyleFrom(prefs),
         sound: prefs.alarmSound || 'padrao',
         repeats: prefs.alarmRepeats || 0,
         voice: prefs.nativeVoiceName || '',
@@ -199,9 +213,18 @@ export const NativeAlarmSync: React.FC = () => {
         accent: cssVar('--t-accent', '#A69280'),
         accentDark: cssVar('--t-accent-dark', '#5E4D40')
       };
-      const speak = prefs.voiceAlerts !== false;
+      const speak = style.mode !== 'alarme';
+      // App Android antigo (sem "Silenciar"): enquanto estiver silenciado, nem agenda os alarmes desse período
+      const mutedUntil = isMuted(prefs.alarmsMutedUntil) ? (prefs.alarmsMutedUntil as number) : 0;
+      if (mutedUntil && nativeMuteSupported === false) {
+        for (let i = alarms.length - 1; i >= 0; i--) if (alarms[i].at <= mutedUntil) alarms.splice(i, 1);
+      }
       nativeAlarm
-        .setAlarms(alarms.slice(0, MAX_ALARMS).map((a) => ({ ...a, ...style, sound: a.sound || style.sound, spoken: speak ? a.spoken : '' })))
+        .setAlarms(
+          alarms
+            .slice(0, MAX_ALARMS)
+            .map((a) => ({ ...a, ...style, sound: a.sound || style.sound, spoken: speak ? stripEmojis(a.spoken) : '', title: stripEmojis(a.title) || a.title }))
+        )
         .catch(() => undefined);
     }, 1500);
     return () => clearTimeout(timer);
@@ -226,6 +249,12 @@ export const NativeAlarmSync: React.FC = () => {
         const id = act.id;
         if (act.action === 'adiar') {
           if (kind === 'remedio') a.setMedicationStatus(id, 'adiado', act.minutes);
+          return;
+        }
+        if (act.action === 'naofez') {
+          // "Não fiz": registra para a tarefa e o dia do aviso; nada é marcado como feito
+          const map: Record<string, 'r' | 's' | 'a' | 'p' | 't' | 'm'> = { rotina: 'r', etapa: 's', agenda: 'a', pessoal: 'p', recorrente: 't', remedio: 'm' };
+          if (map[kind]) a.markNotDone(map[kind], id, day && /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : today);
           return;
         }
         // "Já fiz": routine completion only counts for today's occurrence
@@ -271,20 +300,36 @@ export const NativeAlarmSync: React.FC = () => {
       nativeAlarm
         .getMute()
         .then((n) => {
+          nativeMuteSupported = true;
           const phone = norm(n);
-          if (phone && !want) {
+          // Quem mudou por último vale: o celular (tela do alarme, com o app fechado) ou a conta
+          // (outro aparelho / site). Guardamos o último valor combinado neste aparelho.
+          let synced: number | null = null;
+          try {
+            const raw = localStorage.getItem(MUTE_SYNC_KEY);
+            synced = raw === null ? null : Number(raw) || 0;
+          } catch {
+            synced = null;
+          }
+          const accountChanged = synced !== null && want !== synced;
+          if (phone !== want && !accountChanged && phone !== synced) {
             lastMute.current = phone;
+            rememberMuteSync(phone);
             appRef.current.updateNotificationPreferences({ alarmsMutedUntil: phone });
           } else {
             lastMute.current = want;
+            rememberMuteSync(want);
             if (phone !== want) nativeAlarm.setMute(want).catch(() => undefined);
           }
         })
-        .catch(() => undefined);
+        .catch(() => {
+          nativeMuteSupported = false;
+        });
       return;
     }
     if (lastMute.current === want) return;
     lastMute.current = want;
+    rememberMuteSync(want);
     nativeAlarm.setMute(want).catch(() => undefined);
   }, [native, isLoggedIn, mutedPref]);
   useEffect(() => {
@@ -293,11 +338,14 @@ export const NativeAlarmSync: React.FC = () => {
       let n: number;
       try {
         n = norm(await nativeAlarm.getMute());
+        nativeMuteSupported = true;
       } catch {
-        return; // app Android antigo, sem esta função
+        nativeMuteSupported = false; // app Android antigo, sem esta função
+        return;
       }
       if (lastMute.current === null || n === lastMute.current) return;
       lastMute.current = n;
+      rememberMuteSync(n);
       if (n !== norm(appRef.current.notificationPreferences?.alarmsMutedUntil)) {
         appRef.current.updateNotificationPreferences({ alarmsMutedUntil: n });
       }
@@ -316,6 +364,7 @@ export const NativeAlarmSync: React.FC = () => {
 };
 
 const PERMISSION_LABELS: Record<keyof NativeAlarmStatus, { title: string; why: string }> = {
+  lockscreen: { title: 'Aviso na tela bloqueada', why: 'deixe "Alarmes do Rotina.ai" como urgente e visível na tela bloqueada' },
   notifications: { title: 'Notificações', why: 'para o alarme aparecer no celular' },
   exactAlarm: { title: 'Alarmes e lembretes', why: 'para tocar no horário exato' },
   fullScreen: { title: 'Tela cheia', why: 'para aparecer com a tela bloqueada' },
@@ -324,7 +373,7 @@ const PERMISSION_LABELS: Record<keyof NativeAlarmStatus, { title: string; why: s
 };
 
 /** Card on the home screen (Android app only) to enable the alarm permissions and test it. */
-export const NativeAlarmSetupCard: React.FC = () => {
+export const NativeAlarmSetupCard: React.FC<{ alwaysShow?: boolean }> = ({ alwaysShow }) => {
   const { notificationPreferences: prefs } = useApp();
   const native = isNativeAlarmAvailable();
   const [status, setStatus] = useState<NativeAlarmStatus | null>(null);
@@ -347,11 +396,12 @@ export const NativeAlarmSetupCard: React.FC = () => {
   }, [native]);
 
   if (!native || !status) return null;
-  const missing = (Object.keys(PERMISSION_LABELS) as (keyof NativeAlarmStatus)[]).filter((k) => !status[k]);
-  if (missing.length === 0 && hidden) return null;
+  // false = falta permitir (APKs antigos não informam "lockscreen": não conta como faltando)
+  const missing = (Object.keys(PERMISSION_LABELS) as (keyof NativeAlarmStatus)[]).filter((k) => status[k] === false);
+  if (missing.length === 0 && hidden && !alwaysShow) return null;
 
   return (
-    <section className="w-full max-w-xl mx-auto px-4 sm:px-6 my-3.5">
+    <section className={alwaysShow ? '' : 'w-full max-w-xl mx-auto px-4 sm:px-6 my-3.5'}>
       <div className="bg-[#FAF8F5] border-2 border-[#B78A58]/40 rounded-[26px] p-4 space-y-3">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-[#F7EEE3] text-[#B78A58] flex items-center justify-center shrink-0">
@@ -383,6 +433,16 @@ export const NativeAlarmSetupCard: React.FC = () => {
           </button>
         ))}
 
+        <button
+          type="button"
+          onClick={() => nativeAlarm.openSetting('details' as any).catch(() => undefined)}
+          className="w-full text-left text-[11px] leading-snug text-[#5C4F44] bg-[#F7F2EA] border border-[#ECE3D5] rounded-2xl px-3 py-2.5"
+        >
+          <strong className="block text-[#2C2C2C]">Celular Xiaomi, Samsung, Motorola…?</strong>
+          Alguns pedem mais uma autorização: “Mostrar na tela de bloqueio”, “Abrir janelas em segundo plano” e “Início automático”.
+          Toque aqui para abrir os ajustes do app e ligar essas opções.
+        </button>
+
         <div className="flex gap-2">
           <button
             onClick={() => {
@@ -392,7 +452,9 @@ export const NativeAlarmSetupCard: React.FC = () => {
                   sound: prefs?.alarmSound || 'padrao',
                   voice: prefs?.nativeVoiceName || '',
                   rate: prefs?.voiceRate ?? 0.95,
-                  pitch: prefs?.voicePitch ?? 1
+                  pitch: prefs?.voicePitch ?? 1,
+                  repeats: prefs?.alarmRepeats || 0,
+                  ...alertStyleFrom(prefs)
                 })
                 .catch(() => undefined);
               setTimeout(() => setTesting(false), 12000);
@@ -402,7 +464,7 @@ export const NativeAlarmSetupCard: React.FC = () => {
           >
             {testing ? 'Bloqueie a tela: toca em 10 s…' : 'Testar alarme (10 s)'}
           </button>
-          {missing.length === 0 && (
+          {missing.length === 0 && !alwaysShow && (
             <button
               onClick={() => {
                 setHidden(true);

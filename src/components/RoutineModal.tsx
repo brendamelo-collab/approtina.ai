@@ -1,3 +1,4 @@
+import { iconPrefix } from '../utils/emoji';
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { X, Check, Plus, Sun, Home, Moon, Sparkles, Trash2 } from 'lucide-react';
@@ -55,7 +56,7 @@ export const RoutineModal: React.FC = () => {
       .filter((st) => st.period === activePeriodModal)
       .map((st) => ({
         id: st.id,
-        title: `${st.icon ? `${st.icon} ` : ''}${st.title}`,
+        title: `${iconPrefix(st.icon)}${st.title}`,
         subtitle: st.description,
         time: st.time,
         completed: st.completed,

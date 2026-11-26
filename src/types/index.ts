@@ -335,6 +335,20 @@ export interface RecurringTaskItem {
   daysOfWeek?: number[];
   time?: string;
   completedOn?: string; // YYYY-MM-DD: "concluído" vale só para o dia em que foi feito
+  // Organização por pessoa e grupo (ausente = do perfil principal, sem grupo)
+  memberId?: string;
+  groupId?: string;
+  // Onde aparece (cada um independente; ausente = como era antes: ligado)
+  showInDailyRoutine?: boolean; // entra na Rotina Diária nos dias escolhidos
+  voiceReminder?: boolean; // toca o alarme / fala o lembrete no horário
+}
+
+/** Grupo dentro da área de um integrante (ex.: Brenda › Casa). Opcional e editável. */
+export interface RecurringGroup {
+  id: string;
+  memberId: string;
+  name: string;
+  icon?: string;
 }
 
 export interface AppNotification {
@@ -368,7 +382,13 @@ export interface NotificationPreferences {
   voicePitch?: number; // tom da fala
   // Silenciar alarmes: até quando (ms). 0/ausente = tocando normalmente; MUTE_FOREVER = até reativar
   alarmsMutedUntil?: number;
-  alarmRepeats?: number; // quantas vezes o som toca antes da voz (0/ausente = padrão)
+  alarmRepeats?: number; // quantos toques (bipes) antes da voz (0/ausente = padrão)
+  // Tipo de aviso: 'ambos' (som + voz), 'alarme' (só som) ou 'voz' (só voz). Ausente = como antes.
+  alertMode?: 'ambos' | 'alarme' | 'voz';
+  voiceRepeats?: number; // quantas vezes a voz fala em cada rodada (1 = uma vez)
+  // Quanto tempo o aviso fica tocando: 0/ausente = como antes (10 min e adia sozinho),
+  // -1 = até eu desligar, -2 = uma rodada só, >0 = segundos
+  alarmDurationSec?: number;
 }
 
 export type NavTab =
@@ -437,6 +457,8 @@ export interface ActivityDay {
   s?: Record<string, ActivityStatus>; // etapas da rotina diária
   m?: Record<string, { st: ActivityStatus; at: string }>; // medicamentos e suplementos
   a?: Record<string, ActivityStatus>; // compromissos da agenda
+  p?: Record<string, ActivityStatus>; // rotinas pessoais
+  t?: Record<string, ActivityStatus>; // tarefas recorrentes
 }
 export interface ActivityLog {
   since?: string; // YYYY-MM-DD: primeiro dia acompanhado

@@ -1,6 +1,9 @@
+import { displayEmoji } from '../../utils/emoji';
 import React, { useMemo, useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { DailyChronologicalStep, PersonalRoutine } from '../../types';
+import { todayISO } from '../../utils/dateUtils';
+import { DailyChronologicalStep, PersonalRoutine, RecurringTaskItem } from '../../types';
+import { RecurringTaskEditor } from '../recurring/RecurringEditors';
 import { BellOff, CalendarCheck, CalendarDays, ChevronDown, Plus, Repeat, Volume2, X } from 'lucide-react';
 import { muteLabel, useMuted } from '../../utils/alarmMute';
 import { daysLabel, personalOccursOn, profileName, spokenForPersonal, spokenForStep, stepOccursOn } from '../../utils/routineSchedule';
@@ -8,7 +11,7 @@ import { SilenceRoutinesSheet } from '../SilenceRoutinesSheet';
 import { StepEditorModal } from '../routines/StepEditorModal';
 import { PersonalRoutineEditor } from '../routines/PersonalRoutineEditor';
 import { UserAvatar } from '../UserAvatar';
-import { CheckCircle, IconBubble, PageHeader, PeachButton, RoundButton, SegmentTrack, SoftCard } from '../ui/Kit';
+import { CheckCircle, IconBubble, PageHeader, PeachButton, RoundButton, SegmentTrack, SoftCard, StatusChip } from '../ui/Kit';
 
 interface DailyItem {
   key: string;
@@ -82,14 +85,20 @@ export const RotinasView: React.FC = () => {
     profiles,
     currentProfile,
     speakVoiceReminder,
-    notificationPreferences
+    notificationPreferences,
+    activityLog
   } = useApp();
+  // "Não fiz" registrado hoje (pelo aviso do alarme)
+  const todayLog = activityLog.days?.[todayISO()] || {};
+  const notDone = (it: { kind: string; id: string; completed: boolean }) =>
+    !it.completed && (it.kind === 'etapa' ? todayLog.s : it.kind === 'recorrente' ? todayLog.t : todayLog.p)?.[it.id] === 'nao_fez';
 
   const today = new Date().getDay();
   const [selectedDay, setSelectedDay] = useState<number>(today);
   const [toast, setToast] = useState<string | null>(null);
   const [silenceOpen, setSilenceOpen] = useState(false);
   const [stepEditor, setStepEditor] = useState<{ step?: DailyChronologicalStep } | null>(null);
+  const [recEditor, setRecEditor] = useState<RecurringTaskItem | null>(null);
   const [personalEditor, setPersonalEditor] = useState<{ routine?: PersonalRoutine; profileId?: string } | null>(null);
 
   const showToast = (msg?: string) => {
@@ -113,23 +122,23 @@ export const RotinasView: React.FC = () => {
             id: s.id,
             time: s.time,
             title: s.title,
-            icon: s.icon || '✨',
+            icon: displayEmoji(s.icon, '✨'),
             completed: isToday && s.completed,
             voice: s.voiceAlert !== false,
             spoken: spokenForStep(s, currentProfile?.name),
             badge: s.description || daysLabel(s.daysOfWeek)
           })),
         ...recurringTasks
-          .filter((t) => (t.daysOfWeek ? t.daysOfWeek.includes(selectedDay) : false))
+          .filter((t) => t.showInDailyRoutine !== false && (t.daysOfWeek ? t.daysOfWeek.length === 0 || t.daysOfWeek.includes(selectedDay) : false))
           .map<DailyItem>((t) => ({
             key: `rec-${t.id}`,
             kind: 'recorrente',
             id: t.id,
             time: t.time || '13:00',
             title: t.title,
-            icon: t.icon || '🔁',
+            icon: displayEmoji(t.icon, '🔁'),
             completed: isToday && t.status === 'concluido',
-            voice: !!t.time,
+            voice: !!t.time && t.voiceReminder !== false,
             spoken: `${currentProfile?.name ? `${currentProfile.name}, ` : ''}está na hora de: ${t.title}.`,
             badge: 'Tarefa recorrente'
           })),
@@ -141,7 +150,7 @@ export const RotinasView: React.FC = () => {
             id: p.id,
             time: p.time || '',
             title: `${p.title}${p.context ? ` ${p.context}` : ''}`,
-            icon: p.icon || '✨',
+            icon: displayEmoji(p.icon, '✨'),
             completed: isToday && !!p.completedOn,
             voice: true,
             spoken: spokenForPersonal(p, profiles),
@@ -160,7 +169,11 @@ export const RotinasView: React.FC = () => {
   const openEditor = (it: DailyItem) => {
     if (it.kind === 'etapa') setStepEditor({ step: dailyChronologicalSteps.find((s) => s.id === it.id) });
     else if (it.kind === 'pessoal') setPersonalEditor({ routine: personalRoutines.find((p) => p.id === it.id) });
-    else setActiveTab('recorrentes');
+    else {
+      const t = recurringTasks.find((x) => x.id === it.id);
+      if (t) setRecEditor(t);
+      else setActiveTab('recorrentes');
+    }
   };
 
   // Rotinas pessoais por integrante: a pessoa logada primeiro ("Cuidados Pessoais")
@@ -212,6 +225,15 @@ export const RotinasView: React.FC = () => {
         </div>
       )}
       {silenceOpen && <SilenceRoutinesSheet onClose={(m) => { setSilenceOpen(false); showToast(m); }} />}
+      {recEditor && (
+        <RecurringTaskEditor
+          task={recEditor}
+          onClose={(msg) => {
+            setRecEditor(null);
+            showToast(msg);
+          }}
+        />
+      )}
       {stepEditor && <StepEditorModal step={stepEditor.step} onClose={(m) => { setStepEditor(null); showToast(m); }} />}
       {personalEditor && (
         <PersonalRoutineEditor routine={personalEditor.routine} defaultProfileId={personalEditor.profileId} onClose={(m) => { setPersonalEditor(null); showToast(m); }} />
@@ -284,6 +306,11 @@ export const RotinasView: React.FC = () => {
                     <span className="block text-[13px] text-[#8C7A6B] leading-snug mt-0.5 truncate">
                       {[hourLabel(it.time), it.badge].filter(Boolean).join(' · ')}
                     </span>
+                    {isToday && notDone(it) && (
+                      <span className="inline-block mt-1">
+                        <StatusChip tone="bad">Não fiz</StatusChip>
+                      </span>
+                    )}
                   </span>
                 </button>
                 {it.voice && (

@@ -1,3 +1,4 @@
+import { displayEmoji } from '../utils/emoji';
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { CalendarCheck, ChevronRight, Plus } from 'lucide-react';
@@ -77,7 +78,7 @@ export const AgendaCard: React.FC = () => {
         key: `pr-${p.id}`,
         time: p.time || '',
         title: `${p.title}${p.context ? ` ${p.context}` : ''}`,
-        icon: p.icon || '✨',
+        icon: displayEmoji(p.icon, '✨'),
         kind: 'Rotina' as const,
         done: isToday && !!p.completedOn,
         sub: longDays(p.daysOfWeek)
@@ -93,12 +94,12 @@ export const AgendaCard: React.FC = () => {
         done: isToday && !!t.completed
       })),
     ...recurringTasks
-      .filter((t) => (t.daysOfWeek ? t.daysOfWeek.includes(weekday) : t.nextDate === dateStr))
+      .filter((t) => t.showInDailyRoutine !== false && (t.daysOfWeek ? t.daysOfWeek.length === 0 || t.daysOfWeek.includes(weekday) : t.nextDate === dateStr))
       .map((t) => ({
         key: `rc-${t.id}`,
         time: t.time || '',
         title: t.title,
-        icon: t.icon || '🔁',
+        icon: displayEmoji(t.icon, '🔁'),
         kind: 'Recorrente' as const,
         done: isToday && t.status === 'concluido',
         sub: t.recurrence

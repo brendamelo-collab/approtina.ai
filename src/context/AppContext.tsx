@@ -24,6 +24,7 @@ import {
   GoalItem,
   GoalCategory,
   RecurringTaskItem,
+  RecurringGroup,
   AppNotification,
   QuestionResponseValue,
   LifeArea,
@@ -45,6 +46,7 @@ import {
 import { resolveResponseValue } from '../utils/routineCalculations';
 import { todayISO, toISODate } from '../utils/dateUtils';
 import { speakText } from '../utils/alarmSounds';
+import { fixStoredIcon } from '../utils/emoji';
 import { auth, onAuthStateChanged, saveUserRealtimeData, loadUserRealtimeData, logoutFirebase } from '../firebase';
 
 // Maps each synced state field to its localStorage key suffix (must match the persist effect)
@@ -77,7 +79,8 @@ const CLOUD_SYNC_FIELDS: Record<string, string> = {
   notifications: 'notifications',
   activityLog: 'activity_log',
   dataMaintenance: 'data_maintenance',
-  personalRoutines: 'personal_routines'
+  personalRoutines: 'personal_routines',
+  recurringGroups: 'recurring_groups'
 };
 
 export interface ActiveAlarmPayload {
@@ -231,7 +234,7 @@ interface AppContextType {
   activeAlarm: ActiveAlarmPayload | null;
   triggerAlarm: (payload: ActiveAlarmPayload) => void;
   dismissAlarm: () => void;
-  confirmAlarmAction: (action: 'viu' | 'fez' | 'adiar', snoozeMinutes?: number) => void;
+  confirmAlarmAction: (action: 'viu' | 'fez' | 'adiar' | 'naofez', snoozeMinutes?: number) => void;
 
   // Agenda & Categories & Weekly Fixed Topics
   agendaItems: AgendaItem[];
@@ -327,6 +330,13 @@ interface AppContextType {
   addRecurringTask: (task: Omit<RecurringTaskItem, 'id' | 'status'>) => void;
   updateRecurringTask: (id: string, updates: Partial<RecurringTaskItem>) => void;
   deleteRecurringTask: (id: string) => void;
+  recurringGroups: RecurringGroup[];
+  addRecurringGroup: (group: Omit<RecurringGroup, 'id'>) => string;
+  updateRecurringGroup: (id: string, updates: Partial<RecurringGroup>) => void;
+  /** Apaga só o grupo; as tarefas dele continuam, sem grupo. */
+  deleteRecurringGroup: (id: string) => void;
+  /** "Não fiz": registra que não foi feito naquele dia (nunca marca como feito). */
+  markNotDone: (kind: 'r' | 's' | 'a' | 'p' | 't' | 'm', id: string, date?: string) => void;
 
   // Notifications
   notifications: AppNotification[];
@@ -1347,7 +1357,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   });
 
-  const logActivity = (kind: 'r' | 's' | 'a', id: string, status: ActivityStatus | null, date: string = currentDay) => {
+  const logActivity = (kind: 'r' | 's' | 'a' | 'p' | 't', id: string, status: ActivityStatus | null, date: string = currentDay) => {
     setActivityLog((prev) => {
       const days = { ...(prev.days || {}) };
       const day = { ...(days[date] || {}) };
@@ -2318,6 +2328,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setRecurringTasks((prev) => prev.filter((t) => t.id !== id));
   };
 
+  // Grupos das tarefas recorrentes (dentro da área de cada integrante)
+  const [recurringGroups, setRecurringGroups] = useState<RecurringGroup[]>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_recurring_groups`);
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const addRecurringGroup = (group: Omit<RecurringGroup, 'id'>) => {
+    const id = `rgrp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    setRecurringGroups((prev) => [...prev, { ...group, id }]);
+    return id;
+  };
+
+  const updateRecurringGroup = (id: string, updates: Partial<RecurringGroup>) => {
+    setRecurringGroups((prev) => prev.map((g) => (g.id === id ? { ...g, ...updates } : g)));
+  };
+
+  const deleteRecurringGroup = (id: string) => {
+    setRecurringGroups((prev) => prev.filter((g) => g.id !== id));
+    // as tarefas do grupo continuam existindo, só ficam sem grupo
+    setRecurringTasks((prev) => prev.map((t) => (t.groupId === id ? { ...t, groupId: undefined } : t)));
+  };
+
+  const markNotDone = (kind: 'r' | 's' | 'a' | 'p' | 't' | 'm', id: string, date: string = currentDay) => {
+    if (kind === 'm') logMedication(id, 'nao_fez', date);
+    else logActivity(kind, id, 'nao_fez', date);
+  };
+
   // Notifications
   const [notifications, setNotifications] = useState<AppNotification[]>(() => {
     try {
@@ -2357,8 +2399,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setActiveAlarm(null);
   };
 
-  const confirmAlarmAction = (action: 'viu' | 'fez' | 'adiar', snoozeMinutes: number = 15) => {
+  const confirmAlarmAction = (action: 'viu' | 'fez' | 'adiar' | 'naofez', snoozeMinutes: number = 15) => {
     if (!activeAlarm) return;
+    if (action === 'naofez') {
+      // Registra "não fiz" para a tarefa e o dia; não marca como feita e não adia
+      const kind = (activeAlarm.key || '').split(':')[0];
+      const day = (activeAlarm.key || '').split('@')[1]?.slice(0, 10) || currentDay;
+      const map: Record<string, 'r' | 's' | 'a' | 'p' | 't' | 'm'> = { rotina: 'r', etapa: 's', agenda: 'a', pessoal: 'p', recorrente: 't', remedio: 'm' };
+      const k = map[kind] || (activeAlarm.type === 'medicamento' ? 'm' : activeAlarm.type === 'agenda' ? 'a' : 'r');
+      markNotDone(k, activeAlarm.id, /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : currentDay);
+      setActiveAlarm(null);
+      return;
+    }
     if (activeAlarm.type === 'medicamento') {
       setMedicationStatus(activeAlarm.id, action === 'fez' ? 'fez' : action === 'viu' ? 'viu' : 'adiado', snoozeMinutes);
     } else if (activeAlarm.type === 'rotina') {
@@ -2521,6 +2573,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     window.location.reload();
   };
 
+
+  // Emojis: itens antigos que guardaram o NOME do ícone ("wrench", "bed", "sparkles") passam a
+  // guardar o emoji equivalente. Só o campo do ícone muda; nada é apagado ou duplicado.
+  useEffect(() => {
+    const fixList = <T extends { icon?: string }>(set: React.Dispatch<React.SetStateAction<T[]>>) =>
+      set((prev) => {
+        if (!Array.isArray(prev)) return prev;
+        let changed = false;
+        const next = prev.map((it) => {
+          const f = fixStoredIcon(it);
+          if (f !== it) changed = true;
+          return f;
+        });
+        return changed ? next : prev;
+      });
+    fixList(setRecurringTasks as any);
+    fixList(setDailyChronologicalSteps as any);
+    fixList(setPersonalRoutines as any);
+    fixList(setRoutineTasks as any);
+    fixList(setAgendaItems as any);
+    fixList(setAgendaCategories as any);
+    fixList(setWeeklyFixedTopics as any);
+    fixList(setAvailableFactors as any);
+    fixList(setLifeAreas as any);
+    fixList(setHealthGroups as any);
+    fixList(setGoalCategories as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ------------------------------------------------------------------
   // Dados de exemplo (demonstração) das primeiras versões do app
@@ -2733,7 +2813,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       notifications,
       activityLog,
       dataMaintenance,
-      personalRoutines
+      personalRoutines,
+      recurringGroups
     };
 
     try {
@@ -2765,6 +2846,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem(`${STORAGE_KEY}_notifications`, JSON.stringify(notifications));
       localStorage.setItem(`${STORAGE_KEY}_activity_log`, JSON.stringify(activityLog));
       localStorage.setItem(`${STORAGE_KEY}_personal_routines`, JSON.stringify(personalRoutines));
+      localStorage.setItem(`${STORAGE_KEY}_recurring_groups`, JSON.stringify(recurringGroups));
       localStorage.setItem(`${STORAGE_KEY}_data_maintenance`, JSON.stringify(dataMaintenance));
 
       // If user is authenticated in Firebase, save to Realtime Database instance (app-rotinaai-default-rtdb)
@@ -2804,6 +2886,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     activityLog,
     dataMaintenance,
     personalRoutines,
+    recurringGroups,
     cloudSyncReady
   ]);
 
@@ -2837,7 +2920,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       recurringHistory,
       notifications,
       activityLog,
-      personalRoutines
+      personalRoutines,
+      recurringGroups
     };
     return JSON.stringify(data, null, 2);
   };
@@ -2872,6 +2956,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (data.moodRecords === undefined && data.moodEntries) setMoodRecords(data.moodEntries);
       if (data.activityLog) setActivityLog(data.activityLog);
       if (data.personalRoutines) setPersonalRoutines(data.personalRoutines);
+      if (data.recurringGroups) setRecurringGroups(data.recurringGroups);
       return true;
     } catch {
       return false;
@@ -3107,6 +3192,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addRecurringTask,
         updateRecurringTask,
         deleteRecurringTask,
+        recurringGroups,
+        addRecurringGroup,
+        updateRecurringGroup,
+        deleteRecurringGroup,
+        markNotDone,
 
         notifications,
         markNotificationRead,

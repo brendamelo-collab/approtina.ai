@@ -194,6 +194,22 @@ public class RotinaAlarmPlugin extends Plugin {
             battery = pm != null && pm.isIgnoringBatteryOptimizations(c.getPackageName());
         }
         ret.put("battery", battery);
+        // Tela bloqueada: the alarm channel must still be "urgent" and show its content on the lock screen
+        boolean lock = true;
+        try {
+            if (Build.VERSION.SDK_INT >= 26) {
+                AlarmService.createChannel(c);
+                NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+                android.app.NotificationChannel ch = nm != null ? nm.getNotificationChannel(AlarmService.CHANNEL_ID) : null;
+                if (ch != null) {
+                    lock = ch.getImportance() >= NotificationManager.IMPORTANCE_HIGH
+                            && ch.getLockscreenVisibility() != android.app.Notification.VISIBILITY_SECRET;
+                }
+            }
+            if (Settings.Secure.getInt(c.getContentResolver(), "lock_screen_show_notifications", 1) == 0) lock = false;
+        } catch (Exception ignored) {
+        }
+        ret.put("lockscreen", lock);
         call.resolve(ret);
     }
 
@@ -231,6 +247,16 @@ public class RotinaAlarmPlugin extends Plugin {
                         ? new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, pkg)
                         : new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, pkg);
                 break;
+            case "lockscreen":
+                if (Build.VERSION.SDK_INT >= 26) {
+                    AlarmService.createChannel(c);
+                    i = new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);
+                    i.putExtra(Settings.EXTRA_APP_PACKAGE, c.getPackageName());
+                    i.putExtra(Settings.EXTRA_CHANNEL_ID, AlarmService.CHANNEL_ID);
+                } else {
+                    i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, pkg);
+                }
+                break;
             case "battery":
                 i = Build.VERSION.SDK_INT >= 23
                         ? new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, pkg)
@@ -266,6 +292,10 @@ public class RotinaAlarmPlugin extends Plugin {
             a.put("voice", call.getString("voice", ""));
             a.put("rate", (double) call.getFloat("rate", 0.95f));
             a.put("pitch", (double) call.getFloat("pitch", 1.0f));
+            a.put("repeats", call.getInt("repeats", 0));
+            a.put("mode", call.getString("mode", "ambos"));
+            a.put("voiceRepeats", call.getInt("voiceRepeats", 1));
+            a.put("durationSec", call.getInt("durationSec", 0));
             java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
             long at = System.currentTimeMillis() + seconds * 1000L;
             a.put("timeLabel", fmt.format(new java.util.Date(at)));

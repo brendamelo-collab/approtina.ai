@@ -12,9 +12,10 @@ import {
   X,
   Layers,
   FolderPlus,
-  ChevronDown
+  ChevronDown,
+  Pencil
 } from 'lucide-react';
-import { CheckCircle, IconBubble, PageHeader, PeachButton, PillTabs, ProgressLine, RoundButton, SHADOW_SOFT, SoftCard, StatusChip } from '../ui/Kit';
+import { CheckCircle, ConfirmDialog, IconBubble, PageHeader, PeachButton, PillTabs, ProgressLine, RoundButton, SHADOW_SOFT, SoftCard, StatusChip } from '../ui/Kit';
 import { GoalItem } from '../../types';
 
 export const MetasView: React.FC = () => {
@@ -41,6 +42,30 @@ export const MetasView: React.FC = () => {
   const [newDueDate, setNewDueDate] = useState('');
   const [targetDays, setTargetDays] = useState<number>(30);
   const [stepInputs, setStepInputs] = useState<string[]>(['', '', '']);
+  // Editar: mesma tela do "Nova meta", preenchida; os passos mantêm o que já estava feito
+  const [editingGoal, setEditingGoal] = useState<GoalItem | null>(null);
+  const [confirmDeleteGoal, setConfirmDeleteGoal] = useState<GoalItem | null>(null);
+
+  const openNewGoal = () => {
+    setEditingGoal(null);
+    setNewTitle('');
+    setNewDueDate('');
+    setTargetDays(30);
+    setDeadlineType('contagem_dias');
+    setStepInputs(['', '', '']);
+    setIsAddModalOpen(true);
+  };
+
+  const openEditGoal = (goal: GoalItem) => {
+    setEditingGoal(goal);
+    setNewTitle(goal.title);
+    setNewCategory(goal.category);
+    setDeadlineType(goal.deadlineType);
+    setNewDueDate(goal.dueDate || '');
+    setTargetDays(goal.targetDays ?? 30);
+    setStepInputs(goal.steps.length ? goal.steps.map((x) => x.text) : ['']);
+    setIsAddModalOpen(true);
+  };
 
   // Modal for new category
   const [isAddCatModalOpen, setIsAddCatModalOpen] = useState(false);
@@ -61,7 +86,7 @@ export const MetasView: React.FC = () => {
     if (!newCatName.trim()) return;
     addGoalCategory({
       name: newCatName.trim(),
-      icon: 'Target',
+      icon: '🎯',
       color: '#8C7A6B'
     });
     setNewCatName('');
@@ -80,6 +105,31 @@ export const MetasView: React.FC = () => {
         text: t,
         done: false
       }));
+
+    if (editingGoal) {
+      // Passos: o mesmo texto continua com o mesmo id e o "feito" de antes
+      const used = new Set<string>();
+      const steps = stepInputs
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0)
+        .map((t, idx) => {
+          const same = editingGoal.steps.find((x) => x.text === t && !used.has(x.id)) || (editingGoal.steps[idx] && !used.has(editingGoal.steps[idx].id) ? editingGoal.steps[idx] : undefined);
+          if (same) used.add(same.id);
+          return same ? { ...same, text: t } : { id: `s-${Date.now()}-${idx}`, text: t, done: false };
+        });
+      updateGoal(editingGoal.id, {
+        title: newTitle.trim(),
+        category: newCategory.trim() || editingGoal.category,
+        categoryId: (newCategory.trim() || editingGoal.category).toLowerCase().replace(/\s+/g, '-'),
+        deadlineType,
+        dueDate: deadlineType === 'data_especifica' ? newDueDate : undefined,
+        targetDays: deadlineType === 'contagem_dias' ? targetDays : undefined,
+        steps: steps.length ? steps : editingGoal.steps
+      });
+      setEditingGoal(null);
+      setIsAddModalOpen(false);
+      return;
+    }
 
     addGoal({
       title: newTitle.trim(),
@@ -114,7 +164,7 @@ export const MetasView: React.FC = () => {
         icon={Target}
         title="Minhas Metas"
         right={
-          <RoundButton label="Adicionar nova meta" tone="accent" onClick={() => setIsAddModalOpen(true)}>
+          <RoundButton label="Adicionar nova meta" tone="accent" onClick={openNewGoal}>
             <Plus className="w-5 h-5" strokeWidth={2.2} />
           </RoundButton>
         }
@@ -187,8 +237,17 @@ export const MetasView: React.FC = () => {
                       <h3 className="flex-1 min-w-0 text-[16px] font-bold text-[#2C2C2C] leading-snug break-words">{goal.title}</h3>
                       <button
                         type="button"
-                        onClick={() => deleteGoal(goal.id)}
-                        className="-mr-1 -mt-1 p-1.5 text-[#B4A597] hover:text-[#8C3A24] rounded-full hover:bg-[#FDF2EE]"
+                        onClick={() => openEditGoal(goal)}
+                        className="-mt-1 w-8 h-8 shrink-0 rounded-full bg-[#F4EDE2] text-[#4A3E34] flex items-center justify-center"
+                        title="Editar meta"
+                        aria-label={`Editar meta ${goal.title}`}
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteGoal(goal)}
+                        className="-mr-1 -mt-1 w-8 h-8 shrink-0 rounded-full text-[#A9472F] hover:bg-[#FDF2EE] flex items-center justify-center"
                         title="Excluir meta"
                         aria-label={`Excluir meta ${goal.title}`}
                       >
@@ -244,7 +303,7 @@ export const MetasView: React.FC = () => {
           })
         )}
 
-        <PeachButton onClick={() => setIsAddModalOpen(true)}>
+        <PeachButton onClick={openNewGoal}>
           Adicionar Meta <Plus className="w-4 h-4" />
         </PeachButton>
       </div>
@@ -266,6 +325,18 @@ export const MetasView: React.FC = () => {
       </div>
 
       {/* Modal: Nova Meta */}
+      {confirmDeleteGoal && (
+        <ConfirmDialog
+          title={`Excluir a meta “${confirmDeleteGoal.title}”?`}
+          message="A meta e os passos dela saem da lista. Isso não pode ser desfeito."
+          onCancel={() => setConfirmDeleteGoal(null)}
+          onConfirm={() => {
+            deleteGoal(confirmDeleteGoal.id);
+            setConfirmDeleteGoal(null);
+          }}
+        />
+      )}
+
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4 animate-in fade-in duration-150">
           <div className="w-full max-w-md bg-[#FDFBF7] rounded-[26px] p-5 shadow-2xl border border-[#EFE8DE] space-y-4 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
@@ -275,8 +346,8 @@ export const MetasView: React.FC = () => {
                   <Target className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#2C2C2C]">Nova Meta Familiar</h3>
-                  <p className="text-[11px] text-[#8C7A6B]">Divida em pequenos passos fáceis</p>
+                  <h3 className="text-sm font-bold text-[#2C2C2C]">{editingGoal ? 'Editar meta' : 'Nova Meta Familiar'}</h3>
+                  <p className="text-[11px] text-[#8C7A6B]">{editingGoal ? 'Os passos já feitos continuam marcados' : 'Divida em pequenos passos fáceis'}</p>
                 </div>
               </div>
               <button
@@ -413,7 +484,7 @@ export const MetasView: React.FC = () => {
                   type="submit"
                   className="flex-1 py-2.5 bg-[#8C7A6B] hover:bg-[#786657] text-white text-xs font-bold rounded-xl transition-colors shadow-xs"
                 >
-                  Salvar Meta
+                  {editingGoal ? 'Salvar alterações' : 'Salvar Meta'}
                 </button>
                 <button
                   type="button"

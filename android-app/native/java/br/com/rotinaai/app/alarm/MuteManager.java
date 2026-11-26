@@ -24,6 +24,8 @@ import java.util.Locale;
 public class MuteManager {
     public static final long MUTE_FOREVER = 4102444800000L; // 01/01/2100 = "até eu reativar" (same value as the web app)
     public static final String CHANNEL_QUIET = "rotina_lembretes_silenciosos_v1";
+    /** Banner on top of the screen (no sound) while on a call, using the camera or recording. */
+    public static final String CHANNEL_DISCREET = "rotina_avisos_discretos_v1";
     private static final int STATUS_ID = 4300;
 
     private static NotificationManager nm(Context c) {
@@ -40,6 +42,45 @@ public class MuteManager {
         ch.enableVibration(false);
         ch.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
         m.createNotificationChannel(ch);
+    }
+
+    private static void createDiscreetChannel(Context c) {
+        if (Build.VERSION.SDK_INT < 26) return;
+        NotificationManager m = nm(c);
+        if (m == null || m.getNotificationChannel(CHANNEL_DISCREET) != null) return;
+        NotificationChannel ch = new NotificationChannel(CHANNEL_DISCREET, "Avisos discretos (ligação e câmera)", NotificationManager.IMPORTANCE_HIGH);
+        ch.setDescription("Durante ligações, chamadas de vídeo, câmera ou gravação: só um aviso no topo, sem som e sem tela cheia");
+        ch.setSound(null, null);
+        ch.enableVibration(false);
+        ch.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+        m.createNotificationChannel(ch);
+    }
+
+    /** The reminder as a banner at the top (heads-up), without sound, voice or alarm screen. */
+    public static void showDiscreetReminder(Context c, JSONObject alarm) {
+        NotificationManager m = nm(c);
+        if (m == null || alarm == null) return;
+        createDiscreetChannel(c);
+        int id = idFor(alarm.optString("key"));
+        String time = alarm.optString("timeLabel", "");
+        String title = alarm.optString("title", "Lembrete");
+        boolean med = "medicamento".equals(alarm.optString("type"));
+        NotificationCompat.Builder b = new NotificationCompat.Builder(c, CHANNEL_DISCREET)
+                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                .setContentTitle((time.isEmpty() ? "" : time + " • ") + title)
+                .setContentText(alarm.optString("heading", "Lembrete"))
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setSilent(false)
+                .setSound(null)
+                .setVibrate(new long[]{0})
+                .setAutoCancel(true)
+                .setContentIntent(openApp(c, id))
+                .addAction(0, med ? "✔ Já tomei" : "✔ Já fiz", ActionReceiver.pending(c, alarm, ActionReceiver.ACTION_DONE, 0, id * 4))
+                .addAction(0, med ? "✕ Não tomei" : "✕ Não fiz", ActionReceiver.pending(c, alarm, ActionReceiver.ACTION_NOT_DONE, 0, id * 4 + 2))
+                .addAction(0, "Adiar 10 min", ActionReceiver.pending(c, alarm, ActionReceiver.ACTION_SNOOZE, 10, id * 4 + 1));
+        m.notify(id, b.build());
     }
 
     private static int flags() {
@@ -127,6 +168,7 @@ public class MuteManager {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setContentIntent(openApp(c, id))
                 .addAction(0, med ? "✔ Já tomei" : "✔ Já fiz", ActionReceiver.pending(c, alarm, ActionReceiver.ACTION_DONE, 0, id * 4))
+                .addAction(0, med ? "✕ Não tomei" : "✕ Não fiz", ActionReceiver.pending(c, alarm, ActionReceiver.ACTION_NOT_DONE, 0, id * 4 + 2))
                 .addAction(0, "Adiar 10 min", ActionReceiver.pending(c, alarm, ActionReceiver.ACTION_SNOOZE, 10, id * 4 + 1));
         m.notify(id, b.build());
     }

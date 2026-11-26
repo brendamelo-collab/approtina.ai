@@ -12,6 +12,8 @@ import org.json.JSONObject;
 public class ActionReceiver extends BroadcastReceiver {
     public static final String ACTION_DONE = "br.com.rotinaai.app.ALARM_DONE";
     public static final String ACTION_SNOOZE = "br.com.rotinaai.app.ALARM_SNOOZE";
+    /** "Não fiz": records that it was not done (it is never marked as done). */
+    public static final String ACTION_NOT_DONE = "br.com.rotinaai.app.ALARM_NOT_DONE";
     public static final String ACTION_UNMUTE = "br.com.rotinaai.app.ALARM_UNMUTE";
     /** Lock-screen "Silenciar": stops this alert; it stays pending in the notification bar. */
     public static final String ACTION_SILENCE = "br.com.rotinaai.app.ALARM_SILENCE";
@@ -47,6 +49,8 @@ public class ActionReceiver extends BroadcastReceiver {
             JSONObject alarm = new JSONObject(intent.getStringExtra(AlarmReceiver.EXTRA_ALARM));
             if (ACTION_SNOOZE.equals(intent.getAction())) {
                 AlarmActions.handle(context, alarm, AlarmActions.SNOOZE, intent.getIntExtra(EXTRA_MINUTES, 10));
+            } else if (ACTION_NOT_DONE.equals(intent.getAction())) {
+                AlarmActions.handle(context, alarm, AlarmActions.NOT_DONE, 0);
             } else {
                 AlarmActions.handle(context, alarm, AlarmActions.DONE, 0);
             }

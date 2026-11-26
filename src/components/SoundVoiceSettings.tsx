@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Check, Play, Volume2, Mic, BellOff } from 'lucide-react';
+import { Check, Play, Volume2, Mic, BellOff, Minus, Plus, Timer, BellRing } from 'lucide-react';
+import { ALERT_MODES, AlertMode, BEEP_MAX, DURATION_OPTIONS, VOICE_REPEAT_MAX, alertModeOf, alertStyleFrom, beepsOf, durationOf, voiceRepeatsOf } from '../utils/alertStyle';
 import { MUTE_OPTIONS, muteLabel, muteUntilFor, useMuted } from '../utils/alarmMute';
 import { useApp } from '../context/AppContext';
 import {
   ALARM_SOUNDS,
-  ALERT_REPEATS,
   AlarmSoundId,
   VOICE_PITCHES,
   VOICE_RATES,
@@ -14,6 +14,7 @@ import {
   speakText
 } from '../utils/alarmSounds';
 import { isNativeAlarmAvailable, nativeAlarm, NativeVoice } from '../services/nativeAlarm';
+import { NativeAlarmSetupCard } from './NativeAlarmSync';
 
 interface VoiceOption {
   id: string;
@@ -23,7 +24,20 @@ interface VoiceOption {
 
 /** Configurações > Sons e voz: escolher, ouvir e salvar o som do alarme e a voz dos lembretes. */
 export const SoundVoiceSettings: React.FC<{ onSaved?: (msg: string) => void }> = ({ onSaved }) => {
-  const { notificationPreferences: prefs, updateNotificationPreferences } = useApp();
+  const {
+    notificationPreferences: prefs,
+    updateNotificationPreferences,
+    dailyChronologicalSteps,
+    personalRoutines,
+    updateDailyChronologicalStep,
+    updatePersonalRoutine,
+    triggerAlarm
+  } = useApp();
+  const mode = alertModeOf(prefs);
+  const beeps = beepsOf(prefs);
+  const voiceTimes = voiceRepeatsOf(prefs);
+  const duration = durationOf(prefs);
+  const ownSound = [...dailyChronologicalSteps.filter((x) => x.sound), ...personalRoutines.filter((x) => x.sound)];
   const native = isNativeAlarmAvailable();
   const [voices, setVoices] = useState<VoiceOption[] | null>(null);
   const [voiceNote, setVoiceNote] = useState('');
@@ -72,9 +86,64 @@ export const SoundVoiceSettings: React.FC<{ onSaved?: (msg: string) => void }> =
   };
 
   const chooseSound = (id: AlarmSoundId) => {
-    updateNotificationPreferences({ alarmSound: id });
+    // "Só a voz" na lista de sons = tipo de aviso "Só voz"
+    updateNotificationPreferences(id === 'nenhum' ? { alarmSound: id, alertMode: 'voz', voiceAlerts: true } : { alarmSound: id, ...(mode === 'voz' ? { alertMode: 'ambos' as const } : {}) });
     onSaved?.('✓ Som do alarme salvo');
   };
+
+  const chooseMode = (m: AlertMode) => {
+    const updates: Record<string, any> = { alertMode: m, voiceAlerts: m !== 'alarme' };
+    if (m !== 'voz' && sound === 'nenhum') updates.alarmSound = 'padrao';
+    updateNotificationPreferences(updates);
+    onSaved?.(`✓ Aviso: ${ALERT_MODES.find((x) => x.id === m)?.label}`);
+  };
+
+  /** Teste com tudo que está escolhido agora (som, toques, voz, repetições e duração). */
+  const testNow = () => {
+    flash('teste', 6000);
+    if (native) {
+      nativeAlarm
+        .testAlarm(5, {
+          sound: sound,
+          voice: prefs.nativeVoiceName || '',
+          rate,
+          pitch,
+          repeats: beeps,
+          ...alertStyleFrom(prefs),
+          spoken: mode === 'alarme' ? '' : 'Este é um teste do alarme do Rotina ponto A I.'
+        })
+        .then(() => onSaved?.('Alarme de teste em 5 segundos. Pode bloquear a tela.'))
+        .catch(() => onSaved?.('Para testar, instale a versão mais recente do app Android.'));
+      return;
+    }
+    triggerAlarm({ id: 'teste', key: `teste:${Date.now()}`, type: 'rotina', title: 'Alarme de teste', time: new Date().toTimeString().slice(0, 5), spoken: 'Este é um teste do alarme do Rotina ponto A I.' });
+  };
+
+  const stepper = (value: number, min: number, max: number, onChange: (v: number) => void, unit: [string, string], label: string) => (
+    <div className="flex items-center gap-3">
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(min, value - 1))}
+        disabled={value <= min}
+        className="w-11 h-11 rounded-full bg-white border border-[#EFE8DE] text-[#4A3E34] flex items-center justify-center disabled:opacity-40"
+        aria-label={`Menos ${label}`}
+      >
+        <Minus className="w-4 h-4" />
+      </button>
+      <span className="flex-1 text-center text-sm font-bold text-[#2C2C2C] tabular-nums" aria-live="polite">
+        {value} {value === 1 ? unit[0] : unit[1]}
+      </span>
+      <button
+        type="button"
+        onClick={() => onChange(Math.min(max, value + 1))}
+        disabled={value >= max}
+        className="w-11 h-11 rounded-full bg-white border border-[#EFE8DE] text-[#4A3E34] flex items-center justify-center disabled:opacity-40"
+        aria-label={`Mais ${label}`}
+      >
+        <Plus className="w-4 h-4" />
+      </button>
+    </div>
+  );
 
   const chooseVoice = (id: string) => {
     updateNotificationPreferences(native ? { nativeVoiceName: id } : { voiceName: id });
@@ -93,6 +162,8 @@ export const SoundVoiceSettings: React.FC<{ onSaved?: (msg: string) => void }> =
 
   return (
     <div className="space-y-4">
+      {native && <NativeAlarmSetupCard alwaysShow />}
+
       {/* Silenciar alarmes */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
@@ -134,13 +205,107 @@ export const SoundVoiceSettings: React.FC<{ onSaved?: (msg: string) => void }> =
         )}
       </div>
 
+      {/* Como o aviso toca: tipo, duração e teste */}
+      <div className="space-y-3 pt-3 border-t border-[#EFE8DE]/60">
+        <div className="flex items-center gap-2">
+          <BellRing className="w-4 h-4 text-[#8C7A6B] shrink-0" />
+          <h3 className="text-xs font-bold text-[#4A3E34]">Tipo de aviso</h3>
+        </div>
+        <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="Tipo de aviso">
+          {ALERT_MODES.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              role="radio"
+              aria-checked={mode === m.id}
+              onClick={() => chooseMode(m.id)}
+              className={`min-h-11 px-1.5 py-2 rounded-xl text-xs font-bold border leading-tight ${
+                mode === m.id ? 'bg-[#8C7A6B] border-[#8C7A6B] text-white' : 'bg-white border-[#EFE8DE] text-[#4A3E34]'
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-[11px] text-[#8C7A6B] leading-snug">{ALERT_MODES.find((m) => m.id === mode)?.hint}. Vale para todos os avisos.</p>
+
+        {mode !== 'voz' && (
+          <div className="space-y-1.5">
+            <span className="block text-[11px] font-bold text-[#5C4F44]">Quantidade de toques (bipes) em cada rodada</span>
+            {stepper(
+              beeps || 3,
+              1,
+              BEEP_MAX,
+              (v) => {
+                updateNotificationPreferences({ alarmRepeats: v });
+                flash(`som:${sound}`, 3500);
+                if (sound !== 'nenhum') previewAlarmSound(sound, v).catch(() => undefined);
+              },
+              ['toque', 'toques'],
+              'toques'
+            )}
+            {!beeps && <p className="text-[10px] text-[#8C7A6B] leading-snug">Ainda no padrão do som. Use − e + para escolher.</p>}
+          </div>
+        )}
+
+        {mode !== 'alarme' && (
+          <div className="space-y-1.5">
+            <span className="block text-[11px] font-bold text-[#5C4F44]">Quantas vezes a voz fala em cada rodada</span>
+            {stepper(voiceTimes, 1, VOICE_REPEAT_MAX, (v) => updateNotificationPreferences({ voiceRepeats: v }), ['vez', 'vezes'], 'repetições da voz')}
+          </div>
+        )}
+
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5">
+            <Timer className="w-3.5 h-3.5 text-[#8C7A6B]" />
+            <span className="text-[11px] font-bold text-[#5C4F44]">Por quanto tempo o aviso toca</span>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="Duração do aviso">
+            {DURATION_OPTIONS.map((o) => (
+              <button
+                key={o.value}
+                type="button"
+                role="radio"
+                aria-checked={duration === o.value}
+                onClick={() => {
+                  updateNotificationPreferences({ alarmDurationSec: o.value });
+                  onSaved?.(`✓ Duração: ${o.label}`);
+                }}
+                className={`min-h-10 px-2 py-2 rounded-xl text-xs font-bold border leading-tight ${
+                  duration === o.value ? 'bg-[#8C7A6B] border-[#8C7A6B] text-white' : 'bg-white border-[#EFE8DE] text-[#4A3E34]'
+                } ${o.value === -1 ? 'col-span-2' : ''}`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-[#8C7A6B] leading-snug">
+            {duration === -1
+              ? 'Continua tocando e falando até você responder (Já fiz, Não fiz, Adiar ou Silenciar).'
+              : duration === -2
+                ? 'Toca uma rodada (toques + voz) e para. O lembrete fica pendente na barra de notificações.'
+                : duration === 0
+                  ? 'Como sempre foi: no celular repete por 10 minutos e depois adia sozinho por 10 minutos.'
+                  : 'Repete as rodadas durante esse tempo e para sozinho. O lembrete fica pendente na barra de notificações (nada é marcado como feito).'}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={testNow}
+          className="w-full h-11 rounded-xl bg-[#F4EDE2] hover:bg-[#EAE0D2] text-[#4A3E34] text-xs font-bold inline-flex items-center justify-center gap-1.5"
+        >
+          <Play className="w-3.5 h-3.5" /> {playing === 'teste' ? (native ? 'Alarme em 5 segundos…' : 'Testando…') : 'Testar o aviso completo'}
+        </button>
+      </div>
+
       {/* Som do alarme */}
       <div className="space-y-2 pt-3 border-t border-[#EFE8DE]/60">
         <div className="flex items-center gap-2">
           <Volume2 className="w-4 h-4 text-[#8C7A6B] shrink-0" />
           <h3 className="text-xs font-bold text-[#4A3E34]">Som do alarme</h3>
         </div>
-        <p className="text-[11px] text-[#8C7A6B] leading-snug">Toque em “Ouvir” para escutar e no nome para escolher.</p>
+        <p className="text-[11px] text-[#8C7A6B] leading-snug">Toque em “Ouvir” para escutar e no nome para escolher. O som escolhido vale para os próximos avisos.</p>
         <div className="space-y-1.5">
           {ALARM_SOUNDS.map((s) => {
             const isSel = sound === s.id;
@@ -178,7 +343,7 @@ export const SoundVoiceSettings: React.FC<{ onSaved?: (msg: string) => void }> =
                   disabled={unavailable}
                   onClick={() => {
                     flash(`som:${s.id}`, 3500);
-                    previewAlarmSound(s.id, prefs.alarmRepeats || 0).catch(() => undefined);
+                    previewAlarmSound(s.id, beeps).catch(() => undefined);
                   }}
                   className="shrink-0 inline-flex items-center gap-1 text-[11px] font-bold text-[#5C4F44] bg-[#F4EDE2] hover:bg-[#EAE0D2] px-3 py-2 rounded-xl"
                   aria-label={`Ouvir ${s.label}`}
@@ -192,29 +357,22 @@ export const SoundVoiceSettings: React.FC<{ onSaved?: (msg: string) => void }> =
         </div>
       </div>
 
-      {/* Quantas vezes o som toca antes da voz */}
-      {sound !== 'nenhum' && (
-        <div className="space-y-1.5">
-          <span className="text-[11px] font-bold text-[#5C4F44]">Quantas vezes o som toca antes da voz</span>
-          <div className="grid grid-cols-4 gap-1.5">
-            {ALERT_REPEATS.map((o) => (
-              <button
-                key={o.value}
-                type="button"
-                onClick={() => {
-                  updateNotificationPreferences({ alarmRepeats: o.value });
-                  flash(`som:${sound}`, 3500);
-                  previewAlarmSound(sound, o.value).catch(() => undefined);
-                }}
-                className={`py-2 rounded-xl text-xs font-bold border ${
-                  (prefs.alarmRepeats || 0) === o.value ? 'bg-[#8C7A6B] border-[#8C7A6B] text-white' : 'bg-white border-[#EFE8DE] text-[#4A3E34]'
-                }`}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
-          <p className="text-[10px] text-[#8C7A6B] leading-snug">“Padrão” mantém como sempre foi. Para a voz falar direto, escolha “Só a voz” acima.</p>
+      {ownSound.length > 0 && (
+        <div className="rounded-2xl border border-[#ECE3D5] bg-[#F7F2EA] p-3 space-y-2">
+          <p className="text-[11px] text-[#5C4F44] leading-snug">
+            {ownSound.length === 1 ? '1 rotina tem um som próprio' : `${ownSound.length} rotinas têm um som próprio`} e não muda{ownSound.length === 1 ? '' : 'm'} quando você troca o som aqui.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              dailyChronologicalSteps.filter((x) => x.sound).forEach((x) => updateDailyChronologicalStep(x.id, { sound: undefined }));
+              personalRoutines.filter((x) => x.sound).forEach((x) => updatePersonalRoutine(x.id, { sound: undefined }));
+              onSaved?.('✓ Todas as rotinas usam o som escolhido aqui');
+            }}
+            className="w-full h-10 rounded-xl bg-white border border-[#EFE8DE] text-[#4A3E34] text-xs font-bold"
+          >
+            Usar este som em todas
+          </button>
         </div>
       )}
 

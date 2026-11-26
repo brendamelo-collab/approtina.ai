@@ -82,13 +82,21 @@ final class VoiceTools {
     static void apply(TextToSpeech tts, String voiceName, float rate, float pitch) {
         if (tts == null) return;
         try {
+            boolean applied = false;
             if (voiceName != null && !voiceName.isEmpty() && Build.VERSION.SDK_INT >= 21) {
                 for (Voice v : portugueseVoices(tts)) {
                     if (voiceName.equals(v.getName())) {
-                        tts.setVoice(v);
+                        applied = tts.setVoice(v) == TextToSpeech.SUCCESS;
                         break;
                     }
                 }
+            }
+            if (!applied) {
+                // "Padrão do celular" (or the chosen voice was removed): go back to the default
+                // Portuguese voice, so a voice chosen before does not stay stuck
+                Voice def = Build.VERSION.SDK_INT >= 21 ? tts.getDefaultVoice() : null;
+                if (def != null && def.getLocale() != null && "pt".equals(def.getLocale().getLanguage())) tts.setVoice(def);
+                else tts.setLanguage(new Locale("pt", "BR"));
             }
             tts.setSpeechRate(rate > 0 ? rate : 0.95f);
             tts.setPitch(pitch > 0 ? pitch : 1.0f);

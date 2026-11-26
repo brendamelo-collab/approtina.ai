@@ -100,7 +100,7 @@ export function playWebSound(id: string): number {
 /** Toca o som `repeats` vezes seguidas (0 = uma vez). Retorna quando termina (ms). */
 export function playWebSoundTimes(id: string, repeats = 0): number {
   if (id === 'nenhum') return 0;
-  const times = Math.max(1, Math.min(6, repeats || 1));
+  const times = Math.max(1, Math.min(20, repeats || 1));
   let total = 0;
   for (let i = 0; i < times; i++) {
     const at = total;

@@ -1,3 +1,4 @@
+import { displayEmoji } from '../../utils/emoji';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { todayISO, toISODate, shiftISODate, parseISODate, MONTH_NAMES } from '../../utils/dateUtils';
@@ -148,7 +149,7 @@ export const AgendaView: React.FC = () => {
       .filter((p) => p.showOnCalendar && p.time && personalOccursOn(p, dayOfWeek))
       .map((p) => ({
         id: `pes-cal-${p.id}`,
-        title: `${p.icon || '✨'} ${p.title}${p.context ? ` ${p.context}` : ''}`,
+        title: `${displayEmoji(p.icon, '✨')} ${p.title}${p.context ? ` ${p.context}` : ''}`,
         date: dateStr,
         time: p.time || '',
         displayDay: daysOfWeekNames[dayOfWeek],
@@ -156,7 +157,7 @@ export const AgendaView: React.FC = () => {
         recurrenceLabel: `Rotina pessoal · ${profileName(profiles, p.profileId)}`,
         completed: dateStr === todayISO() && !!p.completedOn,
         category: 'rotina',
-        icon: p.icon || '✨'
+        icon: displayEmoji(p.icon, '✨')
       }));
     return [...directEvents, ...recurringEvents, ...personalEvents];
   };

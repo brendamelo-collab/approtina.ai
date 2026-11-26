@@ -34,6 +34,7 @@ import { buildPeriod, bucketsFor, countAnswers, factorReport, moodReport } from 
 import { BarSeries, EmptyState, ProgressRow } from '../reports/ReportCharts';
 import { QuestionEditorModal } from '../QuestionEditorModal';
 import { PageHeader, PeachButton, PillTabs, RoundButton } from '../ui/Kit';
+import { cleanEmojiInput, iconPrefix } from '../../utils/emoji';
 
 const FACTOR_EMOJIS = ['😴', '🔋', '👶', '💸', '⏳', '⚡', '🤕', '🌿', '☀️', '🤝', '🥗', '😰', '🎉', '🏠', '🚗', '💼', '🌧️', '❤️', '📚', '🙏'];
 
@@ -130,7 +131,7 @@ export const MeuMapaView: React.FC = () => {
       selectedFactorsForDay
         .map((x) => availableFactors.find((f) => f.id === x || f.label === x))
         .filter((f): f is NonNullable<typeof f> => !!f)
-        .map((f) => `${f.icon ? `${f.icon} ` : ''}${f.label}`)
+        .map((f) => `${iconPrefix(f.icon)}${f.label}`)
     )
   );
 
@@ -179,7 +180,7 @@ export const MeuMapaView: React.FC = () => {
   const handleCreateFactor = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFactorName.trim()) return;
-    const id = addCustomFactor(newFactorName.trim(), newFactorIcon.trim() || '✨');
+    const id = addCustomFactor(newFactorName.trim(), cleanEmojiInput(newFactorIcon) || '✨');
     toggleDayFactor(selectedDate, id);
     setNewFactorName('');
     setNewFactorIcon('✨');
@@ -197,7 +198,7 @@ export const MeuMapaView: React.FC = () => {
   const handleSaveFactor = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingFactorId || !editFactorLabel.trim()) return;
-    updateCustomFactor(editingFactorId, editFactorLabel.trim(), editFactorIcon.trim() || '✨');
+    updateCustomFactor(editingFactorId, editFactorLabel.trim(), cleanEmojiInput(editFactorIcon) || '✨');
     setEditingFactorId(null);
   };
 
@@ -955,7 +956,7 @@ export const MeuMapaView: React.FC = () => {
                 .map((r) => (
                   <ProgressRow
                     key={r.factor.id}
-                    label={`${r.factor.icon ? `${r.factor.icon} ` : ''}${r.factor.label}`}
+                    label={`${iconPrefix(r.factor.icon)}${r.factor.label}`}
                     value={r.pctDays}
                     tone="gold"
                     detail={`${r.days} de ${monthFactors.daysMarked} dias com fatores marcados`}

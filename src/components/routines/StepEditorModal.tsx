@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { DailyChronologicalStep, PeriodKey } from '../../types';
 import { spokenForStep } from '../../utils/routineSchedule';
 import { DayPicker, Field, Sheet, SoundSelect, SpokenField, ToggleRow, inputCls } from './RoutineFormParts';
+import { cleanEmojiInput, displayEmoji } from '../../utils/emoji';
 
 const periodFor = (time: string): PeriodKey => {
   const h = Number(time.split(':')[0]);
@@ -30,7 +31,7 @@ export const StepEditorModal: React.FC<{ step?: DailyChronologicalStep; onClose:
     if (!t) return;
     const data = {
       title: t,
-      icon: icon.trim() || '✨',
+      icon: cleanEmojiInput(icon) || '✨',
       time,
       period: periodFor(time),
       daysOfWeek: days,
@@ -52,7 +53,7 @@ export const StepEditorModal: React.FC<{ step?: DailyChronologicalStep; onClose:
     <Sheet title={step ? 'Editar rotina' : 'Nova etapa da rotina diária'} subtitle={step ? 'As alterações valem para os próximos lembretes; o histórico continua.' : undefined} onClose={() => onClose()}>
       <div className="grid grid-cols-[4.5rem_1fr] gap-2">
         <Field label="Emoji">
-          <input value={icon} onChange={(e) => setIcon(e.target.value)} maxLength={4} className={`${inputCls} text-center text-xl`} aria-label="Emoji" />
+          <input value={icon} onChange={(e) => setIcon(e.target.value)} onBlur={() => setIcon(displayEmoji(icon, '✨'))} className={`${inputCls} text-center text-xl`} aria-label="Emoji" />
         </Field>
         <Field label="Nome da rotina">
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Beber água" className={inputCls} />
