@@ -81,6 +81,8 @@ public class RotinaAlarmPlugin extends Plugin {
         ret.put("signature", AppUpdater.signatureSha256(getContext()));
         ret.put("canInstall", AppUpdater.canInstall(getContext()));
         ret.put("updater", 1);
+        // 3 = tipo de aviso, toques, voz, duração, "Não fiz", aviso em pop-up com o celular em uso
+        ret.put("alarmFeatures", 3);
         call.resolve(ret);
     }
 

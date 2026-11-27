@@ -1,3 +1,4 @@
+import { NativeOutdatedNotice } from './NativeOutdatedNotice';
 import React, { useState } from 'react';
 import { BellOff, Check, Clock, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -60,6 +61,8 @@ export const SilenceRoutinesSheet: React.FC<{ onClose: (msg?: string) => void }>
             <X className="w-4 h-4" />
           </button>
         </div>
+
+        <NativeOutdatedNotice />
 
         {muted && (
           <button
