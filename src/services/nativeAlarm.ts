@@ -117,6 +117,7 @@ export interface NativeAppInfo {
   signature: string; // SHA-256 do certificado (AA:BB:...)
   canInstall: boolean;
   updater: number;
+  alarmFeatures?: number; // 3 = tipo de aviso, toques, voz, duração, "Não fiz" e pop-up com o celular em uso
 }
 
 /** android-version.json publicado junto com cada APK novo. */

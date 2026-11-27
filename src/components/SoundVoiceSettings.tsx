@@ -15,6 +15,7 @@ import {
 } from '../utils/alarmSounds';
 import { isNativeAlarmAvailable, nativeAlarm, NativeVoice } from '../services/nativeAlarm';
 import { NativeAlarmSetupCard } from './NativeAlarmSync';
+import { NativeOutdatedNotice } from './NativeOutdatedNotice';
 
 interface VoiceOption {
   id: string;
@@ -162,6 +163,7 @@ export const SoundVoiceSettings: React.FC<{ onSaved?: (msg: string) => void }> =
 
   return (
     <div className="space-y-4">
+      {native && <NativeOutdatedNotice />}
       {native && <NativeAlarmSetupCard alwaysShow />}
 
       {/* Silenciar alarmes */}

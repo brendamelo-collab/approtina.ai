@@ -70,6 +70,8 @@ public class AlarmService extends Service {
     private PowerManager.WakeLock wakeLock;
     private long ringStartedAt;
     private int cycleId = 0;
+    /** The current alert is a pop-up (phone in use) instead of the full alarm screen. */
+    private boolean popMode = false;
     /** Cameras in use right now (filled by the availability callback). */
     private final Set<String> camerasInUse = new HashSet<>();
     private CameraManager.AvailabilityCallback cameraCallback;
@@ -215,8 +217,17 @@ public class AlarmService extends Service {
             }
             return;
         }
-        startInForeground(current, true);
-        openFullScreen(current);
+        if (isPhoneInUse()) {
+            // Phone unlocked and in use: a pop-up at the top (heads-up) with sound and voice,
+            // never the full alarm screen on top of what the person is doing
+            popMode = true;
+            startInForeground(current, false, true);
+        } else {
+            // Locked or screen off: the full alarm screen, as before
+            popMode = false;
+            startInForeground(current, true);
+            openFullScreen(current);
+        }
         acquireWakeLock();
         ringStartedAt = System.currentTimeMillis();
         cycleId++;
@@ -224,11 +235,15 @@ public class AlarmService extends Service {
     }
 
     private void startInForeground(JSONObject alarm) {
-        startInForeground(alarm, true);
+        startInForeground(alarm, !popMode, popMode);
     }
 
     private void startInForeground(JSONObject alarm, boolean fullScreen) {
-        Notification n = buildNotification(alarm, fullScreen);
+        startInForeground(alarm, fullScreen, false);
+    }
+
+    private void startInForeground(JSONObject alarm, boolean fullScreen, boolean popUp) {
+        Notification n = buildNotification(alarm, fullScreen, popUp);
         if (Build.VERSION.SDK_INT >= 29) {
             startForeground(NOTIFICATION_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
         } else {
@@ -236,7 +251,7 @@ public class AlarmService extends Service {
         }
     }
 
-    private Notification buildNotification(JSONObject alarm, boolean fullScreen) {
+    private Notification buildNotification(JSONObject alarm, boolean fullScreen, boolean popUp) {
         int piFlags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0);
         Intent full = new Intent(this, AlarmActivity.class);
         full.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_USER_ACTION);
@@ -258,7 +273,11 @@ public class AlarmService extends Service {
                 .addAction(0, "✕ Não fiz", ActionReceiver.pending(this, alarm, ActionReceiver.ACTION_NOT_DONE, 0, 13))
                 .addAction(0, "🔕 Silenciar", silencePending());
         if (fullScreen) b.setFullScreenIntent(fullPi, true);
-        else b.setSilent(true).setPriority(NotificationCompat.PRIORITY_LOW);
+        else if (popUp) {
+            // Heads-up: shows at the top over the app in use; tapping it opens the alarm screen
+            b.setPriority(NotificationCompat.PRIORITY_MAX).setOnlyAlertOnce(true).setContentTitle((time.isEmpty() ? "" : time + " • ") + title)
+                    .setContentText(alarm.optString("heading", "Rotina.ai"));
+        } else b.setSilent(true).setPriority(NotificationCompat.PRIORITY_LOW);
         return b.build();
     }
 
@@ -297,6 +316,11 @@ public class AlarmService extends Service {
     /** One cycle = a burst of beeps + vibration, then the spoken reminder; repeats. */
     private void runCycle(final int id) {
         if (id != cycleId || current == null) return;
+        if (isPhoneBusy()) {
+            // Started a call, the camera or a recording while it was ringing: go quiet right away
+            becomeDiscreet();
+            return;
+        }
         long limit = durationMsOf(current);
         if (limit > 0 && System.currentTimeMillis() - ringStartedAt > limit) {
             if (current.optInt("durationSec", 0) != 0) {
@@ -331,7 +355,7 @@ public class AlarmService extends Service {
                 } catch (Exception ignored) {
                 }
             }
-            soundMs = 5000;
+            soundMs = repeats > 0 ? repeats * 2500L : 5000L; // each "toque" ≈ 2.5 s of the ringtone
             handler.postDelayed(() -> {
                 if (id == cycleId) stopPhoneRingtone();
             }, soundMs);
@@ -374,6 +398,34 @@ public class AlarmService extends Service {
             return;
         }
         runCycle(id);
+    }
+
+    /** Stops sound and voice and leaves only the silent pop-up with the buttons. */
+    private void becomeDiscreet() {
+        JSONObject alarm = current;
+        if (alarm == null) return;
+        stopRinging();
+        AlarmActivity.closeIfOpen(this);
+        MuteManager.showDiscreetReminder(this, alarm);
+        current = null;
+        if (!queue.isEmpty()) ringNext();
+        else {
+            stopForegroundCompat();
+            stopSelf();
+        }
+    }
+
+    /** Screen on and unlocked: the person is using the phone. */
+    private boolean isPhoneInUse() {
+        try {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            android.app.KeyguardManager km = (android.app.KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+            boolean screenOn = pm != null && (Build.VERSION.SDK_INT >= 20 ? pm.isInteractive() : pm.isScreenOn());
+            boolean locked = km != null && km.isKeyguardLocked();
+            return screenOn && !locked;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /** Chosen time is over: stop sound and voice; the reminder stays pending (never marked as done). */
@@ -431,12 +483,12 @@ public class AlarmService extends Service {
                 if (Build.VERSION.SDK_INT >= 24) {
                     // Someone recording (voice memo, video): ignores the assistant's "Ok Google" listening
                     for (android.media.AudioRecordingConfiguration rc : am.getActiveRecordingConfigurations()) {
+                        // Any recording (voice message, video, call, dictation) except the assistant's
+                        // always-on "Ok Google" listening (HOTWORD = 1999)
+                        // (6 = voice assistants/dictation hotword listening is ignored too, so an always-on
+                        // assistant does not make every alarm silent)
                         int src = rc.getClientAudioSource();
-                        if (src == android.media.MediaRecorder.AudioSource.MIC || src == android.media.MediaRecorder.AudioSource.CAMCORDER
-                                || src == android.media.MediaRecorder.AudioSource.VOICE_COMMUNICATION || src == android.media.MediaRecorder.AudioSource.DEFAULT
-                                || src == android.media.MediaRecorder.AudioSource.UNPROCESSED) {
-                            return true;
-                        }
+                        if (src != 1999 && src != android.media.MediaRecorder.AudioSource.VOICE_RECOGNITION) return true;
                     }
                 }
             }
